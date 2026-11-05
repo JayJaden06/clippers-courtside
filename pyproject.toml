@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "leadcollapse"
+version = "0.1.0"
+description = "Why do the Clippers lose second-half leads? A play-by-play and lineup analysis, 2026-27 vs 2025-26."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Jaden Fong" }]
+dependencies = [
+    "nba_api>=1.12",
+    "pandas>=2.2",
+    "pyarrow>=15",
+    "pydantic>=2",
+    "pydantic-settings>=2",
+    "matplotlib>=3.8",
+    "plotly>=5",
+    "typer>=0.12",
+    "rich>=13",
+    "tenacity>=8",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+dashboard = ["streamlit>=1.35"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/leadcollapse"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The repo lives under OneDrive, which denies writes to .pytest_cache.
+addopts = "-p no:cacheprovider"
