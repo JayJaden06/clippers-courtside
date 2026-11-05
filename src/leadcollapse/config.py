@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     request_timeout: int = 60
     request_sleep_seconds: float = 0.6
     max_retries: int = 5
+    retry_backoff_seconds: float = 2.0  # first retry wait; doubles each attempt, capped at 60s
 
     # Paths
     data_dir: Path = PROJECT_ROOT / "data"
