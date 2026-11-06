@@ -139,3 +139,51 @@ def test_points_must_match_makes():
     assert TraditionalStats.model_validate(stats).pts == 11
     with pytest.raises(ValidationError, match="points"):
         TraditionalStats.model_validate(stats | {"points": 12})
+
+
+def _bump(df: pd.DataFrame, split: str, stat: str, by: int) -> pd.DataFrame:
+    df = df.copy()
+    mask = (df["split"] == split) & (df["team_id"] == LAC)
+    df.loc[mask, stat] += by
+    return df
+
+
+def test_small_stat_correction_is_reported_not_raised(raw):
+    # Real case: 0022500243, the full-game box had one more DREB than its halves.
+    gaps = check_split_totals(_bump(team_frame(raw), "FULL", "dreb", 1))
+
+    assert len(gaps) == 1
+    assert gaps.iloc[0][["stat", "parts_minus_whole"]].tolist() == ["dreb", -1]
+    assert check_split_totals(team_frame(raw)).empty
+
+
+@pytest.mark.parametrize("stat, by", [("pts", 1), ("dreb", 3), ("tov", -5)])
+def test_points_gap_or_large_gap_still_raises(raw, stat, by):
+    with pytest.raises(ValueError, match="!= FULL"):
+        check_split_totals(_bump(team_frame(raw), "FULL", stat, by))
+
+
+def test_quarter_checks_skip_games_without_quarters(raw):
+    # FULL/H1/H2/OT only (like 2025-26): no quarter rows, so only the half check runs.
+    assert check_split_totals(team_frame(raw)).empty
+
+
+def test_missing_half_is_caught(raw):
+    with pytest.raises(ValueError, match="missing"):
+        check_split_totals(team_frame(raw, splits=("FULL", "H1", "OT")))
+
+
+def test_quarter_mismatch_is_caught_when_quarters_exist(raw):
+    df = team_frame(raw)
+    h1 = df[df["split"] == "H1"]
+    zero_q = h1.assign(**{c: 0 for c in ["fgm", "fga", "fg3m", "fg3a", "ftm", "fta", "oreb", "dreb",
+                                          "ast", "stl", "blk", "tov", "pf", "pts"]})
+    h2 = df[df["split"] == "H2"]
+    good = pd.concat([df, h1.assign(split="Q1"), zero_q.assign(split="Q2"),
+                      h2.assign(split="Q3"), zero_q.assign(split="Q4")])
+    assert check_split_totals(good).empty
+
+    doubled = pd.concat([df, h1.assign(split="Q1"), h1.assign(split="Q2"),
+                         h2.assign(split="Q3"), zero_q.assign(split="Q4")])
+    with pytest.raises(ValueError, match="Q1 \+ Q2 != H1"):
+        check_split_totals(doubled)

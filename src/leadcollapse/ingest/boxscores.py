@@ -132,28 +132,63 @@ def load_boxscores(
     return team_box, player_box
 
 
-def check_split_totals(team_box: pd.DataFrame) -> None:
-    """Raise if H1 + H2 + OT != FULL, or Q1 + Q2 != H1, or Q3 + Q4 != H2, for any counting stat.
+MAX_STAT_CORRECTION = 2  # largest per-stat gap accepted as an official-scorer correction
 
-    This is what catches a period filter that the API silently ignored.
+
+def check_split_totals(team_box: pd.DataFrame) -> pd.DataFrame:
+    """Check that H1 + H2 + OT == FULL, and Q1 + Q2 == H1 and Q3 + Q4 == H2 where quarters exist.
+
+    This is what catches a period filter that the API silently ignored (the
+    "half" then equals the full game, so the gap is tens of points).
+
+    The NBA occasionally applies a stat correction to the full-game box but not
+    to the period splits (seen: one defensive rebound in 0022500243). So:
+
+    - raises if a split is missing, points differ at all, or any counting stat
+      differs by more than ``MAX_STAT_CORRECTION``;
+    - otherwise returns the small gaps as a tidy frame (empty if none) so they
+      can be written out and disclosed rather than silently absorbed.
     """
     idx = ["game_id", "team_id"]
     by_split = {s: g.set_index(idx)[COUNTING_STATS] for s, g in team_box.groupby("split")}
+    full = by_split["FULL"]
+    zeros = pd.DataFrame(0, index=full.index, columns=COUNTING_STATS)
 
-    def total(*names: str) -> pd.DataFrame:
-        frames = [by_split[n] for n in names if n in by_split]
-        return pd.concat(frames).groupby(level=idx).sum()
+    def total(names: tuple[str, ...], index: pd.Index) -> pd.DataFrame:
+        # A split that is absent for a game counts as zero (e.g. OT in a regulation game).
+        frames = [by_split[n].reindex(index).fillna(0) for n in names if n in by_split]
+        return sum(frames[1:], frames[0]) if frames else zeros.reindex(index)
 
     checks = [("FULL", ("H1", "H2", "OT"))]
     if "Q1" in by_split:
         checks += [("H1", ("Q1", "Q2")), ("H2", ("Q3", "Q4"))]
+
+    gaps = []
     for whole, parts in checks:
-        expected = by_split[whole].sort_index()
-        got = total(*parts).reindex(expected.index)
-        diff = (got - expected).abs().sum(axis=1)
-        bad = diff[diff > 0]
-        if not bad.empty:
-            raise ValueError(f"{' + '.join(parts)} != {whole} for {list(bad.index)}")
+        expected = by_split.get(whole)
+        if expected is None:
+            raise ValueError(f"no {whole} rows to check")
+        if whole != "FULL":
+            # only games that were pulled with quarter splits
+            expected = expected[expected.index.isin(by_split["Q1"].index)]
+        missing = [n for n in parts if n in ("H1", "H2", "Q1", "Q2", "Q3", "Q4")
+                   and (n not in by_split or not expected.index.isin(by_split[n].index).all())]
+        if missing:
+            raise ValueError(f"{whole} check: split(s) {missing} missing for some games")
+
+        diff = total(parts, expected.index) - expected
+        if (diff["pts"] != 0).any() or (diff.abs() > MAX_STAT_CORRECTION).any(axis=None):
+            bad = diff[(diff["pts"] != 0) | (diff.abs() > MAX_STAT_CORRECTION).any(axis=1)]
+            raise ValueError(f"{' + '.join(parts)} != {whole} for {list(bad.index)}:\n{bad}")
+
+        small = diff.stack()
+        small = small[small != 0]
+        for (game_id, team_id, stat), gap in small.items():
+            gaps.append({"game_id": game_id, "team_id": team_id, "check": f"{'+'.join(parts)} vs {whole}",
+                         "stat": stat, "parts_minus_whole": int(gap)})
+            log.warning("stat correction: %s team %s %s %s off by %+d", game_id, team_id, whole, stat, int(gap))
+
+    return pd.DataFrame(gaps, columns=["game_id", "team_id", "check", "stat", "parts_minus_whole"])
 
 
 def write_boxscores(team_box: pd.DataFrame, player_box: pd.DataFrame, out_dir) -> None:

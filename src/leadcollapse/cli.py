@@ -58,7 +58,11 @@ def build(season: SeasonOpt = None) -> None:
     console.print(f"games: {len(df)} rows")
 
     team_box, player_box = boxscores.load_boxscores(client, df, settings.quarter_seasons)
-    boxscores.check_split_totals(team_box)
+    gaps = boxscores.check_split_totals(team_box)
     boxscores.write_boxscores(team_box, player_box, settings.processed_dir)
-    console.print(f"box scores: {len(team_box)} team rows, {len(player_box)} player rows (split totals OK)")
+    gaps.to_csv(settings.processed_dir / "split_discrepancies.csv", index=False)
+    console.print(
+        f"box scores: {len(team_box)} team rows, {len(player_box)} player rows; "
+        f"split totals OK ({len(gaps)} small stat corrections logged to split_discrepancies.csv)"
+    )
     console.print(f"wrote to {settings.processed_dir}")
