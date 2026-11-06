@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     current_season: str = "2026-27"
     comparison_season: str = "2025-26"
     season_type: str = "Regular Season"
+    # Seasons that also get per-quarter box scores; None means the current
+    # season only. The comparison season gets full game + halves (~500 calls
+    # instead of ~1,150).
+    quarter_seasons_override: list[str] | None = Field(default=None, alias="quarter_seasons")
 
     # Blown-lead classification: a lead of at least this many points in the
     # first `lead_window_minutes` minutes (or at halftime) counts as "built a lead".
@@ -45,6 +49,10 @@ class Settings(BaseSettings):
     @property
     def seasons(self) -> list[str]:
         return [self.current_season, self.comparison_season]
+
+    @property
+    def quarter_seasons(self) -> list[str]:
+        return self.quarter_seasons_override or [self.current_season]
 
     @property
     def raw_dir(self) -> Path:

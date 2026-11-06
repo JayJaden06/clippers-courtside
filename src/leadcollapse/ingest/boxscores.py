@@ -98,7 +98,7 @@ def parse_box(raw: dict, kind: str, split: str) -> tuple[list[dict], list[dict]]
 
 
 def load_boxscores(
-    client: NBAClient, games: pd.DataFrame, quarters: bool = True
+    client: NBAClient, games: pd.DataFrame, quarter_seasons: list[str] | None = None
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Team and player box scores (traditional + advanced merged) for every game and split.
 
@@ -106,10 +106,13 @@ def load_boxscores(
     one row per game x split x player. Split responses only list players who
     appeared in that split (the FULL box also lists DNPs), so a missing
     player-split row means zero minutes, not missing data.
+
+    ``quarter_seasons``: seasons that also get Q1-Q4; ``None`` means all seasons.
     """
     team_parts: dict[str, list] = {k: [] for k in ENDPOINTS}
     player_parts: dict[str, list] = {k: [] for k in ENDPOINTS}
     for game in games.itertuples():
+        quarters = quarter_seasons is None or game.season in quarter_seasons
         for split in splits_for(game.overtime_periods, quarters):
             for kind in ENDPOINTS:
                 teams, players = parse_box(fetch_box(client, kind, game.game_id, split), kind, split.name)
