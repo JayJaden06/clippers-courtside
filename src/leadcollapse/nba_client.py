@@ -179,12 +179,20 @@ class NBAClient:
         return attempt()
 
     # ------------------------------------------------------------------ public
-    def get(self, endpoint_cls: Callable[..., Any], **params: Any) -> dict[str, Any]:
-        """Return the raw JSON dict for an endpoint call, from cache when possible."""
+    def get(
+        self, endpoint_cls: Callable[..., Any], *, refresh: bool = False, **params: Any
+    ) -> dict[str, Any]:
+        """Return the raw JSON dict for an endpoint call, from cache when possible.
+
+        ``refresh=True`` re-downloads and overwrites the cached copy. Use it for
+        responses that change over time (the current season's game log); a
+        finished game's box score or play-by-play never needs it. Offline
+        clients ignore it and read the cache.
+        """
         name = endpoint_cls.__name__
         path = self.cache_path(name, params)
 
-        cached = self._read_cache(path)
+        cached = None if (refresh and not self.offline) else self._read_cache(path)
         if cached is not None:
             self.stats.hits += 1
             log.info("cache hit  %s %s", name, params)

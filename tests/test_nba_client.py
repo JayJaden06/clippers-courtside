@@ -126,6 +126,22 @@ def test_offline_mode_raises_on_miss_and_reads_hits(settings):
     assert len(endpoint.calls) == 1
 
 
+def test_refresh_refetches_and_overwrites_cache(client, settings):
+    newer = {"resultSets": [{"headers": ["GAME_ID"], "rowSet": [["0022600001"], ["0022600002"]]}]}
+    endpoint = make_endpoint([(200, BODY), (200, newer)])
+    client.get(endpoint, season="2026-27")
+
+    assert client.get(endpoint, season="2026-27", refresh=True) == newer
+    assert client.get(endpoint, season="2026-27") == newer  # cache now holds the newer copy
+    assert len(endpoint.calls) == 2
+    # The refresh flag is not an endpoint parameter and must not leak into it.
+    assert endpoint.calls[1]["params"] == {"season": "2026-27"}
+
+    offline = NBAClient(settings=settings, offline=True)
+    assert offline.get(endpoint, season="2026-27", refresh=True) == newer
+    assert len(endpoint.calls) == 2
+
+
 @pytest.mark.parametrize(
     "failure",
     [
