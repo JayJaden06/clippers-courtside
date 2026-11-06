@@ -23,6 +23,9 @@ dependencies = [
     "requests>=2.31",
 ]
 
+[project.scripts]
+leadcollapse = "leadcollapse.cli:app"
+
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 dashboard = ["streamlit>=1.35"]
