@@ -110,3 +110,70 @@ class Game(BaseModel):
             opp_pts=opponent.pts,
             overtime_periods=extra // OVERTIME_TEAM_MINUTES,
         )
+
+
+# --------------------------------------------------------------------------- box scores
+
+
+def parse_minutes(value: str | float | int | None) -> float:
+    """Box-score minutes: ``"36:42"`` -> 36.7; blank (DNP) -> 0.0."""
+    if value is None or value == "":
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    mins, _, secs = str(value).partition(":")
+    return int(mins) + (int(secs) if secs else 0) / 60
+
+
+class TraditionalStats(BaseModel):
+    """The ``statistics`` block of a ``BoxScoreTraditionalV3`` player or team."""
+
+    model_config = ConfigDict(extra="ignore", frozen=True)
+
+    minutes: float
+    fgm: int = Field(alias="fieldGoalsMade", ge=0)
+    fga: int = Field(alias="fieldGoalsAttempted", ge=0)
+    fg3m: int = Field(alias="threePointersMade", ge=0)
+    fg3a: int = Field(alias="threePointersAttempted", ge=0)
+    ftm: int = Field(alias="freeThrowsMade", ge=0)
+    fta: int = Field(alias="freeThrowsAttempted", ge=0)
+    oreb: int = Field(alias="reboundsOffensive", ge=0)
+    dreb: int = Field(alias="reboundsDefensive", ge=0)
+    ast: int = Field(alias="assists", ge=0)
+    stl: int = Field(alias="steals", ge=0)
+    blk: int = Field(alias="blocks", ge=0)
+    tov: int = Field(alias="turnovers", ge=0)
+    pf: int = Field(alias="foulsPersonal", ge=0)
+    pts: int = Field(alias="points", ge=0)
+    plus_minus: float = Field(alias="plusMinusPoints", default=0.0)
+
+    @field_validator("minutes", mode="before")
+    @classmethod
+    def _minutes(cls, v):
+        return parse_minutes(v)
+
+    @model_validator(mode="after")
+    def _consistent(self) -> TraditionalStats:
+        if self.fgm > self.fga or self.fg3m > self.fg3a or self.ftm > self.fta or self.fg3a > self.fga:
+            raise ValueError(f"makes exceed attempts: {self}")
+        if self.pts != 2 * self.fgm + self.fg3m + self.ftm:
+            raise ValueError(f"points {self.pts} != 2*FGM + 3PM + FTM")
+        return self
+
+
+class AdvancedStats(BaseModel):
+    """The ``statistics`` block of a ``BoxScoreAdvancedV3`` player or team (subset used here)."""
+
+    model_config = ConfigDict(extra="ignore", frozen=True)
+
+    off_rating: float = Field(alias="offensiveRating")
+    def_rating: float = Field(alias="defensiveRating")
+    net_rating: float = Field(alias="netRating")
+    efg_pct: float = Field(alias="effectiveFieldGoalPercentage")
+    ts_pct: float = Field(alias="trueShootingPercentage")
+    usg_pct: float = Field(alias="usagePercentage")
+    tov_ratio: float = Field(alias="turnoverRatio")
+    oreb_pct: float = Field(alias="offensiveReboundPercentage")
+    dreb_pct: float = Field(alias="defensiveReboundPercentage")
+    pace: float
+    possessions: float
