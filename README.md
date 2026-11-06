@@ -16,4 +16,6 @@ leadcollapse pull    # download + cache stats.nba.com data (the only networked s
 leadcollapse build   # build data/processed/ tables from the cache, offline
 ```
 
+The first `pull` makes about 610 API calls (about 10 minutes, throttled to stay polite to stats.nba.com); later pulls only fetch new games.
+
 All stats.nba.com responses are cached under `data/raw/` (gitignored), so each request is made once.
