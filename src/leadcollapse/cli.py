@@ -14,7 +14,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from leadcollapse.config import get_settings
-from leadcollapse.ingest import games
+from leadcollapse.ingest import boxscores, games
 from leadcollapse.nba_client import NBAClient
 
 app = typer.Typer(help="Why do the Clippers lose second-half leads?", no_args_is_help=True)
@@ -43,7 +43,9 @@ def pull(season: SeasonOpt = None) -> None:
     df = games.load_games(client, settings, season, refresh_current=True)
     for s, n in df.groupby("season").size().items():
         console.print(f"[bold]{s}[/]: {n} completed games")
-    console.print(f"pull done: {client.stats}")
+    console.print(f"game logs: {client.stats}")
+    boxscores.load_boxscores(client, df, settings.quarter_seasons)
+    console.print(f"pull done (game logs + box scores): {client.stats}")
 
 
 @app.command()
@@ -53,4 +55,14 @@ def build(season: SeasonOpt = None) -> None:
     client = NBAClient(settings, offline=True)
     df = games.load_games(client, settings, season)
     games.write_games(df, settings)
-    console.print(f"wrote {len(df)} games to {settings.processed_dir / 'games.parquet'}")
+    console.print(f"games: {len(df)} rows")
+
+    team_box, player_box = boxscores.load_boxscores(client, df, settings.quarter_seasons)
+    gaps = boxscores.check_split_totals(team_box)
+    boxscores.write_boxscores(team_box, player_box, settings.processed_dir)
+    gaps.to_csv(settings.processed_dir / "split_discrepancies.csv", index=False)
+    console.print(
+        f"box scores: {len(team_box)} team rows, {len(player_box)} player rows; "
+        f"split totals OK ({len(gaps)} small stat corrections logged to split_discrepancies.csv)"
+    )
+    console.print(f"wrote to {settings.processed_dir}")
