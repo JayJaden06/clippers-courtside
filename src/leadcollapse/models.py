@@ -8,6 +8,7 @@ the pipeline works in pandas.
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from typing import Literal
 
@@ -177,3 +178,65 @@ class AdvancedStats(BaseModel):
     dreb_pct: float = Field(alias="defensiveReboundPercentage")
     pace: float
     possessions: float
+
+
+# --------------------------------------------------------------------------- play-by-play
+
+REGULATION_PERIOD_SECONDS = 12 * 60
+OVERTIME_PERIOD_SECONDS = 5 * 60
+
+
+def parse_clock(value: str) -> float:
+    """ISO-8601 game clock ``"PT11M43.00S"`` -> seconds remaining in the period (703.0)."""
+    m = re.fullmatch(r"PT(\d+)M(\d+(?:\.\d+)?)S", value)
+    if not m:
+        raise ValueError(f"unrecognised clock {value!r}")
+    return int(m.group(1)) * 60 + float(m.group(2))
+
+
+def elapsed_seconds(period: int, clock_remaining: float) -> float:
+    """Seconds since tip-off. Regulation periods are 12 min, overtimes 5 min."""
+    if period <= 4:
+        return (period - 1) * REGULATION_PERIOD_SECONDS + REGULATION_PERIOD_SECONDS - clock_remaining
+    return 4 * REGULATION_PERIOD_SECONDS + (period - 5) * OVERTIME_PERIOD_SECONDS + OVERTIME_PERIOD_SECONDS - clock_remaining
+
+
+class PlayEvent(BaseModel):
+    """One action from ``PlayByPlayV3``. Scores are only present on scoring events."""
+
+    model_config = ConfigDict(extra="ignore", frozen=True)
+
+    action_number: int = Field(alias="actionNumber")
+    period: int = Field(ge=1)
+    clock: float
+    team_id: int | None = Field(alias="teamId")
+    team_tricode: str = Field(alias="teamTricode")
+    person_id: int | None = Field(alias="personId")
+    player_name: str = Field(alias="playerName")
+    action_type: str = Field(alias="actionType")
+    sub_type: str = Field(alias="subType")
+    description: str
+    score_home: int | None = Field(alias="scoreHome")
+    score_away: int | None = Field(alias="scoreAway")
+    is_field_goal: bool = Field(alias="isFieldGoal")
+    shot_value: int = Field(alias="shotValue", ge=0)
+    shot_result: str = Field(alias="shotResult")
+
+    @field_validator("clock", mode="before")
+    @classmethod
+    def _clock(cls, v):
+        return parse_clock(v) if isinstance(v, str) else v
+
+    @field_validator("score_home", "score_away", mode="before")
+    @classmethod
+    def _score(cls, v):
+        return None if v in ("", None) else int(v)
+
+    @field_validator("team_id", "person_id", mode="before")
+    @classmethod
+    def _zero_is_none(cls, v):
+        return None if v in (0, "0", None) else v
+
+    @property
+    def elapsed(self) -> float:
+        return elapsed_seconds(self.period, self.clock)
