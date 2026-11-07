@@ -16,6 +16,7 @@ from rich.logging import RichHandler
 from leadcollapse.config import get_settings
 from leadcollapse.ingest import boxscores, games
 from leadcollapse.nba_client import NBAClient
+from leadcollapse.transform import halves
 
 app = typer.Typer(help="Why do the Clippers lose second-half leads?", no_args_is_help=True)
 console = Console()
@@ -65,4 +66,12 @@ def build(season: SeasonOpt = None) -> None:
         f"box scores: {len(team_box)} team rows, {len(player_box)} player rows; "
         f"split totals OK ({len(gaps)} small stat corrections logged to split_discrepancies.csv)"
     )
+
+    game_halves = halves.build_game_halves(team_box, df, settings.team_id)
+    halves.write_game_halves(game_halves, settings.processed_dir)
+    settings.tableau_dir.mkdir(parents=True, exist_ok=True)
+    game_halves.assign(split=game_halves["split"].astype(str)).round(4).to_csv(
+        settings.tableau_dir / "game_halves_wide.csv", index=False
+    )
+    console.print(f"game halves: {len(game_halves)} rows (+ tableau/game_halves_wide.csv)")
     console.print(f"wrote to {settings.processed_dir}")

@@ -3,7 +3,7 @@
 Fixture: Clippers vs Heat, 2026-11-04 (0022600186), lost 116-117 in OT after
 leading 67-52 at halftime. Team totals are untouched; player lists are cut to
 Garland, a bench player and a DNP for LAC (and a starter + bench for MIA).
-Splits: traditional FULL/H1/H2/OT and advanced FULL.
+Splits: traditional FULL/H1/H2/OT; advanced FULL (with players) and H1/H2/OT (team totals only).
 """
 
 from __future__ import annotations
@@ -185,5 +185,5 @@ def test_quarter_mismatch_is_caught_when_quarters_exist(raw):
 
     doubled = pd.concat([df, h1.assign(split="Q1"), h1.assign(split="Q2"),
                          h2.assign(split="Q3"), zero_q.assign(split="Q4")])
-    with pytest.raises(ValueError, match="Q1 \+ Q2 != H1"):
+    with pytest.raises(ValueError, match=r"Q1 \+ Q2 != H1"):
         check_split_totals(doubled)
