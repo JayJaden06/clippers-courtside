@@ -14,9 +14,9 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from leadcollapse.config import get_settings
-from leadcollapse.ingest import boxscores, games
+from leadcollapse.ingest import boxscores, games, playbyplay
 from leadcollapse.nba_client import NBAClient
-from leadcollapse.transform import halves
+from leadcollapse.transform import halves, leads
 
 app = typer.Typer(help="Why do the Clippers lose second-half leads?", no_args_is_help=True)
 console = Console()
@@ -46,7 +46,8 @@ def pull(season: SeasonOpt = None) -> None:
         console.print(f"[bold]{s}[/]: {n} completed games")
     console.print(f"game logs: {client.stats}")
     boxscores.load_boxscores(client, df, settings.quarter_seasons)
-    console.print(f"pull done (game logs + box scores): {client.stats}")
+    playbyplay.load_pbp(client, df)
+    console.print(f"pull done (game logs, box scores, play-by-play): {client.stats}")
 
 
 @app.command()
@@ -70,8 +71,22 @@ def build(season: SeasonOpt = None) -> None:
     game_halves = halves.build_game_halves(team_box, df, settings.team_id)
     halves.write_game_halves(game_halves, settings.processed_dir)
     settings.tableau_dir.mkdir(parents=True, exist_ok=True)
-    game_halves.assign(split=game_halves["split"].astype(str)).round(4).to_csv(
+    floats = game_halves.select_dtypes("float").columns
+    game_halves.assign(split=game_halves["split"].astype(str)).round({c: 4 for c in floats}).to_csv(
         settings.tableau_dir / "game_halves_wide.csv", index=False
     )
     console.print(f"game halves: {len(game_halves)} rows (+ tableau/game_halves_wide.csv)")
+
+    events = playbyplay.load_pbp(client, df)
+    playbyplay.check_final_scores(events, df)
+    series = leads.margin_series(events)
+    game_leads = leads.game_leads(
+        series, df, settings.lead_threshold, settings.lead_window_minutes, settings.sensitivity_thresholds
+    )
+    leads.check_halftime_margins(game_leads, game_halves)
+    leads.write_leads(series, game_leads, settings.processed_dir)
+    console.print(
+        f"play-by-play: {len(events)} events; final scores and halftime margins match box scores; "
+        f"{len(game_leads)} games classified"
+    )
     console.print(f"wrote to {settings.processed_dir}")
