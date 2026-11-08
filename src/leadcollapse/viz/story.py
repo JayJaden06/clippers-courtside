@@ -341,3 +341,38 @@ def what_if(h2_per_game: float, reasons: list[Reason], fixed: set[str], garland_
     if fix_garland and "turnovers" not in fixed:
         out += garland_pts_per_game
     return out
+
+
+def sixty_seconds(reasons: list[Reason], results: dict, hl: dict, prev_season: str) -> list[str]:
+    """Three or four one-line takeaways (HTML) for the top of the answer page."""
+    if not reasons:
+        return []
+    out = []
+    r0 = reasons[0]
+    out.append(f"<b>The main reason is {_lower(r0.name)}.</b> It costs {-r0.per_game:.1f} points a game after "
+               f"halftime" + (", and it's new this season." if r0.status == NEW else "."))
+    if "H3" in results:
+        share = results["H3"]["key"]["share_of_swing"]
+        out.append(f"<b>Garland's turnovers are {'a main cause' if share >= DRIVES else 'part of it, not the main cause'}"
+                   f"</b>: about {share:.0%} of the second-half drop.")
+    new = [_lower(r.name) for r in reasons if r.status == NEW]
+    same = [_lower(r.name) for r in reasons if r.status == SAME]
+    if new or same:
+        out.append(f"<b>New since {prev_season}:</b> {', '.join(new) or 'nothing'}. "
+                   f"<b>Same as before:</b> {', '.join(same) or 'nothing'}.")
+    if r0.prev_per_game > r0.per_game:
+        fixed = what_if(hl["h2_per_game"], reasons, {r0.factor})
+        out.append(f"<b>If {_lower(r0.name)} went back to last season's level</b>, their second halves would go from "
+                   f"{hl['h2_per_game']:+.1f} to {fixed:+.1f} points a game.")
+    return out
+
+
+def worst_collapse(game_leads: pd.DataFrame, season: str) -> dict | None:
+    """The blown lead with the biggest fall from the largest lead to the final score."""
+    g = game_leads[(game_leads["season"] == season) & (game_leads["lead_class"] == "blown_lead")]
+    if g.empty:
+        return None
+    row = g.assign(fall=g["max_lead"] - g["final_margin"]).sort_values(["fall", "max_lead"]).iloc[-1]
+    date = pd.Timestamp(row["game_date"])
+    where = "vs" if row["is_home"] else "at"
+    return {"game_id": row["game_id"], "label": f"{date:%b} {date.day} {where} {row['opponent_abbreviation']}"}

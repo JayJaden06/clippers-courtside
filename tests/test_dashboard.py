@@ -68,17 +68,49 @@ def test_league_view_is_ranked_with_one_clippers_row(data):
     assert cr.index[0] == "Net rating" and cr.to_numpy().max() <= 30
 
 
-def test_app_runs_headless_for_every_season():
+def _app(page: str):
     testing = pytest.importorskip("streamlit.testing.v1")
-    at = testing.AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=120).run()
-    assert not at.exception, at.exception[0].value
-    for key in ("game_season", "player_season", "league_season"):
-        for season in at.selectbox(key=key).options:
-            at.selectbox(key=key).set_value(season).run()
-            assert not at.exception, (key, season, at.exception[0].value)
+    at = testing.AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=120)
+    at.session_state["_dashboard_page"] = page
+    at.run()
+    assert not at.exception, (page, at.exception[0].value)
+    return at
+
+
+def test_answer_page_runs_and_what_if_toggles_work():
+    at = _app("answer")
     for key in ("fix_shooting", "fix_garland"):
         at.toggle(key=key).set_value(True).run()
         assert not at.exception, (key, at.exception[0].value)
+    assert any(m.label == "Second halves, per game" for m in at.metric)
+
+
+@pytest.mark.parametrize("page, key", [("replay", "game_season"), ("players", "player_season"),
+                                       ("league", "league_season")])
+def test_each_page_runs_for_every_season(page, key):
+    at = _app(page)
+    for season in at.selectbox(key=key).options:
+        at.selectbox(key=key).set_value(season).run()
+        assert not at.exception, (page, season, at.exception[0].value)
+
+
+def test_league_page_every_stat():
+    at = _app("league")
     for metric in ["net_rtg", "efg_pct", "opp_efg_pct", "tov_pct", "opp_ft_rate", "opp_oreb_pct"]:
         at.button_group(key="league_metric").set_value(metric).run()
         assert not at.exception, (metric, at.exception[0].value)
+
+
+def test_replay_opens_the_game_passed_from_the_answer_page(data):
+    from leadcollapse.viz import story as S
+
+    worst = S.worst_collapse(data.game_leads, data.seasons[0])
+    testing = pytest.importorskip("streamlit.testing.v1")
+    at = testing.AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=120)
+    at.session_state["_dashboard_page"] = "replay"
+    at.session_state["jump_game"] = worst["game_id"]
+    at.run()
+    assert not at.exception
+    pick = at.button_group(key=f"pick_{data.seasons[0]}").value
+    month, day, _, opp = worst["label"].split()
+    assert pick.startswith(f"{month} {day} {opp} ·"), pick

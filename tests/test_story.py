@@ -128,3 +128,23 @@ def test_what_if_is_additive_and_only_improves(answer_inputs):
     assert S.what_if(base, reasons, {r.factor for r in reasons}) >= base
     # Garland's piece is skipped when all turnovers are already fixed.
     assert S.what_if(base, reasons, {"turnovers"}, 2.2, True) == S.what_if(base, reasons, {"turnovers"})
+
+
+def test_sixty_seconds_leads_with_the_biggest_reason(answer_inputs):
+    d, meta, _, reasons = answer_inputs
+    hl = S.headline(d.analysis, d.comparison, d.games, meta["season"])
+    res = {r["id"]: r for r in d.analysis["results"]}
+    lines = S.sixty_seconds(reasons, res, hl, meta["comparison_season"])
+    assert 3 <= len(lines) <= 4
+    assert S._lower(reasons[0].name) in lines[0]
+    garland = next(line for line in lines if "Garland" in line)
+    assert ("a main cause" in garland) == (res["H3"]["key"]["share_of_swing"] >= S.DRIVES)
+
+
+def test_worst_collapse_is_a_blown_lead_with_the_biggest_fall(answer_inputs):
+    d, meta, _, _ = answer_inputs
+    w = S.worst_collapse(d.game_leads, meta["season"])
+    g = d.game_leads[(d.game_leads["season"] == meta["season"]) & (d.game_leads["lead_class"] == "blown_lead")]
+    fall = g["max_lead"] - g["final_margin"]
+    row = g.set_index("game_id").loc[w["game_id"]]
+    assert row["max_lead"] - row["final_margin"] == fall.max()
