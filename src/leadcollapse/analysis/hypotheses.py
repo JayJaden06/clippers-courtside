@@ -545,7 +545,7 @@ def season_comparison(inp: Inputs) -> HypothesisResult:
     )
     return HypothesisResult(
         "SEASONS", f"{inp.season} vs {inp.comparison_season}: chronic or new?", verdict,
-        key={"new": new, "chronic": chronic}, tables={"season_comparison": table}, chart="attribution.png",
+        key={"new": new, "chronic": chronic}, tables={"season_comparison": table}, chart="season_factors.png",
     )
 
 

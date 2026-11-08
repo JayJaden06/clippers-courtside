@@ -176,23 +176,65 @@ def build(season: SeasonOpt = None) -> None:
     console.print(f"wrote to {settings.processed_dir}")
 
 
-@app.command()
-def analyze() -> None:
-    """Run the hypothesis tests on the processed tables (no network)."""
+def _analysis_meta(settings, inp: hypotheses.Inputs) -> dict:
     from datetime import date
 
-    settings = get_settings()
-    inp = hypotheses.load_inputs(
-        settings.processed_dir, settings.current_season, settings.comparison_season, settings.focus_player
-    )
-    results = hypotheses.run_all(inp)
-    meta = {
+    return {
         "season": settings.current_season, "comparison_season": settings.comparison_season,
         "games": inp.n_games, "focus_player": settings.focus_player, "team": settings.team_abbreviation,
         "analyzed_on": date.today().isoformat(), "lead_threshold": settings.lead_threshold,
     }
+
+
+def _load_inputs(settings) -> hypotheses.Inputs:
+    return hypotheses.load_inputs(
+        settings.processed_dir, settings.current_season, settings.comparison_season, settings.focus_player
+    )
+
+
+@app.command()
+def analyze() -> None:
+    """Run the hypothesis tests on the processed tables (no network)."""
+    settings = get_settings()
+    inp = _load_inputs(settings)
+    results = hypotheses.run_all(inp)
+    meta = _analysis_meta(settings, inp)
     hypotheses.write_results(results, settings.processed_dir / "analysis", settings.reports_dir / "analysis.json", meta)
     for r in results:
         answer = r.verdict.split(":")[0] if len(r.verdict.split(":")[0]) < 20 else r.verdict.split(".")[0]
         console.print(f"[bold]{r.id}[/] {r.title} -> {answer}")
     console.print(f"wrote {settings.reports_dir / 'analysis.json'} and {settings.processed_dir / 'analysis'}/")
+
+
+@app.command()
+def report() -> None:
+    """Draw the figures and write reports/findings.md (no network)."""
+    import json
+
+    from leadcollapse.analysis import report as report_mod
+
+    settings = get_settings()
+    inp = _load_inputs(settings)
+    results = hypotheses.run_all(inp)
+    meta = _analysis_meta(settings, inp)
+    saved = settings.reports_dir / "analysis.json"
+    if saved.exists():
+        # Keep the date of the analysis the numbers came from, so rerunning the report changes nothing.
+        meta["analyzed_on"] = json.loads(saved.read_text(encoding="utf-8"))["meta"].get("analyzed_on",
+                                                                                       meta["analyzed_on"])
+    margins = pd.read_parquet(settings.processed_dir / "margin_series.parquet")
+    path = report_mod.write_report(results, inp, meta, margins, settings.reports_dir)
+    console.print(f"wrote {path} and {settings.figures_dir}/")
+
+
+@app.command("all")
+def run_all(
+    season: SeasonOpt = None,
+    offline: Annotated[bool, typer.Option("--offline", help="Skip `pull` and rebuild from the cache.")] = False,
+) -> None:
+    """pull -> build -> analyze -> report. Safe to rerun: cached responses are reused."""
+    if not offline:
+        pull(season)
+    build(season)
+    analyze()
+    report()
