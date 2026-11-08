@@ -21,6 +21,7 @@ from leadcollapse.viz import story as S
 H1C, H2C = "#2a78d6", "#eb6834"  # 1st half / 2nd half
 GOOD, BAD, GRAY = "#2a78d6", "#e34948", "#898781"
 FOCUS = "#eb6834"
+INK_MARK = "#52514e"
 LIGHT = "rgba(137,135,129,0.35)"
 PLOTLY_CONFIG = {"displayModeBar": False}
 TONE_BADGE = {"yes": ("red", "The answer"), "partly": ("orange", "Part of it"), "no": ("gray", "Not really")}
@@ -33,6 +34,7 @@ st.markdown("""
 .lede {font-size: 1.15rem; opacity: .85; max-width: 52rem; margin-bottom: 1.2rem}
 .story {font-size: 1.12rem; line-height: 1.55}
 .big-q {font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem}
+.rank {font-size: 2.4rem; font-weight: 800; line-height: 1; text-align: center; opacity: .8}
 div[data-testid="stMetricValue"] {font-size: 1.9rem}
 </style>
 """, unsafe_allow_html=True)
@@ -78,14 +80,21 @@ def glossary_button() -> None:
             st.markdown(f"**{term}**  \n{text}")
 
 
-tab_story, tab_games, tab_players, tab_league, tab_seasons = st.tabs(
-    ["The short version", "Game replay", "Players", "Vs. the league", "This season vs. last"])
+tab_story, tab_games, tab_players, tab_league = st.tabs(["The answer", "Game replay", "Players", "Vs. the league"])
 
-# ============================================================== short version
+# ================================================================ the answer
+STATUS_BADGE = {S.NEW: "red", S.SAME: "orange", S.SIMILAR: "gray", S.BETTER: "blue"}
+VERDICT_MARK = {"Worse than last season": "▼ Worse than last season", "Better than last season": "▲ Better than last season",
+                "About the same": "= About the same"}
+
 with tab_story:
     hl = S.headline(data.analysis, data.comparison, data.games, season_now) if not data.comparison.empty else None
-    att_now = data.attribution.get(season_now)
-    top = att_now.iloc[0]["factor"] if att_now is not None else None
+    att_now, att_prev = data.attribution.get(season_now), data.attribution.get(season_prev)
+    res = {r["id"]: r for r in data.analysis.get("results", [])}
+    sh = D.season_halves(data.game_halves)
+    reasons = (S.ranked_reasons(att_now, att_prev, sh.loc[season_now])
+               if att_now is not None and att_prev is not None else [])
+    top = reasons[0].factor if reasons else None
     last_game = pd.to_datetime(data.game_leads.loc[data.game_leads["season"] == season_now, "game_date"]).max()
     st.markdown(f'<div class="kicker">LA Clippers · {season_now} season · through {last_game:%b} {last_game.day}'
                 "</div>", unsafe_allow_html=True)
@@ -93,11 +102,15 @@ with tab_story:
              else "They're fine for a half. Then it falls apart.")
     st.markdown(f'<div class="hero">{title}</div>', unsafe_allow_html=True)
     if hl:
+        main = "Darius Garland's turnovers"
+        garland_main = "H3" in res and res["H3"]["key"]["share_of_swing"] >= DRIVES
         st.markdown(
             f'<div class="lede">The Clippers are {hl["wins"]}-{hl["losses"]}. In {hl["leads"]} games they jumped '
             f'out to an early lead of 8 or more, and they lost {hl["blown"]} of them. A popular explanation is '
-            f'Darius Garland\'s turnovers. The numbers say that\'s part of it, but not the main reason.</div>',
-            unsafe_allow_html=True)
+            f'{main}. '
+            + ("The numbers back that up." if garland_main else
+               "The numbers say that's part of it, but not the main reason. Here's the whole answer.")
+            + "</div>", unsafe_allow_html=True)
         glossary_button()
         c = st.columns(5)
         c[0].metric("Record", f"{hl['wins']}-{hl['losses']}", border=True)
@@ -112,34 +125,60 @@ with tab_story:
                     delta=f"{100 * (hl['efg_h2'] - hl['efg_h1']):+.1f} pts vs 1st half",
                     help="Shooting accuracy (eFG%): makes per shot, with 3-pointers worth extra.")
 
-    st.write("")
-    left, right = st.columns([1.35, 1], gap="large")
+    # ---------------------------------------------------------- 1. ranked reasons
+    hurts = [r for r in reasons if r.per_game < 0]
+    helps = [r for r in reasons if r.per_game >= 0]
+    st.header("1. Why they blow leads, ranked", divider="gray")
+    st.write("Every point they lose after halftime, sorted into buckets. Each bar is how many points per game that "
+             "part of the game costs them in the second half compared with the first."
+             + (" The percentages add up to more than 100% because a few things got *better* after halftime "
+                "(section 2) and cancel some of it out." if helps else ""))
+    if hurts:
+        names = [f"{i}. {r.name}" for i, r in enumerate(hurts, 1)]
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            y=names, x=[-r.per_game for r in hurts], orientation="h", name=f"{season_now}",
+            marker_color=BAD, text=[f"−{-r.per_game:.1f} pts/game" for r in hurts], textposition="outside",
+            customdata=[r.detail for r in hurts],
+            hovertemplate="<b>%{y}</b><br>%{customdata}<extra></extra>"))
+        fig.add_trace(go.Scatter(
+            y=names, x=[max(-r.prev_per_game, 0) for r in hurts], mode="markers", name=f"{season_prev}",
+            marker=dict(symbol="line-ns", size=26, line=dict(width=3, color=INK_MARK)),
+            customdata=[r.prev_per_game for r in hurts],
+            hovertemplate=f"{season_prev}: " + "%{customdata:+.1f} pts/game<extra></extra>"))
+        fig.update_yaxes(autorange="reversed")
+        fig.update_xaxes(title="Points per game lost after halftime", range=[0, max(-hurts[0].per_game * 1.3, 1)])
+        show(fig, 90 + 58 * len(hurts))
+        st.caption(f"Red bars = this season. Black ticks = the same bucket last season ({season_prev}); a tick at 0 "
+                   "means it didn't cost them anything last season. Hover a bar for the stat behind it.")
+        for i, r in enumerate(hurts, 1):
+            with st.container(border=True):
+                n, body = st.columns([0.07, 0.93], vertical_alignment="center")
+                n.markdown(f'<div class="rank">{i}</div>', unsafe_allow_html=True)
+                with body:
+                    st.markdown(f"**{r.name}** costs **{-r.per_game:.1f} points per game** after halftime "
+                                f"({r.share:.0%} of the drop).")
+                    st.badge(r.status, color=STATUS_BADGE[r.status])
+                    st.write(f"{r.detail} Last season this bucket was {signed(r.prev_per_game)} per game.")
+
+    # ---------------------------------------------------------- 2. what's hiding it
+    if helps:
+        st.header("2. What's hiding how bad it is", divider="gray")
+        total_help = sum(r.per_game for r in helps)
+        residual = att_now.set_index("factor").loc["residual", "per_game"] if att_now is not None else 0.0
+        for r in helps:
+            st.markdown(f"**{r.name}** got *better* after halftime: {r.detail[0].lower() + r.detail[1:]} That's worth "
+                        f"**{signed(r.per_game)} points per game** in their favour.")
+        if hl:
+            st.markdown(f"Without that, their second halves would be about **{signed(hl['h2_per_game'] - total_help)} "
+                        f"per game** instead of {signed(hl['h2_per_game'])}. (A further {signed(residual)} per game "
+                        "can't be placed in any one bucket.)")
+
+    # ---------------------------------------------------------- 3. theories
+    st.header(f"{3 if helps else 2}. The popular theories, checked", divider="gray")
+    left, right = st.columns([1, 1.25], gap="large")
     with left:
-        st.subheader("Where did the second-half points go?")
-        if att_now is not None:
-            per_game = st.segmented_control("Show", ["Per game", "All games added up"], default="Per game",
-                                            key="att_mode") == "Per game"
-            col = "per_game" if per_game else "points"
-            a = att_now.set_index("factor").reindex([f for f in att_now["factor"] if f != "residual"] + ["residual"])
-            names = [S.FACTOR_PLAIN[f][0].replace(" ", "<br>", 1) for f in a.index]
-            fig = go.Figure(go.Waterfall(
-                orientation="v", x=names + ["Total"], y=list(a[col]) + [a[col].sum()],
-                measure=["relative"] * len(a) + ["total"],
-                text=[signed(v) for v in a[col]] + [signed(a[col].sum())], textposition="outside",
-                increasing=dict(marker=dict(color=GOOD)), decreasing=dict(marker=dict(color=BAD)),
-                totals=dict(marker=dict(color=GRAY)), connector=dict(line=dict(color=LIGHT, width=1)),
-                customdata=[S.FACTOR_PLAIN[f][1] for f in a.index] + ["The whole first-to-second-half drop."],
-                hovertemplate="<b>%{x}</b><br>%{customdata}<br>%{y:+.1f} points<extra></extra>",
-            ))
-            show(fig, 400, yaxis_title="Points" + (" per game" if per_game else ""), showlegend=False)
-            shoot = a.loc["shooting", col]
-            total = a[col].sum()
-            st.caption(f"Read left to right: each bar adds or takes away points compared with the first half. Red = "
-                       f"worse after halftime, blue = better. The Clippers' own shooting alone accounts for "
-                       f"{signed(shoot)} of the {signed(total)}" + (" per game." if per_game else "."))
-    with right:
-        st.subheader("So, is it Garland?")
-        res = {r["id"]: r for r in data.analysis.get("results", [])}
+        st.subheader("Is it Garland?")
         if "H3" in res:
             k3 = res["H3"]["key"]
             share = k3["share_of_swing"]
@@ -157,8 +196,9 @@ with tab_story:
             fig.update_xaxes(range=[0, 1], tickformat=".0%", tickvals=[0, CONTRIBUTES, DRIVES, 1])
             fig.update_yaxes(visible=False, range=[-0.95, 0.95])
             show(fig, 190, showlegend=False)
-            st.markdown(f"Garland's extra turnovers explain about **{share:.0%}** of the drop. That's real, but "
-                        f"short of the **{DRIVES:.0%}** we set in advance for calling something *the* cause.")
+            st.markdown(f"His extra turnovers explain about **{share:.0%}** of the drop. "
+                        + (f"That's real, but short of the **{DRIVES:.0%}** we set in advance for calling something "
+                           "*the* cause." if share < DRIVES else "That's enough to call him the main cause."))
             fig = go.Figure(go.Bar(
                 y=["Share of team plays", "Share of team turnovers"], x=[k3["play_share_h2"], k3["tov_share_h2"]],
                 orientation="h", marker_color=[GRAY, FOCUS], text=[f"{k3['play_share_h2']:.0%}",
@@ -166,26 +206,105 @@ with tab_story:
                 textposition="outside", hovertemplate="%{y}: %{x:.0%}<extra>after halftime</extra>"))
             fig.update_xaxes(range=[0, max(0.5, k3["tov_share_h2"] * 1.3)], tickformat=".0%")
             show(fig, 170, showlegend=False, title=dict(text="Garland after halftime", font=dict(size=14)))
-            st.caption("He handles the ball a lot, and he turns it over even more than that. So he's a real part "
-                       "of the problem, just not most of it.")
+    with right:
+        cards = S.answer_cards(data.analysis)
+        for start in range(0, len(cards), 2):
+            cols = st.columns(2)
+            for col, card in zip(cols, cards[start:start + 2]):
+                with col.container(border=True, height="stretch"):
+                    st.markdown(f'<div class="big-q">{card.question}</div>', unsafe_allow_html=True)
+                    st.badge(card.answer, color=TONE_BADGE[card.tone][0])
+                    st.write(card.text)
 
-    st.write("")
-    st.subheader("Five questions, five answers")
-    cards = S.answer_cards(data.analysis)
-    sure = S.Card("SURE", "How sure are we?", "Not very, yet", "no",
-                  f"It's {meta.get('games', '?')} games. Every number reruns from scratch as new games are played, "
-                  "and the answers follow rules written down before looking at the results: something is 'the "
-                  f"main cause' only if it explains at least {DRIVES:.0%} of the drop.")
-    items = cards + [sure]
-    for start in range(0, len(items), 3):
-        cols = st.columns(3)
-        for col, card in zip(cols, items[start:start + 3]):
-            with col.container(border=True, height="stretch"):
-                st.markdown(f'<div class="big-q">{card.question}</div>', unsafe_allow_html=True)
-                st.badge(card.answer, color=TONE_BADGE[card.tone][0])
-                st.write(card.text)
-    st.caption("Data: stats.nba.com via the open-source nba_api package. Not affiliated with the NBA or the "
-               "Clippers. Full method and tables: reports/findings.md.")
+    # ---------------------------------------------------------- 4. since last season
+    section = 4 if helps else 3
+    if not data.comparison.empty and season_prev in data.attribution:
+        st.header(f"{section}. What changed since last season", divider="gray")
+        comp = data.comparison.set_index("season")
+        cur, prev = comp.loc[season_now], comp.loc[season_prev]
+        c = st.columns(4)
+        c[0].metric(f"Early leads blown, {season_prev}",
+                    f"{int(prev['blown_leads'])} of {int(prev['blown_leads'] + prev['held_leads'])}", border=True)
+        c[1].metric(f"Early leads blown, {season_now}",
+                    f"{int(cur['blown_leads'])} of {int(cur['blown_leads'] + cur['held_leads'])}", border=True)
+        c[2].metric(f"2nd halves per game, {season_prev}", signed(prev["margin_h2_per_game"]), border=True)
+        c[3].metric(f"2nd halves per game, {season_now}", signed(cur["margin_h2_per_game"]), border=True)
+        new = [r.name for r in reasons if r.status == S.NEW]
+        same = [r.name for r in reasons if r.status == S.SAME]
+        better = [r.name for r in reasons if r.status == S.BETTER]
+        st.markdown(f"- **New this season:** {', '.join(new) or 'nothing'}\n"
+                    f"- **Same as last season:** {', '.join(same) or 'nothing'}\n"
+                    f"- **Better than last season:** {', '.join(better) or 'nothing'}")
+        rows = S.scorecard(sh, season_now, season_prev)
+        table = pd.DataFrame([{
+            "": r.stat, f"{season_prev} 1st half": r.prev_h1, f"{season_prev} 2nd half": r.prev_h2,
+            f"{season_now} 1st half": r.cur_h1, f"{season_now} 2nd half": r.cur_h2,
+            "This season's 2nd-half drop-off": VERDICT_MARK[r.verdict]} for r in rows])
+        st.dataframe(table, hide_index=True, width="stretch", height=38 + 35 * len(table))
+        st.caption("The last column compares how much each stat changes from 1st to 2nd half this season with the "
+                   "same change last season. Opponent free throws include late fouls by a team already behind; "
+                   "without those, the rise is about the same as last season (see 'Is it fouling?').")
+
+        factors = [f for f in S.factor_order() if f != "residual"]
+        fig = go.Figure()
+        for f in factors:
+            fig.add_trace(go.Scatter(x=[prev[f"{f}_per_game"], cur[f"{f}_per_game"]],
+                                     y=[S.FACTOR_PLAIN[f][0]] * 2, mode="lines", line=dict(color=LIGHT, width=3),
+                                     hoverinfo="skip", showlegend=False))
+        for season_, vals, color, symbol in ((season_now, cur, FOCUS, "circle"),
+                                             (season_prev, prev, GRAY, "circle-open")):
+            fig.add_trace(go.Scatter(
+                x=[vals[f"{f}_per_game"] for f in factors], y=[S.FACTOR_PLAIN[f][0] for f in factors],
+                mode="markers", name=f"{season_} ({int(vals['games'])} games)",
+                marker=dict(color=color, size=14, symbol=symbol, line=dict(width=2.5, color=color)),
+                hovertemplate="%{y}: %{x:+.1f} points per game<extra>" + season_ + "</extra>"))
+        fig.add_vline(x=0, line=dict(color=GRAY, width=1))
+        fig.update_yaxes(autorange="reversed")
+        st.markdown("**Each bucket, this season vs last**")
+        show(fig, 360, xaxis_title="Points per game gained (+) or lost (−) after halftime")
+        section += 1
+
+    # ---------------------------------------------------------- 5. what if
+    if hl and reasons:
+        st.header(f"{section}. What if they fixed it?", divider="gray")
+        st.write("Switch a problem back to last season's level and see what their second halves would look like.")
+        fixable = [r for r in hurts if r.prev_per_game - r.per_game >= 0.1]
+        left, right = st.columns([1, 1.2], gap="large")
+        with left:
+            fixed = {r.factor for r in fixable
+                     if st.toggle(f"{r.name} back to last season ({signed(r.prev_per_game)} instead of "
+                                  f"{signed(r.per_game)} per game)", key=f"fix_{r.factor}")}
+            g_pts = res["H3"]["key"]["excess_pts"] / max(hl["games"], 1) if "H3" in res else 0.0
+            fix_g = st.toggle(f"Garland's turnovers back to his last-season rate (about {signed(g_pts)} per game)",
+                              key="fix_garland", disabled="turnovers" in fixed,
+                              help="Already included if you fix all turnovers.")
+        new_h2 = S.what_if(hl["h2_per_game"], reasons, fixed, g_pts, fix_g)
+        with right:
+            st.metric("Second halves, per game", signed(new_h2), border=True,
+                      delta=f"{new_h2 - hl['h2_per_game']:+.1f} vs today" if new_h2 != hl["h2_per_game"] else None)
+            fig = go.Figure(go.Bar(
+                y=["Today", "With your fixes", "1st halves (for reference)"],
+                x=[hl["h2_per_game"], new_h2, hl["h1_per_game"]], orientation="h",
+                marker_color=[BAD if hl["h2_per_game"] < 0 else GOOD, BAD if new_h2 < 0 else GOOD, GRAY],
+                text=[signed(v) for v in (hl["h2_per_game"], new_h2, hl["h1_per_game"])], textposition="outside",
+                hovertemplate="%{y}: %{x:+.1f} per game<extra></extra>"))
+            fig.add_vline(x=0, line=dict(color=GRAY, width=1))
+            lim = max(abs(hl["h2_per_game"]), abs(new_h2), abs(hl["h1_per_game"]), 2) * 1.35
+            fig.update_xaxes(range=[-lim, lim], title="Score margin per game")
+            fig.update_yaxes(autorange="reversed")
+            show(fig, 220, showlegend=False)
+        st.caption("This is bookkeeping, not a prediction: the buckets add up exactly, so swapping one for last "
+                   "season's value shows its size, but real games don't change one thing at a time.")
+        section += 1
+
+    # ---------------------------------------------------------- 6. every stat
+    st.header(f"{section}. Every stat, before and after halftime", divider="gray")
+    st.dataframe(D.full_stat_sheet(data.ranks, season_now), hide_index=True, width="stretch",
+                 height=38 + 35 * len(D.full_stat_sheet(data.ranks, season_now)))
+    st.caption("League ranks: 1st = best of 30 teams. The change rank compares each team's second half with its "
+               "own first half. These values come from the league's own team stats, so every team is measured the "
+               "same way; they can differ slightly from the box-score totals above. Data: stats.nba.com via the open-source nba_api package; not affiliated with the "
+               "NBA or the Clippers. Full method: reports/findings.md.")
 
 # =================================================================== games
 with tab_games:
@@ -429,43 +548,3 @@ with tab_league:
         st.markdown("**Clippers' rank on everything** (1st = best)")
         cr = D.clippers_ranks(data.ranks, season_l)
         st.dataframe(cr.map(ordinal), width="stretch", height=38 + 35 * len(cr))
-
-# ================================================================= seasons
-with tab_seasons:
-    st.subheader("Is this new, or has it always been like this?")
-    if data.comparison.empty or season_prev not in data.attribution:
-        st.info("Run `leadcollapse analyze` to compare seasons.")
-    else:
-        comp = data.comparison.set_index("season")
-        cur, prev = comp.loc[season_now], comp.loc[season_prev]
-        c = st.columns(4)
-        c[0].metric(f"Early leads blown, {season_prev}",
-                    f"{int(prev['blown_leads'])} of {int(prev['blown_leads'] + prev['held_leads'])}", border=True)
-        c[1].metric(f"Early leads blown, {season_now}",
-                    f"{int(cur['blown_leads'])} of {int(cur['blown_leads'] + cur['held_leads'])}", border=True)
-        c[2].metric(f"2nd halves per game, {season_prev}", signed(prev["margin_h2_per_game"]), border=True)
-        c[3].metric(f"2nd halves per game, {season_now}", signed(cur["margin_h2_per_game"]), border=True)
-
-        factors = [f for f in S.factor_order() if f != "residual"]
-        fig = go.Figure()
-        for f in factors:
-            fig.add_trace(go.Scatter(x=[prev[f"{f}_per_game"], cur[f"{f}_per_game"]],
-                                     y=[S.FACTOR_PLAIN[f][0]] * 2, mode="lines", line=dict(color=LIGHT, width=3),
-                                     hoverinfo="skip", showlegend=False))
-        for season_, vals, color, symbol in ((season_now, cur, FOCUS, "circle"),
-                                             (season_prev, prev, GRAY, "circle-open")):
-            fig.add_trace(go.Scatter(
-                x=[vals[f"{f}_per_game"] for f in factors], y=[S.FACTOR_PLAIN[f][0] for f in factors],
-                mode="markers", name=f"{season_} ({int(vals['games'])} games)",
-                marker=dict(color=color, size=14, symbol=symbol, line=dict(width=2.5, color=color)),
-                hovertemplate="%{y}: %{x:+.1f} points per game<extra>" + season_ + "</extra>"))
-        fig.add_vline(x=0, line=dict(color=GRAY, width=1))
-        fig.update_yaxes(autorange="reversed")
-        show(fig, 380, xaxis_title="Points per game gained (+) or lost (−) after halftime")
-        k = next((r["key"] for r in data.analysis.get("results", []) if r["id"] == "SEASONS"), {})
-        nm = lambda fs: ", ".join(S.FACTOR_PLAIN[f][0].lower().replace("clippers'", "Clippers'") for f in fs) or "nothing"  # noqa: E731
-        st.markdown(f"**New this season:** {nm(k.get('new', []))}.  \n"
-                    f"**Same as last season:** {nm(k.get('chronic', []))}.")
-        st.caption("Each dot is how many points per game that part of the game costs (left) or gains (right) after "
-                   f"halftime. Last season the Clippers were {signed(prev['margin_h2_per_game'])} per game after "
-                   f"halftime; this season they are {signed(cur['margin_h2_per_game'])}.")
