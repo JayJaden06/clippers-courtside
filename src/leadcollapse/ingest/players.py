@@ -41,6 +41,8 @@ def player_half_splits(client: NBAClient, player_id: int, season: str, season_ty
         "split": df["GROUP_VALUE"].map(HALF_LABELS),
         "games": df["GP"], "minutes": df["MIN"], "tov": df["TOV"], "fga": df["FGA"], "fta": df["FTA"],
         "pts": df["PTS"], "pf": df["PF"],
+        "fgm": df["FGM"], "fg3m": df["FG3M"], "fg3a": df["FG3A"], "ftm": df["FTM"],
+        "oreb": df["OREB"], "dreb": df["DREB"], "ast": df["AST"], "plus_minus": df["PLUS_MINUS"],
     })
     if out["split"].isna().any():
         raise ValueError(f"unexpected half labels: {list(df['GROUP_VALUE'])}")
@@ -53,3 +55,22 @@ def player_game_log(client: NBAClient, player_id: int, season: str, season_type:
     df = _frame(raw, "PlayerGameLog")
     df["team_abbreviation"] = df["MATCHUP"].str[:3]
     return df
+
+
+def player_history(client: NBAClient, names: list[str], seasons: list[str], season_type: str) -> pd.DataFrame:
+    """Half-by-half totals for each named player in each season, across every team he played for.
+
+    Seasons with no games (a rookie's earlier years) are skipped, not errors.
+    """
+    frames = []
+    for name in names:
+        pid = find_player_id(name)
+        for season in seasons:
+            df = player_half_splits(client, pid, season, season_type)
+            if len(df):
+                frames.append(df.assign(player_name=name, player_id=pid, season=season))
+    cols = ["player_name", "player_id", "season", "split"]
+    if not frames:
+        return pd.DataFrame(columns=cols)
+    out = pd.concat(frames, ignore_index=True)
+    return out[cols + [c for c in out.columns if c not in cols]]

@@ -38,6 +38,12 @@ def main(verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Log ever
     )
 
 
+def _history_seasons(settings) -> list[str]:
+    from leadcollapse.config import previous_season
+
+    return [settings.comparison_season, previous_season(settings.comparison_season)]
+
+
 @app.command()
 def pull(season: SeasonOpt = None) -> None:
     """Download and cache raw stats.nba.com data (current season's log is refreshed)."""
@@ -52,6 +58,7 @@ def pull(season: SeasonOpt = None) -> None:
     pid = players.find_player_id(settings.focus_player)
     players.player_half_splits(client, pid, settings.comparison_season, settings.season_type)
     players.player_game_log(client, pid, settings.comparison_season, settings.season_type)
+    players.player_history(client, settings.watch_players, _history_seasons(settings), settings.season_type)
     for s in sorted(df["season"].unique()):
         # Season-to-date dashboards change after every game in the current season.
         refresh = s == settings.current_season
@@ -139,6 +146,9 @@ def build(season: SeasonOpt = None) -> None:
         pid, settings.comparison_season, settings.team_abbreviation,
     )
     baselines.round(4).to_csv(out / "focus_player_baselines.csv", index=False)
+    history = players.player_history(client, settings.watch_players, _history_seasons(settings), settings.season_type)
+    history.to_parquet(out / "player_history_halves.parquet", index=False)
+    history.round(4).to_csv(out / "player_history_halves.csv", index=False)
     console.print(
         f"players: {len(player_stats)} player-split rows (TOV types match box); "
         f"{settings.focus_player} baselines for {len(baselines[['season', 'team']].drop_duplicates())} team-seasons"
