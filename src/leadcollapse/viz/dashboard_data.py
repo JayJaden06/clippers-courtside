@@ -1,0 +1,195 @@
+"""Data for the Streamlit dashboard: pure functions over the processed tables.
+
+Kept separate from ``dashboard/app.py`` so it can be tested without Streamlit,
+and so the dashboard never touches the network or the raw cache: it reads
+``data/processed/`` only, the same tables the report uses.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from pathlib import Path
+
+import pandas as pd
+
+from leadcollapse.analysis.decompose import FACTOR_LABELS, FACTORS, decompose_frame
+from leadcollapse.transform.halves import summarize
+from leadcollapse.transform.league_context import METRICS
+from leadcollapse.transform.turnovers import summarize_players
+
+LEAD_CLASS_LABELS = {
+    "blown_lead": "Blown lead",
+    "held_lead": "Held lead",
+    "never_led_big": "No big early lead",
+}
+METRIC_LABELS = {
+    "net_rtg": "Net rating",
+    "ortg": "Offensive rating",
+    "drtg": "Defensive rating",
+    "efg_pct": "eFG%",
+    "opp_efg_pct": "Opponent eFG%",
+    "tov_pct": "Turnover %",
+    "opp_ft_rate": "Opponent FT rate",
+    "oreb_pct": "OREB%",
+    "opp_oreb_pct": "Opponent OREB%",
+    "pf_per100": "Fouls per 100",
+    "pace": "Pace",
+}
+# (label, column, format) rows for the per-game half comparison.
+GAME_ROWS = [
+    ("Points", "pts", "{:.0f}"),
+    ("Opponent points", "opp_pts", "{:.0f}"),
+    ("Margin", "margin", "{:+.0f}"),
+    ("Net rating", "net_rtg", "{:+.1f}"),
+    ("eFG%", "efg_pct", "{:.3f}"),
+    ("Opponent eFG%", "opp_efg_pct", "{:.3f}"),
+    ("Turnovers (incl. team)", "tov_all", "{:.0f}"),
+    ("Opponent points off turnovers", "opp_pts_off_tov", "{:.0f}"),
+    ("Offensive rebounds allowed", "opp_oreb", "{:.0f}"),
+    ("Opponent FTA", "opp_fta", "{:.0f}"),
+    ("Team fouls", "pf", "{:.0f}"),
+]
+
+
+@dataclass
+class DashboardData:
+    game_halves: pd.DataFrame
+    game_leads: pd.DataFrame
+    margins: pd.DataFrame
+    player_stats: pd.DataFrame
+    turnovers: pd.DataFrame
+    ranks: pd.DataFrame
+    analysis: dict
+
+    @property
+    def seasons(self) -> list[str]:
+        return sorted(self.game_leads["season"].unique(), reverse=True)
+
+
+def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
+    p = Path(processed_dir)
+    analysis = json.loads(Path(analysis_json).read_text(encoding="utf-8")) if Path(analysis_json).exists() else {}
+    return DashboardData(
+        game_halves=pd.read_parquet(p / "game_halves.parquet"),
+        game_leads=pd.read_parquet(p / "game_leads.parquet"),
+        margins=pd.read_parquet(p / "margin_series.parquet"),
+        player_stats=pd.read_parquet(p / "player_half_stats.parquet"),
+        turnovers=pd.read_parquet(p / "turnover_events.parquet"),
+        ranks=pd.read_parquet(p / "league_half_ranks.parquet"),
+        analysis=analysis,
+    )
+
+
+# ------------------------------------------------------------------ games
+
+def game_options(leads: pd.DataFrame, season: str) -> pd.DataFrame:
+    """One row per game, newest first, with a readable label for a selector."""
+    g = leads[leads["season"] == season].sort_values("game_date", ascending=False).copy()
+    date = pd.to_datetime(g["game_date"]).dt.strftime("%b %d").str.replace(" 0", " ")
+    where = g["is_home"].map({True: "vs", False: "at"})
+    ot = g["overtime_periods"].map(lambda n: f" ({n}OT)" if n else "")
+    tag = g["lead_class"].map(LEAD_CLASS_LABELS).fillna("")
+    g["label"] = (date + " " + where + " " + g["opponent_abbreviation"] + "  " + g["result"] + " "
+                  + g["final_margin"].map("{:+d}".format) + ot + "  ·  " + tag)
+    return g[["game_id", "label", "lead_class", "max_lead", "halftime_margin", "final_margin"]].reset_index(drop=True)
+
+
+def game_margin(margins: pd.DataFrame, game_id: str) -> pd.DataFrame:
+    m = margins[margins["game_id"] == game_id].sort_values("elapsed")
+    return m.assign(minute=m["elapsed"] / 60)
+
+
+def game_half_table(game_halves: pd.DataFrame, game_id: str) -> pd.DataFrame:
+    """First half vs second half for one game, formatted for display."""
+    g = game_halves[(game_halves["game_id"] == game_id) & game_halves["split"].astype(str).isin(["H1", "H2"])]
+    s = summarize(g.assign(split=g["split"].astype(str)), ["split"]).set_index("split")
+    s["margin"] = s["pts"] - s["opp_pts"]
+    s["tov_all"] = s["tov"] + s.get("tov_team", 0)
+    rows = []
+    for label, col, fmt in GAME_ROWS:
+        h1, h2 = s.loc["H1", col], s.loc["H2", col]
+        rows.append({"stat": label, "1st half": fmt.format(h1), "2nd half": fmt.format(h2),
+                     "change": ("{:+.3f}" if "3f" in fmt else "{:+.1f}" if ".1f" in fmt else "{:+.0f}").format(h2 - h1)})
+    return pd.DataFrame(rows)
+
+
+def game_attribution(game_halves: pd.DataFrame, game_id: str) -> pd.DataFrame:
+    """Exact decomposition of one game's 1H -> 2H margin change."""
+    g = game_halves[(game_halves["game_id"] == game_id) & game_halves["split"].astype(str).isin(["H1", "H2"])]
+    d = decompose_frame(g.assign(split=g["split"].astype(str))).iloc[0]
+    return pd.DataFrame({
+        "factor": FACTORS,
+        "label": [FACTOR_LABELS[f] for f in FACTORS],
+        "points": [float(d[f]) for f in FACTORS],
+    }).assign(margin_change=float(d["margin_change"]))
+
+
+def game_turnovers(turnovers: pd.DataFrame, game_id: str) -> pd.DataFrame:
+    """Clippers turnovers in one game, in order, with what each one cost."""
+    t = turnovers[(turnovers["game_id"] == game_id) & turnovers["is_team"]].sort_values("event_index")
+    return pd.DataFrame({
+        "half": t["period"].map(lambda p: "1st" if p <= 2 else "2nd" if p <= 4 else "OT"),
+        "clock": [_period_clock(p, c) for p, c in zip(t["period"], t["clock"])],
+        "player": t["player_name"].fillna("Team"),
+        "type": t["sub_type"],
+        "live ball": t["live_ball"].map({True: "yes", False: "no"}),
+        "opponent pts off it": t["pts_off"],
+        "margin before": t["margin_before"].map("{:+d}".format),
+    }).reset_index(drop=True)
+
+
+def _period_clock(period: int, seconds_left: float) -> str:
+    """'Q3 7:05' (or 'OT1 0:42') from the period and seconds left on its clock."""
+    name = f"Q{period}" if period <= 4 else f"OT{period - 4}"
+    s = int(round(seconds_left))
+    return f"{name} {s // 60}:{s % 60:02d}"
+
+
+# ---------------------------------------------------------------- players
+
+def player_halves(player_stats: pd.DataFrame, season: str, min_minutes: float = 40) -> pd.DataFrame:
+    """Season totals by half for every player with ``min_minutes`` in each half."""
+    ps = player_stats[(player_stats["season"] == season) & player_stats["split"].astype(str).isin(["H1", "H2"])]
+    out = summarize_players(ps.assign(split=ps["split"].astype(str)), ["player_id", "player_name", "split"])
+    team_tov = out.groupby("split")["tov"].transform("sum")
+    out["tov_share"] = out["tov"] / team_tov
+    keep = out.groupby("player_id")["minutes"].transform("min") >= min_minutes
+    both = out.groupby("player_id")["split"].transform("nunique") == 2
+    return out[keep & both].reset_index(drop=True)
+
+
+def player_games(player_stats: pd.DataFrame, leads: pd.DataFrame, season: str, player: str) -> pd.DataFrame:
+    """One row per game for one player: minutes, turnovers and TOV% in each half."""
+    ps = player_stats[(player_stats["season"] == season) & (player_stats["player_name"] == player)
+                      & player_stats["split"].astype(str).isin(["H1", "H2"])]
+    w = ps.assign(split=ps["split"].astype(str)).pivot_table(
+        index="game_id", columns="split", values=["minutes", "tov", "tov_live", "tov_pct"], aggfunc="sum")
+    w.columns = [f"{stat}_{split.lower()}" for stat, split in w.columns]
+    info = leads[leads["season"] == season].set_index("game_id")[
+        ["game_date", "opponent_abbreviation", "result", "final_margin", "lead_class"]]
+    out = info.join(w, how="inner").sort_values("game_date").reset_index()
+    out["lead_class"] = out["lead_class"].map(LEAD_CLASS_LABELS)
+    return out
+
+
+# ----------------------------------------------------------------- league
+
+def league_view(ranks: pd.DataFrame, season: str, metric: str, split: str) -> pd.DataFrame:
+    """All 30 teams for one metric and split, best first (rank 1 = best)."""
+    d = ranks[(ranks["season"] == season) & (ranks["metric"] == metric) & (ranks["split"] == split)]
+    return d.sort_values("rank")[["rank", "team_name", "value", "is_team", "league_mean"]].reset_index(drop=True)
+
+
+def better_direction(metric: str) -> str:
+    better = METRICS.get(metric)
+    return "higher is better" if better else "lower is better" if better is False else "descriptive"
+
+
+def clippers_ranks(ranks: pd.DataFrame, season: str) -> pd.DataFrame:
+    """The Clippers' rank on every metric in each half and on the change."""
+    d = ranks[(ranks["season"] == season) & ranks["is_team"]]
+    w = d.pivot(index="metric", columns="split", values="rank")[["H1", "H2", "change"]]
+    w = w.reindex([m for m in METRIC_LABELS if m in w.index])
+    w.index = [METRIC_LABELS.get(m, m) for m in w.index]
+    return w.rename(columns={"H1": "1st half", "H2": "2nd half", "change": "change (1H to 2H)"}).astype(int)
