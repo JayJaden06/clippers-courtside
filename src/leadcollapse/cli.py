@@ -238,3 +238,20 @@ def run_all(
     build(season)
     analyze()
     report()
+
+
+@app.command()
+def dashboard(port: Annotated[int, typer.Option(help="Port for the local Streamlit server.")] = 8501) -> None:
+    """Open the Streamlit dashboard (install the dashboard extra first; see the README)."""
+    import subprocess
+    import sys
+    from importlib.util import find_spec
+
+    from leadcollapse.config import PROJECT_ROOT
+
+    if find_spec("streamlit") is None:
+        console.print(r'[red]Streamlit is not installed.[/] Run: pip install -e ".\[dashboard]"')
+        raise typer.Exit(1)
+    app_path = PROJECT_ROOT / "dashboard" / "app.py"
+    raise typer.Exit(subprocess.call([sys.executable, "-m", "streamlit", "run", str(app_path),
+                                      "--server.port", str(port)]))
