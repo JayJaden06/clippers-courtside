@@ -31,6 +31,7 @@ REGULATION_LIMIT = 4
 OVERTIME_LIMIT = 3
 LAST_TWO_MINUTES = 120.0
 FT_TOTALS = {"ft_against_fta", "ft_against_ftm"}
+TRIP_STARTS = {"Free Throw 1 of 2", "Free Throw 1 of 3"}
 TECHNICAL_LIKE = ("Technical", "Flagrant", "Clear Path", "Defense 3 Second", "Hanging", "Delay", "Away From Play")
 
 
@@ -105,6 +106,9 @@ def free_throw_sources(events: pd.DataFrame, fouls: pd.DataFrame) -> pd.DataFram
             out.append({
                 "game_id": game_id, "period": row["period"], "event_index": row["event_index"],
                 "shooting_team_id": row["team_id"], "is_team": row["is_team"], "made": row["made"],
+                # First shot of a 2- or 3-shot trip: the trip ends a possession. And-ones
+                # ("1 of 1"), technicals, flagrants and clear-path FTs do not.
+                "trip_start": row["sub_type"] in TRIP_STARTS,
                 "foul_shooting": bool(src["is_shooting"]) if src is not None else False,
                 "foul_penalty": bool(src["penalty_tag"]) if src is not None else False,
                 "foul_technical_like": bool(src["is_technical_like"]) if src is not None else False,
@@ -141,6 +145,7 @@ def team_foul_splits(fouls: pd.DataFrame, starts: pd.DataFrame, fts: pd.DataFram
         "ft_against_fta_late_trailing": fts["foul_late_trailing"].astype(int),
         "ft_against_ftm_penalty": (fts["made"] & fts["foul_penalty"] & ~fts["foul_shooting"]).astype(int),
         "ft_against_ftm_technical": (fts["made"] & fts["foul_technical_like"]).astype(int),
+        "ft_against_ft_trips": fts["trip_start"].astype(int),
     }
     tc = count_by_split(fts.rename(columns={"is_team": "shooter_is_team", "fouler_is_team": "is_team"}),
                         ["game_id", "is_team"], tflags)

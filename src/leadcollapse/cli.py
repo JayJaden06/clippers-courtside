@@ -14,6 +14,7 @@ import typer
 from rich.console import Console
 from rich.logging import RichHandler
 
+from leadcollapse.analysis import hypotheses
 from leadcollapse.config import get_settings
 from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players
 from leadcollapse.nba_client import NBAClient
@@ -173,3 +174,25 @@ def build(season: SeasonOpt = None) -> None:
         f"league ranks: {len(ranks)} rows (team totals match box scores)"
     )
     console.print(f"wrote to {settings.processed_dir}")
+
+
+@app.command()
+def analyze() -> None:
+    """Run the hypothesis tests on the processed tables (no network)."""
+    from datetime import date
+
+    settings = get_settings()
+    inp = hypotheses.load_inputs(
+        settings.processed_dir, settings.current_season, settings.comparison_season, settings.focus_player
+    )
+    results = hypotheses.run_all(inp)
+    meta = {
+        "season": settings.current_season, "comparison_season": settings.comparison_season,
+        "games": inp.n_games, "focus_player": settings.focus_player, "team": settings.team_abbreviation,
+        "analyzed_on": date.today().isoformat(), "lead_threshold": settings.lead_threshold,
+    }
+    hypotheses.write_results(results, settings.processed_dir / "analysis", settings.reports_dir / "analysis.json", meta)
+    for r in results:
+        answer = r.verdict.split(":")[0] if len(r.verdict.split(":")[0]) < 20 else r.verdict.split(".")[0]
+        console.print(f"[bold]{r.id}[/] {r.title} -> {answer}")
+    console.print(f"wrote {settings.reports_dir / 'analysis.json'} and {settings.processed_dir / 'analysis'}/")
