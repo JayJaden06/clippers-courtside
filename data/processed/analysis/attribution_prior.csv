@@ -1,0 +1,8 @@
+factor,label,points,per_game,share_of_swing
+shooting,Clippers shooting (eFG%),133.2743,1.6253,-13.3274
+turnovers,Turnovers (shots lost / gained),-62.6429,-0.7639,6.2643
+free_throws,"Free throws (made FTs, net of trips)",-62.009,-0.7562,6.2009
+pace,Pace (possessions),-15.2871,-0.1864,1.5287
+rebounding,Offensive rebounding,-7.1554,-0.0873,0.7155
+opp_shooting,Opponent shooting (eFG%),5.2186,0.0636,-0.5219
+residual,Unattributed (possession-accounting residual),-1.3985,-0.0171,0.1398
