@@ -9,14 +9,15 @@ from __future__ import annotations
 import logging
 from typing import Annotated, Optional
 
+import pandas as pd
 import typer
 from rich.console import Console
 from rich.logging import RichHandler
 
 from leadcollapse.config import get_settings
-from leadcollapse.ingest import boxscores, games, playbyplay, players
+from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players
 from leadcollapse.nba_client import NBAClient
-from leadcollapse.transform import fouls, halves, leads, turnovers
+from leadcollapse.transform import fouls, halves, leads, league_context, onoff, turnovers
 
 app = typer.Typer(help="Why do the Clippers lose second-half leads?", no_args_is_help=True)
 console = Console()
@@ -50,7 +51,15 @@ def pull(season: SeasonOpt = None) -> None:
     pid = players.find_player_id(settings.focus_player)
     players.player_half_splits(client, pid, settings.comparison_season, settings.season_type)
     players.player_game_log(client, pid, settings.comparison_season, settings.season_type)
-    console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}): {client.stats}")
+    for s in sorted(df["season"].unique()):
+        # Season-to-date dashboards change after every game in the current season.
+        refresh = s == settings.current_season
+        with client.refreshing(refresh):
+            lineups.load_onoff(client, settings.team_id, s, settings.season_type)
+            lineups.load_lineups(client, settings.team_id, s, settings.season_type)
+            league.load_league(client, s, settings.season_type)
+    console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}, "
+                  f"on/off, lineups, league): {client.stats}")
 
 
 @app.command()
@@ -143,5 +152,24 @@ def build(season: SeasonOpt = None) -> None:
     console.print(
         f"play-by-play: {len(events)} events; final scores and halftime margins match box scores; "
         f"{len(game_leads)} games classified"
+    )
+
+    seasons = sorted(df["season"].unique())
+    onoff_raw = pd.concat([lineups.load_onoff(client, settings.team_id, s, settings.season_type) for s in seasons])
+    lineup_raw = pd.concat([lineups.load_lineups(client, settings.team_id, s, settings.season_type) for s in seasons])
+    league_raw = pd.concat([league.load_league(client, s, settings.season_type) for s in seasons])
+    onoff.check_onoff_minutes(onoff_raw)
+    onoff.check_lineup_minutes(lineup_raw, onoff_raw)
+    league_context.check_against_box(league_raw, game_halves, settings.team_id)
+    onoff_h = onoff.onoff_halves(onoff_raw)
+    lineup_h = onoff.lineup_halves(lineup_raw)
+    ranks = league_context.half_ranks(league_raw, settings.team_id)
+    for name, frame in (("onoff_halves", onoff_h), ("lineup_halves", lineup_h), ("league_half_ranks", ranks)):
+        frame.to_parquet(out / f"{name}.parquet", index=False)
+        frame.round(4).to_csv(out / f"{name}.csv", index=False)
+    ranks.round(4).to_csv(settings.tableau_dir / "league_half_ranks.csv", index=False)
+    console.print(
+        f"on/off: {len(onoff_h)} rows; lineups: {lineup_h['group_id'].nunique()} lineups (minutes add up); "
+        f"league ranks: {len(ranks)} rows (team totals match box scores)"
     )
     console.print(f"wrote to {settings.processed_dir}")

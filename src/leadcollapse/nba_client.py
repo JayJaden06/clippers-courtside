@@ -19,10 +19,11 @@ import hashlib
 import json
 import logging
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Iterator
 
 import requests
 from tenacity import (
@@ -110,6 +111,20 @@ class NBAClient:
         self.offline = offline
         self.stats = CacheStats()
         self._last_request_at: float | None = None
+        self._refresh_default = False
+
+    @contextmanager
+    def refreshing(self, enabled: bool = True) -> Iterator[None]:
+        """Within the block, every ``get`` behaves as if ``refresh=enabled`` was passed.
+
+        For season-to-date endpoints (dashboards, game logs) of the current season,
+        whose responses change after every game.
+        """
+        previous, self._refresh_default = self._refresh_default, enabled
+        try:
+            yield
+        finally:
+            self._refresh_default = previous
 
     # ------------------------------------------------------------------ cache
     def cache_path(self, endpoint_name: str, params: dict[str, Any]) -> Path:
@@ -192,6 +207,7 @@ class NBAClient:
         name = endpoint_cls.__name__
         path = self.cache_path(name, params)
 
+        refresh = refresh or self._refresh_default
         cached = None if (refresh and not self.offline) else self._read_cache(path)
         if cached is not None:
             self.stats.hits += 1

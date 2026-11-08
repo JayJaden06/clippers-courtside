@@ -172,3 +172,14 @@ def test_client_errors_are_not_retried(client):
     with pytest.raises(PermanentAPIError):
         client.get(endpoint, season="bad")
     assert len(endpoint.calls) == 1
+
+
+def test_refreshing_block_refetches_and_restores(client):
+    endpoint = make_endpoint([(200, BODY)])
+    client.get(endpoint, season="2026-27")
+    with client.refreshing():
+        client.get(endpoint, season="2026-27")
+        with client.refreshing(False):
+            client.get(endpoint, season="2026-27")  # nested opt-out reads the cache
+    client.get(endpoint, season="2026-27")  # back to normal after the block
+    assert len(endpoint.calls) == 2
