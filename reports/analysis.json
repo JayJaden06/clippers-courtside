@@ -139,7 +139,7 @@
       "id": "SEASONS",
       "title": "2026-27 vs 2025-26: chronic or new?",
       "verdict": "Last season the Clippers were essentially even after halftime (+0.5 per game in first halves, +0.4 in second halves) and blew 16 of 47 eight-point leads (34%). This season it is -0.1 and -6.2, with 4 of 5 leads blown. New this season (at least 1 point per game worse than last season): Clippers shooting (eFG%), Offensive rebounding. Chronic (costing at least half a point per game in both seasons): Turnovers (shots lost / gained), Free throws (made FTs, net of trips). Sample: 8 games (16 halves), so treat every number here as a lead, not a settled rate.",
-      "chart": "attribution.png",
+      "chart": "season_factors.png",
       "key": {
         "new": [
           "shooting",
