@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     lead_window_minutes: int = 30
     sensitivity_thresholds: list[int] = Field(default_factory=lambda: [5, 8, 12])
 
+    # The player the turnover hypothesis is about; looked up by name, never by id.
+    focus_player: str = "Darius Garland"
+
     # HTTP client
     request_timeout: int = 60
     request_sleep_seconds: float = 0.6
