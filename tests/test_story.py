@@ -74,3 +74,57 @@ def test_game_story_when_they_never_led_and_improved():
     text = S.game_story(row, halves, att)
     assert text.startswith("They never led") and "won the second half 60-58" in text
     assert "improvement: Clippers' shooting" in text
+
+
+# ------------------------------------------------------------ the full answer
+
+@pytest.fixture(scope="module")
+def answer_inputs():
+    from leadcollapse.viz import dashboard_data as D
+
+    d = D.load(ROOT / "data" / "processed", ANALYSIS)
+    meta = d.analysis["meta"]
+    sh = D.season_halves(d.game_halves)
+    return d, meta, sh, S.ranked_reasons(d.attribution[meta["season"]], d.attribution[meta["comparison_season"]],
+                                         sh.loc[meta["season"]])
+
+
+def test_reasons_are_ranked_and_add_up_to_the_swing(answer_inputs):
+    d, meta, _, reasons = answer_inputs
+    att = d.attribution[meta["season"]].set_index("factor")
+    assert [r.per_game for r in reasons] == sorted(r.per_game for r in reasons)
+    total = sum(r.per_game for r in reasons) + att.loc["residual", "per_game"]
+    assert total == pytest.approx(att["per_game"].sum())
+    assert sum(r.share for r in reasons) + att.loc["residual", "share_of_swing"] == pytest.approx(1.0, abs=1e-3)
+    assert all(r.detail and "nan" not in r.detail for r in reasons)
+
+
+@pytest.mark.parametrize("cur, prev, status", [(-6.1, 1.6, S.NEW), (-1.5, -0.8, S.SAME), (2.5, 0.1, S.BETTER),
+                                               (-0.4, -0.2, S.SIMILAR)])
+def test_status_uses_the_report_rules(cur, prev, status):
+    assert S._status(cur, prev) == status
+
+
+def test_scorecard_covers_both_seasons(answer_inputs):
+    _, meta, sh, _ = answer_inputs
+    rows = S.scorecard(sh, meta["season"], meta["comparison_season"])
+    assert len(rows) == len(S.SCORECARD)
+    margin = rows[0]
+    comp = pd.read_csv(ROOT / "data" / "processed" / "analysis" / "season_comparison.csv").set_index("season")
+    assert float(margin.cur_h2) == pytest.approx(comp.loc[meta["season"], "margin_h2_per_game"], abs=0.05)
+    assert {r.verdict for r in rows} <= {"Worse than last season", "Better than last season", "About the same"}
+
+
+def test_what_if_is_additive_and_only_improves(answer_inputs):
+    _, _, _, reasons = answer_inputs
+    base = -6.25
+    assert S.what_if(base, reasons, set()) == base
+    by = {r.factor: r for r in reasons}
+    one = S.what_if(base, reasons, {"shooting"})
+    assert one == pytest.approx(base + by["shooting"].prev_per_game - by["shooting"].per_game)
+    both = S.what_if(base, reasons, {"shooting", "rebounding"})
+    assert both - base == pytest.approx((one - base) + (S.what_if(base, reasons, {"rebounding"}) - base))
+    # Fixing something that was worse last season never makes it worse.
+    assert S.what_if(base, reasons, {r.factor for r in reasons}) >= base
+    # Garland's piece is skipped when all turnovers are already fixed.
+    assert S.what_if(base, reasons, {"turnovers"}, 2.2, True) == S.what_if(base, reasons, {"turnovers"})

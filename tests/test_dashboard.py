@@ -76,6 +76,9 @@ def test_app_runs_headless_for_every_season():
         for season in at.selectbox(key=key).options:
             at.selectbox(key=key).set_value(season).run()
             assert not at.exception, (key, season, at.exception[0].value)
+    for key in ("fix_shooting", "fix_garland"):
+        at.toggle(key=key).set_value(True).run()
+        assert not at.exception, (key, at.exception[0].value)
     for metric in ["net_rtg", "efg_pct", "opp_efg_pct", "tov_pct", "opp_ft_rate", "opp_oreb_pct"]:
         at.button_group(key="league_metric").set_value(metric).run()
         assert not at.exception, (metric, at.exception[0].value)
