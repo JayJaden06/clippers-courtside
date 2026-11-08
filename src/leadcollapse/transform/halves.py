@@ -28,6 +28,14 @@ COUNTS = [
     # opponent scored off Clippers turnovers
     "pts_off_tov", "pts_2nd_chance", "pts_fast_break", "pts_paint",
 ]
+# Play-by-play count columns that summarize() should also sum.
+PBP_COUNT_PREFIXES = (
+    "tov_", "opp_tov_", "pts_off_", "opp_pts_off_", "fouls_pbp", "opp_fouls_pbp", "team_fouls", "opp_team_fouls",
+    "shooting_fouls", "opp_shooting_fouls", "offensive_fouls", "opp_offensive_fouls", "penalty_fouls",
+    "opp_penalty_fouls", "late_trailing_fouls", "opp_late_trailing_fouls", "bonus_secs", "opp_bonus_secs",
+    "fta_", "ftm_", "opp_fta_", "opp_ftm_",
+)
+RATE_SUFFIXES = ("_pct", "_rate", "_rate_ex_late")
 GAME_COLUMNS = ["season", "game_id", "game_date", "opponent_abbreviation", "is_home", "result"]
 SPLIT_ORDER = ["FULL", "H1", "H2", "Q1", "Q2", "Q3", "Q4", "OT"]
 
@@ -52,13 +60,22 @@ def add_rates(df: pd.DataFrame) -> pd.DataFrame:
         out[f"{side}efg_pct"] = _ratio(out[f"{side}fgm"] + 0.5 * out[f"{side}fg3m"], out[f"{side}fga"])
         out[f"{side}ft_rate"] = _ratio(out[f"{side}fta"], out[f"{side}fga"])
         out[f"{side}tov_pct"] = 100 * _ratio(out[f"{side}tov"], out[f"{side}possessions"])
+    if "opp_fta_late_trailing" in out:
+        # Opponent FT rate without free throws from late fouls by a trailing Clippers team.
+        out["opp_ft_rate_ex_late"] = _ratio(out["opp_fta"] - out["opp_fta_late_trailing"], out["opp_fga"])
     out["oreb_pct"] = _ratio(out["oreb"], out["oreb"] + out["opp_dreb"])
     out["opp_oreb_pct"] = _ratio(out["opp_oreb"], out["opp_oreb"] + out["dreb"])
     return out
 
 
-def build_game_halves(team_box: pd.DataFrame, games: pd.DataFrame, team_id: int) -> pd.DataFrame:
-    """One row per game x split with team and opponent stats side by side, plus rates."""
+def build_game_halves(
+    team_box: pd.DataFrame, games: pd.DataFrame, team_id: int, pbp_splits: pd.DataFrame | None = None
+) -> pd.DataFrame:
+    """One row per game x split with team and opponent stats side by side, plus rates.
+
+    ``pbp_splits``: extra per game x split columns from play-by-play (turnover types,
+    fouls, bonus time, free-throw sources), merged in and zero-filled.
+    """
     team = team_box[team_box["team_id"] == team_id]
     opp = team_box[team_box["team_id"] != team_id]
     keys = ["game_id", "split"]
@@ -72,6 +89,10 @@ def build_game_halves(team_box: pd.DataFrame, games: pd.DataFrame, team_id: int)
 
     meta = games[games["team_id"] == team_id][GAME_COLUMNS]
     out = meta.merge(merged, on="game_id", how="inner", validate="1:m")
+    if pbp_splits is not None:
+        extra = [c for c in pbp_splits.columns if c not in ("game_id", "split")]
+        out = out.merge(pbp_splits, on=["game_id", "split"], how="left", validate="1:1")
+        out[extra] = out[extra].fillna(0)
     out = add_rates(out)
     out["split"] = pd.Categorical(out["split"], categories=SPLIT_ORDER, ordered=True)
     return out.sort_values(["season", "game_date", "split"]).reset_index(drop=True)
@@ -82,7 +103,11 @@ def summarize(game_halves: pd.DataFrame, by: list[str]) -> pd.DataFrame:
 
     Example: ``summarize(gh, ["season", "split"])`` gives season totals per half.
     """
-    count_cols = [c for c in game_halves.columns if c in COUNTS or c.removeprefix("opp_") in COUNTS]
+    count_cols = [
+        c for c in game_halves.columns
+        if (c in COUNTS or c.removeprefix("opp_") in COUNTS or c.startswith(PBP_COUNT_PREFIXES))
+        and not c.endswith(RATE_SUFFIXES)  # tov_pct starts with "tov_" but is a rate
+    ]
     grouped = game_halves.groupby(by, observed=True)
     totals = grouped[count_cols].sum()
     totals.insert(0, "games", grouped["game_id"].nunique())

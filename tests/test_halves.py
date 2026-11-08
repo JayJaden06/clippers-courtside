@@ -126,3 +126,13 @@ def test_official_points_off_turnovers_by_half(gh):
     assert gh.loc[["H1", "H2", "OT", "FULL"], "opp_pts_off_tov"].tolist() == [9, 12, 2, 23]
     assert gh.loc[["H1", "H2", "OT", "FULL"], "pts_off_tov"].tolist() == [13, 0, 0, 13]
     assert gh.loc["H2", "opp_pts_fast_break"] == 14
+
+
+def test_summary_never_sums_rate_columns():
+    df = add_rates(pd.DataFrame([
+        _synthetic(game_id="A", split="H2", minutes=120, possessions=50, opp_possessions=50, tov=10, tov_live=4),
+        _synthetic(game_id="B", split="H2", minutes=120, possessions=50, opp_possessions=50, tov=5, tov_live=1),
+    ]))
+    s = summarize(df, ["split"]).iloc[0]
+    assert s["tov"] == 15 and s["tov_live"] == 5          # counts (incl. play-by-play ones) are summed
+    assert s["tov_pct"] == pytest.approx(15.0)             # rate recomputed: 100 * 15 / 100, not 20 + 10
