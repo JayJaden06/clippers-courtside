@@ -72,6 +72,10 @@ def test_app_runs_headless_for_every_season():
     testing = pytest.importorskip("streamlit.testing.v1")
     at = testing.AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=120).run()
     assert not at.exception, at.exception[0].value
-    for season in at.sidebar.selectbox[0].options:
-        at.sidebar.selectbox[0].set_value(season).run()
-        assert not at.exception, (season, at.exception[0].value)
+    for key in ("game_season", "player_season", "league_season"):
+        for season in at.selectbox(key=key).options:
+            at.selectbox(key=key).set_value(season).run()
+            assert not at.exception, (key, season, at.exception[0].value)
+    for metric in ["net_rtg", "efg_pct", "opp_efg_pct", "tov_pct", "opp_ft_rate", "opp_oreb_pct"]:
+        at.button_group(key="league_metric").set_value(metric).run()
+        assert not at.exception, (metric, at.exception[0].value)
