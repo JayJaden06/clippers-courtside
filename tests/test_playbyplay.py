@@ -88,8 +88,18 @@ def test_team_flags_and_neutral_events(mia):
     assert neutral["team_id"].isna().all()
     assert not (neutral["is_team"] | neutral["is_opp"]).any()
     tov = mia[mia["action_type"] == "Turnover"]
-    assert set(tov.loc[tov["is_team"], "team_tricode"]) == {"LAC"}
-    assert set(tov.loc[tov["is_opp"], "team_tricode"]) == {"MIA"}
+    assert set(tov.loc[tov["is_team"], "team_id"]) == {LAC}
+    assert set(tov.loc[tov["is_opp"], "team_id"]) == {1610612748}
+    assert (tov["is_team"] | tov["is_opp"]).all()
+
+
+def test_team_actions_are_attributed_to_the_team(mia):
+    # "CLIPPERS Turnover: Shot Clock" arrives with teamId 0 and the team id in personId.
+    shot_clock = mia[(mia["action_type"] == "Turnover") & (mia["sub_type"] == "Shot Clock Turnover")]
+    assert len(shot_clock) == 2
+    assert shot_clock["is_team"].all() and shot_clock["is_team_action"].all()
+    assert shot_clock["person_id"].isna().all()
+    assert set(shot_clock["team_id"]) == {LAC}
 
 
 def test_turnover_and_foul_subtypes_kept(mia):
