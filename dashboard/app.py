@@ -18,11 +18,14 @@ from leadcollapse.config import get_settings
 from leadcollapse.viz import dashboard_data as D
 from leadcollapse.viz import story as S
 
-H1C, H2C = "#2a78d6", "#eb6834"  # 1st half / 2nd half
-GOOD, BAD, GRAY = "#2a78d6", "#e34948", "#898781"
-FOCUS = "#eb6834"
-INK_MARK = "#52514e"
-LIGHT = "rgba(137,135,129,0.35)"
+# Dark-surface steps of the report palette (validated for the dark chart surface).
+H1C, H2C = "#3987e5", "#d95926"  # 1st half / 2nd half
+GOOD, BAD, GRAY = "#3987e5", "#e66767", "#898781"
+FOCUS = "#d95926"
+INK_MARK = "#e8e6df"
+LIGHT = "rgba(137,135,129,0.45)"
+MUTED_BAR = "#5f5e5a"
+BG = "#141413"  # matches .streamlit/config.toml backgroundColor
 PLOTLY_CONFIG = {"displayModeBar": False}
 TONE_BADGE = {"yes": ("red", "The answer"), "partly": ("orange", "Part of it"), "no": ("gray", "Not really")}
 
@@ -36,6 +39,13 @@ st.markdown("""
 .big-q {font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem}
 .rank {font-size: 2.4rem; font-weight: 800; line-height: 1; text-align: center; opacity: .8}
 div[data-testid="stMetricValue"] {font-size: 1.9rem}
+.jump {display: flex; flex-wrap: wrap; gap: .45rem; margin: .4rem 0 1.4rem 0}
+.jump a {text-decoration: none; font-size: .9rem; padding: .3rem .8rem; border-radius: 999px;
+         border: 1px solid rgba(137,135,129,.45); color: inherit}
+.jump a:hover {border-color: #3987e5; color: #3987e5}
+.tldr {border-left: 4px solid #d95926; padding: .2rem 0 .2rem 1rem; margin: .6rem 0 .4rem 0}
+.tldr li {margin-bottom: .35rem; font-size: 1.05rem}
+.page-sub {opacity: .75; font-size: 1.05rem; margin-top: -.6rem; margin-bottom: .8rem}
 </style>
 """, unsafe_allow_html=True)
 
@@ -47,13 +57,33 @@ def load() -> D.DashboardData:
     return D.load(settings.processed_dir, settings.reports_dir / "analysis.json")
 
 
-def show(fig: go.Figure, height: int, **layout) -> None:
+def show(fig: go.Figure, height: int, key: str | None = None, select: bool = False, **layout):
+    """Render a plotly figure; with ``select=True`` clicks on points rerun the app and are returned."""
     fig.update_layout(height=height, margin=dict(l=8, r=8, t=36, b=8), hovermode="closest",
                       legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, title=None),
-                      hoverlabel=dict(align="left"), **layout)
+                      hoverlabel=dict(align="left"), clickmode="event+select" if select else None, **layout)
     fig.update_xaxes(showgrid=False, zeroline=False)
     fig.update_yaxes(zeroline=False)
-    st.plotly_chart(fig, width="stretch", config=PLOTLY_CONFIG)
+    return st.plotly_chart(fig, width="stretch", config=PLOTLY_CONFIG, key=key,
+                           on_select="rerun" if select else "ignore", selection_mode="points")
+
+
+def clicked(event, field: str, memo: str):
+    """The clicked point's ``field`` if this click is new since last run (so widgets can still be used)."""
+    pts = event.selection.points if event and event.selection else []
+    value = pts[0].get(field) if pts else None
+    if value is None or st.session_state.get(memo) == value:
+        return None
+    st.session_state[memo] = value
+    return value
+
+
+def page_top(title: str, subtitle: str) -> None:
+    left, right = st.columns([4, 1], vertical_alignment="bottom")
+    left.title(title)
+    with right:
+        glossary_button()
+    st.markdown(f'<div class="page-sub">{subtitle}</div>', unsafe_allow_html=True)
 
 
 def signed(v: float, digits: int = 1) -> str:
@@ -80,14 +110,14 @@ def glossary_button() -> None:
             st.markdown(f"**{term}**  \n{text}")
 
 
-tab_story, tab_games, tab_players, tab_league = st.tabs(["The answer", "Game replay", "Players", "Vs. the league"])
 
 # ================================================================ the answer
 STATUS_BADGE = {S.NEW: "red", S.SAME: "orange", S.SIMILAR: "gray", S.BETTER: "blue"}
 VERDICT_MARK = {"Worse than last season": "▼ Worse than last season", "Better than last season": "▲ Better than last season",
                 "About the same": "= About the same"}
 
-with tab_story:
+
+def page_answer() -> None:
     hl = S.headline(data.analysis, data.comparison, data.games, season_now) if not data.comparison.empty else None
     att_now, att_prev = data.attribution.get(season_now), data.attribution.get(season_prev)
     res = {r["id"]: r for r in data.analysis.get("results", [])}
@@ -125,10 +155,32 @@ with tab_story:
                     delta=f"{100 * (hl['efg_h2'] - hl['efg_h1']):+.1f} pts vs 1st half",
                     help="Shooting accuracy (eFG%): makes per shot, with 3-pointers worth extra.")
 
-    # ---------------------------------------------------------- 1. ranked reasons
     hurts = [r for r in reasons if r.per_game < 0]
     helps = [r for r in reasons if r.per_game >= 0]
-    st.header("1. Why they blow leads, ranked", divider="gray")
+
+    # ---------------------------------------------------------- the 60-second version
+    if hl and reasons:
+        st.markdown(f'<div class="tldr"><b>The 60-second version</b><ul>'
+                    + "".join(f"<li>{line}</li>" for line in S.sixty_seconds(reasons, res, hl, season_prev))
+                    + "</ul></div>", unsafe_allow_html=True)
+        b1, b2, b3 = st.columns(3)
+        worst = S.worst_collapse(data.game_leads, season_now)
+        if worst is not None and b1.button(f"Watch the worst collapse ({worst['label']})", icon=":material/play_arrow:",
+                                            type="primary", width="stretch"):
+            st.session_state["jump_game"] = worst["game_id"]
+            st.switch_page(PAGE_REPLAY)
+        if b2.button("Who turns it over? →", icon=":material/groups:", width="stretch"):
+            st.switch_page(PAGE_PLAYERS)
+        if b3.button("Compare with all 30 teams →", icon=":material/leaderboard:", width="stretch"):
+            st.switch_page(PAGE_LEAGUE)
+    st.markdown('<div class="jump">'
+                '<a href="#reasons">1 · Ranked reasons</a>'
+                + ('<a href="#hiding">What\'s hiding it</a>' if helps else '')
+                + '<a href="#theories">Theories checked</a><a href="#changes">Since last season</a>'
+                '<a href="#whatif">What if?</a><a href="#stats">Every stat</a></div>', unsafe_allow_html=True)
+
+    # ---------------------------------------------------------- 1. ranked reasons
+    st.header("1. Why they blow leads, ranked", divider="gray", anchor="reasons")
     st.write("Every point they lose after halftime, sorted into buckets. Each bar is how many points per game that "
              "part of the game costs them in the second half compared with the first."
              + (" The percentages add up to more than 100% because a few things got *better* after halftime "
@@ -149,7 +201,7 @@ with tab_story:
         fig.update_yaxes(autorange="reversed")
         fig.update_xaxes(title="Points per game lost after halftime", range=[0, max(-hurts[0].per_game * 1.3, 1)])
         show(fig, 90 + 58 * len(hurts))
-        st.caption(f"Red bars = this season. Black ticks = the same bucket last season ({season_prev}); a tick at 0 "
+        st.caption(f"Red bars = this season. Thin ticks = the same bucket last season ({season_prev}); a tick at 0 "
                    "means it didn't cost them anything last season. Hover a bar for the stat behind it.")
         for i, r in enumerate(hurts, 1):
             with st.container(border=True):
@@ -163,7 +215,7 @@ with tab_story:
 
     # ---------------------------------------------------------- 2. what's hiding it
     if helps:
-        st.header("2. What's hiding how bad it is", divider="gray")
+        st.header("2. What's hiding how bad it is", divider="gray", anchor="hiding")
         total_help = sum(r.per_game for r in helps)
         residual = att_now.set_index("factor").loc["residual", "per_game"] if att_now is not None else 0.0
         for r in helps:
@@ -175,7 +227,7 @@ with tab_story:
                         "can't be placed in any one bucket.)")
 
     # ---------------------------------------------------------- 3. theories
-    st.header(f"{3 if helps else 2}. The popular theories, checked", divider="gray")
+    st.header(f"{3 if helps else 2}. The popular theories, checked", divider="gray", anchor="theories")
     left, right = st.columns([1, 1.25], gap="large")
     with left:
         st.subheader("Is it Garland?")
@@ -183,10 +235,10 @@ with tab_story:
             k3 = res["H3"]["key"]
             share = k3["share_of_swing"]
             fig = go.Figure()
-            for x0, x1, label, shade in ((0, CONTRIBUTES, "minor", 0.05), (CONTRIBUTES, DRIVES, "part of it", 0.12),
-                                         (DRIVES, 1.0, "the main cause", 0.22)):
+            for x0, x1, label, shade in ((0, CONTRIBUTES, "minor", 0.08), (CONTRIBUTES, DRIVES, "part of it", 0.18),
+                                         (DRIVES, 1.0, "the main cause", 0.32)):
                 fig.add_shape(type="rect", x0=x0, x1=x1, y0=-0.5, y1=0.5, line_width=0,
-                              fillcolor=f"rgba(227,73,72,{shade})", layer="below")
+                              fillcolor=f"rgba(230,103,103,{shade})", layer="below")
                 fig.add_annotation(x=(x0 + x1) / 2, y=0.72, text=label, showarrow=False, font=dict(size=12))
             fig.add_trace(go.Bar(x=[min(share, 1)], y=[0], orientation="h", width=0.34, marker_color=FOCUS,
                                  hovertemplate=f"Garland's extra turnovers explain {share:.0%} of the "
@@ -219,7 +271,7 @@ with tab_story:
     # ---------------------------------------------------------- 4. since last season
     section = 4 if helps else 3
     if not data.comparison.empty and season_prev in data.attribution:
-        st.header(f"{section}. What changed since last season", divider="gray")
+        st.header(f"{section}. What changed since last season", divider="gray", anchor="changes")
         comp = data.comparison.set_index("season")
         cur, prev = comp.loc[season_now], comp.loc[season_prev]
         c = st.columns(4)
@@ -266,7 +318,7 @@ with tab_story:
 
     # ---------------------------------------------------------- 5. what if
     if hl and reasons:
-        st.header(f"{section}. What if they fixed it?", divider="gray")
+        st.header(f"{section}. What if they fixed it?", divider="gray", anchor="whatif")
         st.write("Switch a problem back to last season's level and see what their second halves would look like.")
         fixable = [r for r in hurts if r.prev_per_game - r.per_game >= 0.1]
         left, right = st.columns([1, 1.2], gap="large")
@@ -298,7 +350,7 @@ with tab_story:
         section += 1
 
     # ---------------------------------------------------------- 6. every stat
-    st.header(f"{section}. Every stat, before and after halftime", divider="gray")
+    st.header(f"{section}. Every stat, before and after halftime", divider="gray", anchor="stats")
     st.dataframe(D.full_stat_sheet(data.ranks, season_now), hide_index=True, width="stretch",
                  height=38 + 35 * len(D.full_stat_sheet(data.ranks, season_now)))
     st.caption("League ranks: 1st = best of 30 teams. The change rank compares each team's second half with its "
@@ -307,7 +359,10 @@ with tab_story:
                "NBA or the Clippers. Full method: reports/findings.md.")
 
 # =================================================================== games
-with tab_games:
+
+def page_replay() -> None:
+    page_top("Game replay", "Pick any game (or click it in the chart) to read what happened and watch the score "
+             "margin play out minute by minute.")
     top_l, top_r = st.columns([1, 3])
     season = top_l.selectbox("Season", data.seasons, index=0, key="game_season")
     options = D.game_options(data.game_leads, season).iloc[::-1].reset_index(drop=True)  # oldest first
@@ -323,25 +378,34 @@ with tab_games:
         fig.add_trace(go.Scatter(x=[x, x], y=[h, f], mode="lines", line=dict(color=BAD if blown else LIGHT, width=3),
                                  hoverinfo="skip", showlegend=False))
     fig.add_trace(go.Scatter(x=xs, y=strip["halftime_margin"], mode="markers", name="At halftime",
-                             marker=dict(color=H1C, size=11, line=dict(color="white", width=1.5)),
+                             marker=dict(color=H1C, size=11, line=dict(color=BG, width=1.5)),
                              hovertemplate="%{x}<br>At halftime: %{y:+d}<extra></extra>"))
     fig.add_trace(go.Scatter(x=xs, y=strip["final_margin"], mode="markers", name="Final",
-                             marker=dict(color=H2C, size=11, symbol="diamond", line=dict(color="white", width=1.5)),
+                             marker=dict(color=H2C, size=11, symbol="diamond", line=dict(color=BG, width=1.5)),
                              hovertemplate="%{x}<br>Final: %{y:+d}<extra></extra>"))
     fig.add_hline(y=0, line=dict(color=GRAY, width=1))
     if len(strip) > 20:
         fig.update_xaxes(showticklabels=False)
-    top_r.markdown("**Every game: where they stood at halftime, and how it ended.** Red lines = blown early leads.")
-    with top_r:
-        show(fig, 230, yaxis_title="Clippers margin")
-
+    top_r.markdown("**Every game: where they stood at halftime, and how it ended.** Red lines = blown early leads. "
+                   "*Click a dot to open that game.*")
     labels = [f"{x} · {r}" for x, r in zip(xs, strip["result"])]
+    by_x = dict(zip(xs, labels))
     default = next((i for i in range(len(strip) - 1, -1, -1) if strip["lead_class"].iloc[i] == "blown_lead"),
                    len(strip) - 1)
+    pick_key = f"pick_{season}"
+    st.session_state.setdefault(pick_key, labels[default])
+    jump = st.session_state.pop("jump_game", None)
+    if jump in set(strip["game_id"]):
+        st.session_state[pick_key] = labels[list(strip["game_id"]).index(jump)]
+    with top_r:
+        event = show(fig, 230, key=f"strip_{season}", select=True, yaxis_title="Clippers margin")
+    x = clicked(event, "x", f"strip_click_{season}")
+    if x in by_x:
+        st.session_state[pick_key] = by_x[x]
     if len(labels) <= 16:
-        pick = st.pills("Pick a game", labels, default=labels[default], key=f"pick_{season}")
+        pick = st.pills("Pick a game", labels, key=pick_key)
     else:
-        pick = st.selectbox("Pick a game", labels, index=default, key=f"pick_{season}")
+        pick = st.selectbox("Pick a game", labels, key=pick_key)
     pick = pick or labels[default]
     gid = strip["game_id"].iloc[labels.index(pick)]
     row = leads.loc[gid]
@@ -364,7 +428,7 @@ with tab_games:
                          help=f"Orange diamonds are {focus}'s turnovers; gray circles are everyone else's.")
 
     fig = go.Figure()
-    fig.add_vrect(x0=24, x1=end, fillcolor="rgba(137,135,129,0.08)", line_width=0, layer="below",
+    fig.add_vrect(x0=24, x1=end, fillcolor="rgba(137,135,129,0.12)", line_width=0, layer="below",
                   annotation_text="2nd half", annotation_position="top left")
     fig.add_vline(x=24, line=dict(color=GRAY, width=1))
     fig.add_hline(y=0, line=dict(color=GRAY, width=1))
@@ -383,7 +447,7 @@ with tab_games:
             sub = tm[tm["is_focus"] == is_focus]
             fig.add_trace(go.Scatter(
                 x=sub["minute"], y=sub["margin"], mode="markers", name=name,
-                marker=dict(symbol=symbol, color=color, size=size, line=dict(color="white", width=1.2)),
+                marker=dict(symbol=symbol, color=color, size=size, line=dict(color=BG, width=1.2)),
                 customdata=np.column_stack([sub["who"], sub["sub_type"], sub["kind"], sub["pts_off"]]),
                 hovertemplate="<b>%{customdata[0]}</b>: %{customdata[1]}<br>%{customdata[2]}"
                               "<br>Opponent scored %{customdata[3]} off it<extra></extra>"))
@@ -412,7 +476,7 @@ with tab_games:
         ])],
     )
     n_ot = int(row["overtime_periods"])
-    fig.update_xaxes(range=[0, end], tickvals=[0, 12, 24, 36, 48] + [50.5 + 5 * i for i in range(n_ot)],
+    fig.update_xaxes(range=[0, end + 0.8], tickvals=[0, 12, 24, 36, 48] + [50.5 + 5 * i for i in range(n_ot)],
                      ticktext=["Start", "Q2", "Half", "Q4", "End of Q4"]
                      + [("OT" if i == 0 else f"{i + 1}OT") for i in range(n_ot)])
     lim = max(10, float(m["margin"].abs().max()) + 4)
@@ -440,7 +504,10 @@ with tab_games:
         st.dataframe(D.game_turnovers(data.turnovers, gid), hide_index=True, width="stretch")
 
 # ================================================================= players
-with tab_players:
+
+def page_players() -> None:
+    page_top("Players", "Who loses the ball, and who gets sloppier after halftime. Click a player in the first chart "
+             "to see their games.")
     season_p = st.selectbox("Season", data.seasons, index=0, key="player_season")
     ph = D.player_halves(data.player_stats, season_p)
     if ph.empty:
@@ -459,9 +526,16 @@ with tab_players:
         fig.update_xaxes(tickformat=".0%")
         fig.update_yaxes(tickvals=list(h2["player_name"]),
                          ticktext=[f"<b>{n}</b>" if n == focus else n for n in h2["player_name"]])
-        show(fig, 80 + 46 * len(h2))
+        names = sorted(ph["player_name"].unique())
+        st.session_state.setdefault("player_pick", focus if focus in names else names[0])
+        if st.session_state["player_pick"] not in names:
+            st.session_state["player_pick"] = names[0]
+        event = show(fig, 80 + 46 * len(h2), key=f"who_{season_p}", select=True)
+        name = clicked(event, "y", f"who_click_{season_p}")
+        if name in names:
+            st.session_state["player_pick"] = name
         st.caption("If a player's turnover bar is longer than his plays bar, he gives the ball away more than his "
-                   "share. Players with 40+ minutes in each half.")
+                   "share. Players with 40+ minutes in each half. Click a player to jump to their games below.")
 
         st.subheader("Who gets sloppier after halftime?")
         w = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2")
@@ -473,7 +547,7 @@ with tab_players:
         for split, color, label in (("H1", H1C, "1st half"), ("H2", H2C, "2nd half")):
             fig.add_trace(go.Scatter(
                 x=w[split], y=w.index, mode="markers", name=label, customdata=tov[split],
-                marker=dict(color=color, size=13, line=dict(color="white", width=1.5)),
+                marker=dict(color=color, size=13, line=dict(color=BG, width=1.5)),
                 hovertemplate="%{y}<br>%{x:.1%} of plays end in a turnover<br>%{customdata:.0f} turnovers"
                               "<extra>" + label + "</extra>"))
         fig.update_xaxes(tickformat=".0%", title="Turnover rate (share of a player's plays that end in a turnover)")
@@ -483,8 +557,7 @@ with tab_players:
                    "on hover: a big jump on very few plays can be a couple of bad possessions.")
 
         st.subheader("One player, game by game")
-        names = sorted(ph["player_name"].unique())
-        player = st.selectbox("Player", names, index=names.index(focus) if focus in names else 0)
+        player = st.selectbox("Player", names, key="player_pick")
         t = ph[ph["player_name"] == player].set_index("split")
         c = st.columns(4)
         c[0].metric("Turnover rate, 1st half", f"{t.loc['H1', 'tov_pct']:.1%}", border=True,
@@ -511,9 +584,10 @@ with tab_players:
             st.dataframe(g.drop(columns=["game_id"]), hide_index=True, width="stretch")
 
 # ================================================================== league
-with tab_league:
-    st.subheader("Does every team get worse after halftime?")
-    st.write("No. Most teams barely change. Pick a stat to see how much each team's second half differs from its "
+
+def page_league() -> None:
+    page_top("Vs. the league", "Does every team get worse after halftime? No. Most teams barely change.")
+    st.write("Pick a stat to see how much each team's second half differs from its "
              "first, with every chart flipped so that **right = better after halftime**.")
     stat_names = {"net_rtg": "Overall (net rating)", "efg_pct": "Shooting accuracy",
                   "opp_efg_pct": "Opponents' shooting", "tov_pct": "Turnovers",
@@ -528,7 +602,7 @@ with tab_league:
     fmt = (lambda v: f"{v * 100:+.1f} pts") if pct else (lambda v: f"{v:+.1f}")
     fig = go.Figure(go.Bar(
         x=lv["shown"], y=lv["team_name"], orientation="h",
-        marker_color=[FOCUS if t else "#c3c2b7" for t in lv["is_team"]],
+        marker_color=[FOCUS if t else MUTED_BAR for t in lv["is_team"]],
         customdata=np.column_stack([lv["rank"], [fmt(v) for v in lv["value"]]]),
         hovertemplate="<b>%{y}</b><br>Change after halftime: %{customdata[1]}<br>%{customdata[0]} of 30"
                       "<extra></extra>"))
@@ -548,3 +622,17 @@ with tab_league:
         st.markdown("**Clippers' rank on everything** (1st = best)")
         cr = D.clippers_ranks(data.ranks, season_l)
         st.dataframe(cr.map(ordinal), width="stretch", height=38 + 35 * len(cr))
+
+
+PAGE_ANSWER = st.Page(page_answer, title="The answer", icon=":material/lightbulb:", url_path="answer", default=True)
+PAGE_REPLAY = st.Page(page_replay, title="Game replay", icon=":material/replay:", url_path="replay")
+PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
+PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
+PAGES = {"answer": PAGE_ANSWER, "replay": PAGE_REPLAY, "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
+nav = st.navigation(list(PAGES.values()), position="top")
+# Tests run a specific page by setting this in session state (AppTest can't change the URL).
+forced = st.session_state.get("_dashboard_page")
+if forced in PAGES:
+    {"answer": page_answer, "replay": page_replay, "players": page_players, "league": page_league}[forced]()
+else:
+    nav.run()
