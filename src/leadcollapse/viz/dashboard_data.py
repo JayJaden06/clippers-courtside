@@ -25,30 +25,29 @@ LEAD_CLASS_LABELS = {
 }
 METRIC_LABELS = {
     "net_rtg": "Net rating",
-    "ortg": "Offensive rating",
-    "drtg": "Defensive rating",
-    "efg_pct": "eFG%",
-    "opp_efg_pct": "Opponent eFG%",
-    "tov_pct": "Turnover %",
-    "opp_ft_rate": "Opponent FT rate",
-    "oreb_pct": "OREB%",
-    "opp_oreb_pct": "Opponent OREB%",
-    "pf_per100": "Fouls per 100",
-    "pace": "Pace",
+    "ortg": "Scoring (offensive rating)",
+    "drtg": "Defense (points allowed per 100)",
+    "efg_pct": "Shooting accuracy (eFG%)",
+    "opp_efg_pct": "Opponents' shooting (eFG%)",
+    "tov_pct": "Turnover rate",
+    "opp_ft_rate": "Opponent free throws per shot",
+    "oreb_pct": "Offensive rebounding",
+    "opp_oreb_pct": "Second chances given up",
+    "pf_per100": "Fouls per 100 possessions",
+    "pace": "Pace (possessions)",
 }
 # (label, column, format) rows for the per-game half comparison.
 GAME_ROWS = [
     ("Points", "pts", "{:.0f}"),
     ("Opponent points", "opp_pts", "{:.0f}"),
     ("Margin", "margin", "{:+.0f}"),
-    ("Net rating", "net_rtg", "{:+.1f}"),
-    ("eFG%", "efg_pct", "{:.3f}"),
-    ("Opponent eFG%", "opp_efg_pct", "{:.3f}"),
-    ("Turnovers (incl. team)", "tov_all", "{:.0f}"),
+    ("Shooting accuracy", "efg_pct", "{:.1%}"),
+    ("Opponents' shooting accuracy", "opp_efg_pct", "{:.1%}"),
+    ("Turnovers", "tov_all", "{:.0f}"),
     ("Opponent points off turnovers", "opp_pts_off_tov", "{:.0f}"),
-    ("Offensive rebounds allowed", "opp_oreb", "{:.0f}"),
-    ("Opponent FTA", "opp_fta", "{:.0f}"),
-    ("Team fouls", "pf", "{:.0f}"),
+    ("Second chances given up", "opp_oreb", "{:.0f}"),
+    ("Opponent free throws attempted", "opp_fta", "{:.0f}"),
+    ("Fouls", "pf", "{:.0f}"),
 ]
 
 
@@ -61,6 +60,9 @@ class DashboardData:
     turnovers: pd.DataFrame
     ranks: pd.DataFrame
     analysis: dict
+    games: pd.DataFrame
+    comparison: pd.DataFrame
+    attribution: dict[str, pd.DataFrame]
 
     @property
     def seasons(self) -> list[str]:
@@ -70,6 +72,12 @@ class DashboardData:
 def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
     p = Path(processed_dir)
     analysis = json.loads(Path(analysis_json).read_text(encoding="utf-8")) if Path(analysis_json).exists() else {}
+    a = p / "analysis"
+    meta = analysis.get("meta", {})
+    attribution = {}
+    for season, name in ((meta.get("season"), "attribution.csv"), (meta.get("comparison_season"), "attribution_prior.csv")):
+        if season and (a / name).exists():
+            attribution[season] = pd.read_csv(a / name)
     return DashboardData(
         game_halves=pd.read_parquet(p / "game_halves.parquet"),
         game_leads=pd.read_parquet(p / "game_leads.parquet"),
@@ -78,6 +86,9 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         turnovers=pd.read_parquet(p / "turnover_events.parquet"),
         ranks=pd.read_parquet(p / "league_half_ranks.parquet"),
         analysis=analysis,
+        games=pd.read_parquet(p / "games.parquet"),
+        comparison=pd.read_csv(a / "season_comparison.csv") if (a / "season_comparison.csv").exists() else pd.DataFrame(),
+        attribution=attribution,
     )
 
 
@@ -109,8 +120,8 @@ def game_half_table(game_halves: pd.DataFrame, game_id: str) -> pd.DataFrame:
     rows = []
     for label, col, fmt in GAME_ROWS:
         h1, h2 = s.loc["H1", col], s.loc["H2", col]
-        rows.append({"stat": label, "1st half": fmt.format(h1), "2nd half": fmt.format(h2),
-                     "change": ("{:+.3f}" if "3f" in fmt else "{:+.1f}" if ".1f" in fmt else "{:+.0f}").format(h2 - h1)})
+        change = f"{100 * (h2 - h1):+.1f} pts" if "%" in fmt else f"{h2 - h1:+.0f}"
+        rows.append({"stat": label, "1st half": fmt.format(h1), "2nd half": fmt.format(h2), "change": change})
     return pd.DataFrame(rows)
 
 
@@ -154,6 +165,8 @@ def player_halves(player_stats: pd.DataFrame, season: str, min_minutes: float = 
     out = summarize_players(ps.assign(split=ps["split"].astype(str)), ["player_id", "player_name", "split"])
     team_tov = out.groupby("split")["tov"].transform("sum")
     out["tov_share"] = out["tov"] / team_tov
+    out["plays"] = out["fga"] + 0.44 * out["fta"] + out["tov"]
+    out["play_share"] = out["plays"] / out.groupby("split")["plays"].transform("sum")
     keep = out.groupby("player_id")["minutes"].transform("min") >= min_minutes
     both = out.groupby("player_id")["split"].transform("nunique") == 2
     return out[keep & both].reset_index(drop=True)
