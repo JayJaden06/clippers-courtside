@@ -217,3 +217,127 @@ def replay_frames(margin: pd.DataFrame, step_seconds: int = 30) -> list[float]:
 
 def factor_order() -> list[str]:
     return list(FACTORS)
+
+
+# ------------------------------------------------------------ the full answer
+
+NEW, SAME, BETTER, SIMILAR = "New this season", "Same as last season", "Better than last season", "Similar to last season"
+
+
+@dataclass
+class Reason:
+    factor: str
+    name: str
+    per_game: float  # this season, points per game after halftime (negative = costs points)
+    prev_per_game: float  # last season
+    share: float  # share of this season's swing
+    status: str
+    detail: str
+
+
+def _status(cur: float, prev: float) -> str:
+    """Same rules as the report's season comparison: 1 point per game worse is new, -0.5 in both is chronic."""
+    if cur - prev <= -1.0:
+        return NEW
+    if cur - prev >= 1.0:
+        return BETTER
+    if cur <= -0.5 and prev <= -0.5:
+        return SAME
+    return SIMILAR
+
+
+def _detail(factor: str, h: pd.DataFrame, n_games: int) -> str:
+    a, b = h.loc["H1"], h.loc["H2"]
+    if factor == "shooting":
+        return (f"Shooting accuracy falls from {a['efg_pct']:.1%} before halftime to {b['efg_pct']:.1%} after; "
+                f"3-point shooting from {a['fg3_pct']:.1%} to {b['fg3_pct']:.1%}.")
+    if factor == "opp_shooting":
+        return f"Opponents' shooting accuracy goes from {a['opp_efg_pct']:.1%} to {b['opp_efg_pct']:.1%}."
+    if factor == "turnovers":
+        return (f"{a['tov_all']:.0f} turnovers before halftime and {b['tov_all']:.0f} after, but opponents scored "
+                f"{a['opp_pts_off_tov']:.0f} points off them before and {b['opp_pts_off_tov']:.0f} after.")
+    if factor == "rebounding":
+        return (f"Opponents grab {a['opp_oreb_pct']:.0%} of their own misses before halftime and "
+                f"{b['opp_oreb_pct']:.0%} after, so they get more second chances.")
+    if factor == "free_throws":
+        return (f"Opponents get {a['opp_ft_rate']:.2f} free throws per shot before halftime and "
+                f"{b['opp_ft_rate']:.2f} after.")
+    if factor == "pace":
+        return (f"{a['possessions'] / n_games:.0f} possessions per game before halftime, "
+                f"{b['possessions'] / n_games:.0f} after.")
+    return ""
+
+
+def ranked_reasons(att_cur: pd.DataFrame, att_prev: pd.DataFrame, halves: pd.DataFrame) -> list[Reason]:
+    """Every factor except the residual, worst first, with last season alongside.
+
+    ``halves`` is this season's ``season_halves`` slice (index H1/H2).
+    """
+    cur, prev = att_cur.set_index("factor"), att_prev.set_index("factor")
+    swing = float(cur["points"].sum())
+    n_games = int(round(cur["points"].iloc[0] / cur["per_game"].iloc[0])) if cur["per_game"].iloc[0] else 1
+    out = [
+        Reason(f, FACTOR_PLAIN[f][0], float(cur.loc[f, "per_game"]), float(prev.loc[f, "per_game"]),
+               float(cur.loc[f, "points"]) / swing if swing else float("nan"),
+               _status(float(cur.loc[f, "per_game"]), float(prev.loc[f, "per_game"])), _detail(f, halves, n_games))
+        for f in FACTORS if f != "residual"
+    ]
+    return sorted(out, key=lambda r: r.per_game)
+
+
+@dataclass
+class ScoreRow:
+    stat: str
+    prev_h1: str
+    prev_h2: str
+    cur_h1: str
+    cur_h2: str
+    verdict: str
+
+
+SCORECARD = [
+    # label, column, format, higher is better, per-game count, tolerance for "about the same"
+    ("Score margin per game", "margin", "{:+.1f}", True, True, 1.0),
+    ("Net rating (per 100 possessions)", "net_rtg", "{:+.1f}", True, False, 2.0),
+    ("Shooting accuracy", "efg_pct", "{:.1%}", True, False, 0.01),
+    ("3-point shooting", "fg3_pct", "{:.1%}", True, False, 0.015),
+    ("Opponents' shooting accuracy", "opp_efg_pct", "{:.1%}", False, False, 0.01),
+    ("Turnovers per game", "tov_all", "{:.1f}", False, True, 0.5),
+    ("Opponent points off turnovers per game", "opp_pts_off_tov", "{:.1f}", False, True, 1.0),
+    ("Second chances given up (opp. offensive rebound %)", "opp_oreb_pct", "{:.1%}", False, False, 0.01),
+    ("Opponent free throws per shot", "opp_ft_rate", "{:.2f}", False, False, 0.02),
+]
+
+
+def scorecard(sh: pd.DataFrame, cur: str, prev: str) -> list[ScoreRow]:
+    """1st vs 2nd half for both seasons, and whether this season's second-half drop-off is new."""
+    rows = []
+    for label, col, fmt, higher_better, per_game, tol in SCORECARD:
+        vals = {}
+        for season in (prev, cur):
+            n = sh.loc[(season, "H1"), "games"] if per_game else 1
+            vals[season] = (sh.loc[(season, "H1"), col] / n, sh.loc[(season, "H2"), col] / n)
+        drop = {s: (v[1] - v[0]) * (1 if higher_better else -1) for s, v in vals.items()}  # + = better after half
+        gap = drop[cur] - drop[prev]
+        verdict = ("Worse than last season" if gap <= -tol else "Better than last season" if gap >= tol
+                   else "About the same")
+        rows.append(ScoreRow(label, fmt.format(vals[prev][0]), fmt.format(vals[prev][1]), fmt.format(vals[cur][0]),
+                             fmt.format(vals[cur][1]), verdict))
+    return rows
+
+
+def what_if(h2_per_game: float, reasons: list[Reason], fixed: set[str], garland_pts_per_game: float = 0.0,
+            fix_garland: bool = False) -> float:
+    """Second-half margin per game if the chosen factors went back to last season's level.
+
+    The decomposition is additive, so swapping one factor's per-game value for
+    last season's is exact bookkeeping. It is not a forecast: it ignores how
+    the factors interact.
+    """
+    out = h2_per_game
+    for r in reasons:
+        if r.factor in fixed and r.prev_per_game > r.per_game:
+            out += r.prev_per_game - r.per_game
+    if fix_garland and "turnovers" not in fixed:
+        out += garland_pts_per_game
+    return out
