@@ -26,14 +26,19 @@ SPLITS = ["FULL", "H1", "H2", "OT"]
 def team_box() -> pd.DataFrame:
     raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
     parts = {}
-    for kind in ("traditional", "advanced"):
+    for kind in ("traditional", "advanced", "misc"):
         rows = []
         for split in SPLITS:
             teams, _ = parse_box(raw[f"{kind}/{split}"], kind, split)
             rows += teams
         parts[kind] = pd.DataFrame(rows)
     keys = ["game_id", "split", "team_id", "team_abbreviation"]
-    return parts["traditional"].merge(parts["advanced"], on=keys, validate="1:1").assign(season="2026-27")
+    return (
+        parts["traditional"]
+        .merge(parts["advanced"], on=keys, validate="1:1")
+        .merge(parts["misc"], on=keys, validate="1:1")
+        .assign(season="2026-27")
+    )
 
 
 @pytest.fixture(scope="module")
@@ -113,3 +118,11 @@ def test_zero_attempts_give_nan_not_errors():
     out = add_rates(pd.DataFrame([_synthetic(minutes=60, possessions=25, opp_possessions=25, fga=10, fgm=5)]))
     assert np.isnan(out.loc[0, "fg3_pct"])
     assert out.loc[0, "fg_pct"] == 0.5
+
+
+def test_official_points_off_turnovers_by_half(gh):
+    # BoxScoreMiscV3: MIA scored 9 off LAC turnovers in H1, 12 in H2, 2 in OT (23 total);
+    # LAC scored 13 off MIA turnovers in H1 and none after halftime.
+    assert gh.loc[["H1", "H2", "OT", "FULL"], "opp_pts_off_tov"].tolist() == [9, 12, 2, 23]
+    assert gh.loc[["H1", "H2", "OT", "FULL"], "pts_off_tov"].tolist() == [13, 0, 0, 13]
+    assert gh.loc["H2", "opp_pts_fast_break"] == 14

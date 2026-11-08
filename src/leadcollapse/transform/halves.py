@@ -12,7 +12,8 @@ Possessions are the API's own counts (``BoxScoreAdvancedV3``), which are whole
 numbers and add up exactly across splits. They are used for ratings and
 pace rather than the FGA + 0.44*FTA - OREB + TOV estimate.
 
-Opponent points off turnovers needs play-by-play and is added in the PBP step.
+Points off turnovers, second-chance, fast-break and paint points are the
+NBA's official counts from ``BoxScoreMiscV3`` for every split.
 """
 
 from __future__ import annotations
@@ -23,6 +24,9 @@ import pandas as pd
 COUNTS = [
     "minutes", "possessions", "pts", "fgm", "fga", "fg3m", "fg3a", "ftm", "fta",
     "oreb", "dreb", "ast", "stl", "blk", "tov", "pf",
+    # official scoring-context points (BoxScoreMiscV3); opp_pts_off_tov = points the
+    # opponent scored off Clippers turnovers
+    "pts_off_tov", "pts_2nd_chance", "pts_fast_break", "pts_paint",
 ]
 GAME_COLUMNS = ["season", "game_id", "game_date", "opponent_abbreviation", "is_home", "result"]
 SPLIT_ORDER = ["FULL", "H1", "H2", "Q1", "Q2", "Q3", "Q4", "OT"]

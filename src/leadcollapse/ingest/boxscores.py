@@ -21,9 +21,9 @@ import logging
 from dataclasses import dataclass
 
 import pandas as pd
-from nba_api.stats.endpoints import BoxScoreAdvancedV3, BoxScoreTraditionalV3
+from nba_api.stats.endpoints import BoxScoreAdvancedV3, BoxScoreMiscV3, BoxScoreTraditionalV3
 
-from leadcollapse.models import AdvancedStats, TraditionalStats
+from leadcollapse.models import AdvancedStats, MiscStats, TraditionalStats
 from leadcollapse.nba_client import NBAClient
 
 log = logging.getLogger(__name__)
@@ -60,9 +60,14 @@ ALL_SPLITS = [FULL, H1, H2, *QUARTERS]
 ENDPOINTS = {
     "traditional": (BoxScoreTraditionalV3, "boxScoreTraditional", TraditionalStats),
     "advanced": (BoxScoreAdvancedV3, "boxScoreAdvanced", AdvancedStats),
+    # Official points off turnovers / second chance / fast break / paint.
+    "misc": (BoxScoreMiscV3, "boxScoreMisc", MiscStats),
 }
 
-COUNTING_STATS = ["fgm", "fga", "fg3m", "fg3a", "ftm", "fta", "oreb", "dreb", "ast", "stl", "blk", "tov", "pf", "pts"]
+COUNTING_STATS = [
+    "fgm", "fga", "fg3m", "fg3a", "ftm", "fta", "oreb", "dreb", "ast", "stl", "blk", "tov", "pf", "pts",
+    "pts_off_tov", "pts_2nd_chance", "pts_fast_break", "pts_paint",
+]
 
 
 def splits_for(overtime_periods: int, quarters: bool = True) -> list[Split]:
@@ -100,7 +105,7 @@ def parse_box(raw: dict, kind: str, split: str) -> tuple[list[dict], list[dict]]
 def load_boxscores(
     client: NBAClient, games: pd.DataFrame, quarter_seasons: list[str] | None = None
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Team and player box scores (traditional + advanced merged) for every game and split.
+    """Team and player box scores (traditional + advanced + misc merged) for every game and split.
 
     Returns ``(team_box, player_box)``: one row per game x split x team, and
     one row per game x split x player. Split responses only list players who
@@ -123,12 +128,12 @@ def load_boxscores(
                 player_parts[kind] += players
 
     keys = ["season", "game_id", "split", "team_id", "team_abbreviation"]
-    team_box = pd.DataFrame(team_parts["traditional"]).merge(
-        pd.DataFrame(team_parts["advanced"]), on=keys, how="left", validate="1:1"
-    )
-    player_box = pd.DataFrame(player_parts["traditional"]).merge(
-        pd.DataFrame(player_parts["advanced"]), on=[*keys, "player_id", "player_name"], how="left", validate="1:1"
-    )
+    player_keys = [*keys, "player_id", "player_name"]
+    team_box = pd.DataFrame(team_parts["traditional"])
+    player_box = pd.DataFrame(player_parts["traditional"])
+    for kind in [k for k in ENDPOINTS if k != "traditional"]:
+        team_box = team_box.merge(pd.DataFrame(team_parts[kind]), on=keys, how="left", validate="1:1")
+        player_box = player_box.merge(pd.DataFrame(player_parts[kind]), on=player_keys, how="left", validate="1:1")
     return team_box, player_box
 
 
@@ -150,9 +155,10 @@ def check_split_totals(team_box: pd.DataFrame) -> pd.DataFrame:
       can be written out and disclosed rather than silently absorbed.
     """
     idx = ["game_id", "team_id"]
-    by_split = {s: g.set_index(idx)[COUNTING_STATS] for s, g in team_box.groupby("split")}
+    stats = [c for c in COUNTING_STATS if c in team_box.columns]
+    by_split = {s: g.set_index(idx)[stats] for s, g in team_box.groupby("split")}
     full = by_split["FULL"]
-    zeros = pd.DataFrame(0, index=full.index, columns=COUNTING_STATS)
+    zeros = pd.DataFrame(0, index=full.index, columns=stats)
 
     def total(names: tuple[str, ...], index: pd.Index) -> pd.DataFrame:
         # A split that is absent for a game counts as zero (e.g. OT in a regulation game).
