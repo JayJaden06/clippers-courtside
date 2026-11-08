@@ -206,3 +206,38 @@ def clippers_ranks(ranks: pd.DataFrame, season: str) -> pd.DataFrame:
     w = w.reindex([m for m in METRIC_LABELS if m in w.index])
     w.index = [METRIC_LABELS.get(m, m) for m in w.index]
     return w.rename(columns={"H1": "1st half", "H2": "2nd half", "change": "change (1H to 2H)"}).astype(int)
+
+
+def season_halves(game_halves: pd.DataFrame) -> pd.DataFrame:
+    """Totals and rates by season and half (H1/H2), recomputed from summed counts."""
+    gh = game_halves[game_halves["split"].astype(str).isin(["H1", "H2"])]
+    s = summarize(gh.assign(split=gh["split"].astype(str)), ["season", "split"])
+    s["tov_all"] = s["tov"] + s.get("tov_team", 0)
+    s["margin"] = s["pts"] - s["opp_pts"]
+    return s.set_index(["season", "split"])
+
+
+PCT_METRICS = {"efg_pct", "opp_efg_pct", "oreb_pct", "opp_oreb_pct"}
+
+
+def full_stat_sheet(ranks: pd.DataFrame, season: str) -> pd.DataFrame:
+    """Every ranked stat for the Clippers: value and league rank in each half, and the rank of the change."""
+    d = ranks[(ranks["season"] == season) & ranks["is_team"]]
+    v = d.pivot(index="metric", columns="split", values="value")
+    r = d.pivot(index="metric", columns="split", values="rank")
+    order = [m for m in METRIC_LABELS if m in v.index]
+
+    def fmt(m: str, x: float) -> str:
+        if m in PCT_METRICS:
+            return f"{x:.1%}"
+        if m == "opp_ft_rate":
+            return f"{x:.2f}"
+        return f"{x:.1f}"
+
+    from leadcollapse.analysis.hypotheses import ordinal
+    return pd.DataFrame([{
+        "Stat": METRIC_LABELS[m], "1st half": fmt(m, v.loc[m, "H1"]), "2nd half": fmt(m, v.loc[m, "H2"]),
+        "League rank, 1st half": ordinal(int(r.loc[m, "H1"])), "League rank, 2nd half": ordinal(int(r.loc[m, "H2"])),
+        "Rank of the change": ordinal(int(r.loc[m, "change"])), "Better if": better_direction(m).replace(
+            " is better", "").replace("descriptive", "n/a"),
+    } for m in order])
