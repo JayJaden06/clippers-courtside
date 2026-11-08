@@ -85,6 +85,13 @@ def test_answer_page_runs_and_what_if_toggles_work():
     assert any(m.label == "Second halves, per game" for m in at.metric)
 
 
+def test_what_now_page_runs():
+    at = _app("whatnow")
+    assert [h.value for h in at.header][:3] == ["Does the starting five need to change?",
+                                               "Should Garland handle the ball less?",
+                                               "Will the players coming back help?"]
+
+
 @pytest.mark.parametrize("page, key", [("replay", "game_season"), ("players", "player_season"),
                                        ("league", "league_season")])
 def test_each_page_runs_for_every_season(page, key):
