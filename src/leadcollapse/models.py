@@ -240,3 +240,19 @@ class PlayEvent(BaseModel):
     @property
     def elapsed(self) -> float:
         return elapsed_seconds(self.period, self.clock)
+
+
+class MiscStats(BaseModel):
+    """The ``statistics`` block of a ``BoxScoreMiscV3`` player or team (scoring-context points).
+
+    Opponent versions (``oppPointsOffTurnovers`` etc.) are not kept: they are
+    the other team's row and come from the opponent side of the join.
+    """
+
+    model_config = ConfigDict(extra="ignore", frozen=True)
+
+    pts_off_tov: int = Field(alias="pointsOffTurnovers", ge=0)
+    pts_2nd_chance: int = Field(alias="pointsSecondChance", ge=0)
+    pts_fast_break: int = Field(alias="pointsFastBreak", ge=0)
+    pts_paint: int = Field(alias="pointsPaint", ge=0)
+    fouls_drawn: int = Field(alias="foulsDrawn", ge=0)

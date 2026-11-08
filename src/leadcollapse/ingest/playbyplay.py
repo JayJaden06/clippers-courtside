@@ -5,6 +5,11 @@ team's point of view (``team_score``, ``opp_score``, ``margin``; forward-filled
 because the API only fills the score on scoring events), and flags for
 whether the action belongs to the team or the opponent. Turnover and foul
 subtypes are kept as-is (``sub_type``) for the turnover and foul transforms.
+
+Team actions (shot-clock and 5/8-second turnovers, team rebounds) come with
+``teamId`` 0 and the *team* id in ``personId``. They are re-attributed to
+that team with no player, so they count for the right side. Note the
+box-score TOV is the sum of player turnovers and leaves team turnovers out.
 """
 
 from __future__ import annotations
@@ -19,6 +24,9 @@ from leadcollapse.nba_client import NBAClient
 
 log = logging.getLogger(__name__)
 
+TEAM_ID_MIN = 1610612700  # NBA team ids are 16106127xx; player ids are far smaller or larger
+TEAM_ID_MAX = 1610612799
+
 
 def fetch_pbp(client: NBAClient, game_id: str) -> dict:
     return client.get(PlayByPlayV3, game_id=game_id)
@@ -29,6 +37,10 @@ def parse_pbp(raw: dict, team_id: int, is_home: bool) -> pd.DataFrame:
     game_id = raw["game"]["gameId"]
     events = [PlayEvent.model_validate(a) for a in raw["game"]["actions"]]
     df = pd.DataFrame([e.model_dump() | {"elapsed": e.elapsed} for e in events])
+    team_action = df["team_id"].isna() & df["person_id"].between(TEAM_ID_MIN, TEAM_ID_MAX)
+    df.loc[team_action, "team_id"] = df.loc[team_action, "person_id"]
+    df.loc[team_action, "person_id"] = None
+    df["is_team_action"] = team_action
     df.insert(0, "game_id", game_id)
     df.insert(1, "event_index", range(len(df)))
 

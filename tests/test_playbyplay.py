@@ -1,8 +1,11 @@
-"""Play-by-play parsing tests on two real games, trimmed to scoring, turnover, foul and period events.
+"""Play-by-play parsing tests on two real games.
 
 - 0022600186: LAC (home) vs MIA, 2026-11-04, lost 116-117 in OT after leading 67-52 at half.
+  Every event except substitutions, timeouts and replay reviews (shots, rebounds and steals
+  are needed for possession and live-ball logic).
 - 0022500827: LAC (home) vs ORL, 2026-02-22, lost 109-111; a technical free throw at the
-  start of Q3 has the same elapsed time (24:00) as the end of Q2.
+  start of Q3 has the same elapsed time (24:00) as the end of Q2. Trimmed to scoring,
+  turnover, foul and period events.
 """
 
 from __future__ import annotations
@@ -88,8 +91,18 @@ def test_team_flags_and_neutral_events(mia):
     assert neutral["team_id"].isna().all()
     assert not (neutral["is_team"] | neutral["is_opp"]).any()
     tov = mia[mia["action_type"] == "Turnover"]
-    assert set(tov.loc[tov["is_team"], "team_tricode"]) == {"LAC"}
-    assert set(tov.loc[tov["is_opp"], "team_tricode"]) == {"MIA"}
+    assert set(tov.loc[tov["is_team"], "team_id"]) == {LAC}
+    assert set(tov.loc[tov["is_opp"], "team_id"]) == {1610612748}
+    assert (tov["is_team"] | tov["is_opp"]).all()
+
+
+def test_team_actions_are_attributed_to_the_team(mia):
+    # "CLIPPERS Turnover: Shot Clock" arrives with teamId 0 and the team id in personId.
+    shot_clock = mia[(mia["action_type"] == "Turnover") & (mia["sub_type"] == "Shot Clock Turnover")]
+    assert len(shot_clock) == 2
+    assert shot_clock["is_team"].all() and shot_clock["is_team_action"].all()
+    assert shot_clock["person_id"].isna().all()
+    assert set(shot_clock["team_id"]) == {LAC}
 
 
 def test_turnover_and_foul_subtypes_kept(mia):

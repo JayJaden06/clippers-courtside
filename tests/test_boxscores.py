@@ -3,7 +3,8 @@
 Fixture: Clippers vs Heat, 2026-11-04 (0022600186), lost 116-117 in OT after
 leading 67-52 at halftime. Team totals are untouched; player lists are cut to
 Garland, a bench player and a DNP for LAC (and a starter + bench for MIA).
-Splits: traditional FULL/H1/H2/OT; advanced FULL (with players) and H1/H2/OT (team totals only).
+Splits: traditional FULL/H1/H2/OT; advanced and misc FULL (with players) and H1/H2/OT
+(team totals only).
 """
 
 from __future__ import annotations

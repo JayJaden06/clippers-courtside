@@ -14,9 +14,9 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from leadcollapse.config import get_settings
-from leadcollapse.ingest import boxscores, games, playbyplay
+from leadcollapse.ingest import boxscores, games, playbyplay, players
 from leadcollapse.nba_client import NBAClient
-from leadcollapse.transform import halves, leads
+from leadcollapse.transform import fouls, halves, leads, turnovers
 
 app = typer.Typer(help="Why do the Clippers lose second-half leads?", no_args_is_help=True)
 console = Console()
@@ -47,7 +47,10 @@ def pull(season: SeasonOpt = None) -> None:
     console.print(f"game logs: {client.stats}")
     boxscores.load_boxscores(client, df, settings.quarter_seasons)
     playbyplay.load_pbp(client, df)
-    console.print(f"pull done (game logs, box scores, play-by-play): {client.stats}")
+    pid = players.find_player_id(settings.focus_player)
+    players.player_half_splits(client, pid, settings.comparison_season, settings.season_type)
+    players.player_game_log(client, pid, settings.comparison_season, settings.season_type)
+    console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}): {client.stats}")
 
 
 @app.command()
@@ -68,23 +71,75 @@ def build(season: SeasonOpt = None) -> None:
         f"split totals OK ({len(gaps)} small stat corrections logged to split_discrepancies.csv)"
     )
 
-    game_halves = halves.build_game_halves(team_box, df, settings.team_id)
-    halves.write_game_halves(game_halves, settings.processed_dir)
+    events = playbyplay.load_pbp(client, df)
+    playbyplay.check_final_scores(events, df)
+    out = settings.processed_dir
+
+    # Turnovers and fouls from play-by-play, validated against the box scores.
+    tov_events = turnovers.turnover_events(events)
+    foul_events = fouls.foul_events(events)
+    starts = fouls.penalty_starts(foul_events)
+    agreement = fouls.check_penalty_tags(foul_events, starts)
+    if agreement < 0.99:
+        raise ValueError(f"penalty reconstruction agrees with official PN tags on only {agreement:.1%}")
+    ft_sources = fouls.free_throw_sources(events, foul_events)
+    pbp_splits = turnovers.team_turnover_splits(tov_events).merge(
+        fouls.team_foul_splits(foul_events, starts, ft_sources), on=["game_id", "split"], how="outer"
+    )
+
+    game_halves = halves.build_game_halves(team_box, df, settings.team_id, pbp_splits)
+    for side in ("", "opp_"):
+        bad = game_halves[game_halves[f"{side}fta"] != game_halves[f"{side}fta_pbp"]]
+        if not bad.empty:
+            raise ValueError(f"{side}FTA from play-by-play != box score for {len(bad)} game-splits")
+    halves.write_game_halves(game_halves, out)
     settings.tableau_dir.mkdir(parents=True, exist_ok=True)
     floats = game_halves.select_dtypes("float").columns
     game_halves.assign(split=game_halves["split"].astype(str)).round({c: 4 for c in floats}).to_csv(
         settings.tableau_dir / "game_halves_wide.csv", index=False
     )
-    console.print(f"game halves: {len(game_halves)} rows (+ tableau/game_halves_wide.csv)")
+    exact = {
+        side: (game_halves[f"{side}pts_off_tov_est"] == game_halves[f"{side}pts_off_tov"]).mean()
+        for side in ("", "opp_")
+    }
+    console.print(
+        f"game halves: {len(game_halves)} rows; penalty tags {agreement:.2%} reconstructed; FTA match box; "
+        f"points-off-TOV estimate equals the official count in {exact['opp_']:.0%} (opponent) / "
+        f"{exact['']:.0%} (Clippers) of game-splits"
+    )
 
-    events = playbyplay.load_pbp(client, df)
-    playbyplay.check_final_scores(events, df)
+    player_stats = turnovers.player_turnover_stats(player_box, tov_events, settings.team_id)
+    turnovers.check_player_turnovers(player_stats)
+    player_stats = player_stats.merge(
+        fouls.player_foul_stats(foul_events), on=["game_id", "player_id", "split"], how="left"
+    )
+    foul_cols = ["fouls_shooting", "fouls_offensive", "fouls_late_trailing"]
+    player_stats[foul_cols] = player_stats[foul_cols].fillna(0).astype(int)
+    player_stats.to_parquet(out / "player_half_stats.parquet", index=False)
+    player_stats.round(4).to_csv(out / "player_half_stats.csv", index=False)
+    player_stats.round(4).to_csv(settings.tableau_dir / "player_half_stats.csv", index=False)
+    tov_events.to_parquet(out / "turnover_events.parquet", index=False)
+    foul_events.drop(columns=["description"]).to_parquet(out / "foul_events.parquet", index=False)
+
+    pid = players.find_player_id(settings.focus_player)
+    baselines = turnovers.focus_player_baselines(
+        player_stats,
+        players.player_half_splits(client, pid, settings.comparison_season, settings.season_type),
+        players.player_game_log(client, pid, settings.comparison_season, settings.season_type),
+        pid, settings.comparison_season, settings.team_abbreviation,
+    )
+    baselines.round(4).to_csv(out / "focus_player_baselines.csv", index=False)
+    console.print(
+        f"players: {len(player_stats)} player-split rows (TOV types match box); "
+        f"{settings.focus_player} baselines for {len(baselines[['season', 'team']].drop_duplicates())} team-seasons"
+    )
+
     series = leads.margin_series(events)
     game_leads = leads.game_leads(
         series, df, settings.lead_threshold, settings.lead_window_minutes, settings.sensitivity_thresholds
     )
     leads.check_halftime_margins(game_leads, game_halves)
-    leads.write_leads(series, game_leads, settings.processed_dir)
+    leads.write_leads(series, game_leads, out)
     console.print(
         f"play-by-play: {len(events)} events; final scores and halftime margins match box scores; "
         f"{len(game_leads)} games classified"
