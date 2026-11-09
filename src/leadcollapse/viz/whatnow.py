@@ -25,7 +25,7 @@ Minutes, defense, matchups and chemistry (tracking data is full-game only):
   size" if the players he guards average 25+ lb more than he weighs;
 - the second-half glass "got worse" if opponents rebound 3+ points more of
   their misses after halftime than they did last season;
-- "long defenders bother him" if the focus player turns it over at least 1.5x
+- "bigger defenders bother him" if the focus player turns it over at least 1.5x
   as often per possession against defenders 6'6" and taller as against shorter
   ones (on 8+ such turnovers); "teams are trapping him" if a second defender
   (not the one guarding him) gets 10+ points more of his turnovers as steals
@@ -553,7 +553,7 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
     if pr is not None and (pr.length_problem or pr.trapped):
         how = []
         if pr.length_problem:
-            how.append(f"against defenders {_ft_in(LONG_IN)} and taller he turns it over "
+            how.append(f"when a bigger defender ({_ft_in(LONG_IN)} or taller) guards him, he turns it over "
                        f"{pr.tov100_long / pr.tov100_short:.1f}x as often as against shorter ones (last season "
                        f"{pr.prior_tov100_long:.1f} vs {pr.prior_tov100_short:.1f} per 100, no gap)")
         if pr.trapped:
@@ -563,7 +563,7 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
             how.append(f"only {pr.help_share:.0%} are steals by a second defender (teammates "
                        f"{pr.mates_help_share:.0%}), so it's mostly the man guarding him, not traps")
         out.append(f"<b>What's causing {last}'s turnovers:</b> {'; '.join(how)}. Getting him the ball on the move or "
-                   "off a screen, away from a long defender, is the lever.")
+                   "off a screen, away from a bigger defender, is the lever.")
     if rot is not None and len(rot):
         bad = rot[rot["struggling"]]
         good = rot[rot["earned"]]
@@ -646,39 +646,45 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
         out.append(Verdict(
             "Keep the starting five" if sf.not_the_problem else "Rethink the starting five",
             f"{sf.h2_pm / n:+.1f} vs {sf.rest_h2_pm / n:+.1f}",
-            "points a game after halftime: starters together vs every other lineup",
+            "Points a game after halftime: the five starters on the floor together vs every other lineup",
             "good" if sf.not_the_problem else "bad", "starters"))
     if bl is not None:
         out.append(Verdict(
             f"{last}: less ball after halftime, for now" if bl.should_handle_less else f"{last}'s workload is fine",
-            f"{bl.tov_pct_h2:.0%}", f"of his second-half plays end in a turnover (last season {bl.prior_tov_pct_h2:.0%})",
+            f"{bl.tov_pct_h2:.0%}", f"of {last}'s plays after halftime end in a turnover. Last season it was "
+            f"{bl.prior_tov_pct_h2:.0%}.",
             "bad" if bl.should_handle_less else "good", "garland"))
     if pr is not None:
         if pr.trapped:
-            out.append(Verdict("Teams are trapping him", f"{pr.help_share:.0%}",
-                               f"of his turnovers are stolen by a second defender (teammates {pr.mates_help_share:.0%})",
+            out.append(Verdict(f"Teams are trapping {last}", f"{pr.help_share:.0%}",
+                               f"of {last}'s turnovers are stolen by a second defender, not the one guarding him "
+                               f"(teammates: {pr.mates_help_share:.0%})",
                                "bad", "garland"))
         elif pr.length_problem:
-            out.append(Verdict("Long defenders, not double teams", f"{pr.tov100_long / pr.tov100_short:.1f}x",
-                               f"more turnovers when someone {_ft_in(LONG_IN)}+ guards him (no gap last season)",
+            out.append(Verdict(f"{last} struggles against bigger defenders", f"{pr.tov100_long / pr.tov100_short:.1f}x",
+                               f"as many turnovers when the player guarding {last} is {_ft_in(LONG_IN)} or taller. "
+                               "Last season the defender's height made no difference. It's not double teams.",
                                "warn", "garland"))
     shooters = [c for c in cands if "threes" in c.helps and not c.small_sample]
     if shooters:
         out.append(Verdict("Biggest fix: the shooters coming back",
                            " · ".join(f"{c.fg3_pct:.0%}" for c in shooters),
-                           f"{', '.join(_last(c.name) for c in shooters)} from three after halftime; the Clippers "
-                           f"shoot {sd.team_fg3_h2:.0%} now", "good", "returning"))
+                           f"Three-point shooting after halftime for {_names([_last(c.name) for c in shooters])} "
+                           f"(last full season). The Clippers shoot {sd.team_fg3_h2:.0%} now.", "good", "returning"))
     if gl is not None and gl.worse:
         out.append(Verdict("Finish possessions with a rebound", f"{gl.opp_oreb_h2:.0%}",
-                           f"of their misses opponents get back after halftime (last season {gl.prior_opp_oreb_h2:.0%})",
+                           f"of their own missed shots the other team rebounds after halftime. Last season it was "
+                           f"{gl.prior_opp_oreb_h2:.0%}.",
                            "bad", "defense"))
     if defense is not None and rot is not None and len(defense.table):
         q4 = rot.set_index("player_id")["q4_mpg"]
         small = defense.table[defense.table["gives_up_size"]].copy()
         if len(small):
             r = small.assign(q4=small["player_id"].map(q4).fillna(0)).sort_values("q4", ascending=False).iloc[0]
-            out.append(Verdict(f"{_last(r['player_name'])} gets out-muscled", f"{r['own_wt']:.0f} vs {r['opp_wt']:.0f} lb",
-                               f"his weight vs the players he guards; they shoot {r['fg_pct']:.0%} on him",
+            who = _last(r['player_name'])
+            out.append(Verdict(f"{who} gets out-muscled", f"{r['own_wt']:.0f} vs {r['opp_wt']:.0f} lb",
+                               f"{who}'s weight vs the average weight of the players {who} guards. They shoot "
+                               f"{r['fg_pct']:.0%} against {who}.",
                                "warn", "defense"))
     if rot is not None and len(rot):
         more = rot[rot["earned"]]
@@ -686,11 +692,13 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
         if len(more):
             out.append(Verdict("More minutes: " + " & ".join(_last(x) for x in more["player_name"]),
                                " · ".join(f"{v:+.0f}" for v in more["h2_on_off"]),
-                               "points per 100 trips better with them on after halftime (small samples)",
+                               "More points per 100 trips down the floor when they play after halftime than when "
+                               "they sit. Small samples.",
                                "good", "minutes"))
         if len(less):
             out.append(Verdict("Fewer late minutes: " + ", ".join(_last(x) for x in less["player_name"]),
                                " · ".join(f"{v:+.0f}" for v in less["h2_pm_pg"]),
-                               "points a game the team loses with each of them on after halftime",
+                               "Points a game the Clippers lose while each of them is on the floor after halftime, "
+                               "in that order.",
                                "bad", "minutes"))
     return out

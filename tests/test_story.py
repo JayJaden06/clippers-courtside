@@ -148,3 +148,47 @@ def test_worst_collapse_is_a_blown_lead_with_the_biggest_fall(answer_inputs):
     fall = g["max_lead"] - g["final_margin"]
     row = g.set_index("game_id").loc[w["game_id"]]
     assert row["max_lead"] - row["final_margin"] == fall.max()
+
+
+# ------------------------------------------------------------- page cards
+
+def test_answer_page_cards_follow_the_headline(analysis):
+    hl = {"wins": 2, "losses": 7, "h1_per_game": 0.7, "h2_per_game": -4.6, "blown": 4, "leads": 6,
+          "efg_h1": 0.577, "efg_h2": 0.517}
+    reasons = [S.Reason("shooting", "Clippers' shooting", -5.0, 0.0, 0.95, S.NEW, ""),
+               S.Reason("turnovers", "Turnovers", -1.9, -0.5, 0.35, S.SAME, "")]
+    res = {r["id"]: r for r in analysis["results"]}
+    cards = {c.title: c for c in S.answer_page_cards(hl, reasons, res, "2025-26")}
+    assert cards["Early leads blown"].big == "4 of 6"
+    assert cards["Fine before halftime, behind after it"].big == "+0.7 → -4.6"
+    assert cards["Biggest reason: Clippers' shooting"].big == "-5.0"
+    assert cards["New problems this season"].big == "1"
+
+
+def test_player_and_league_cards():
+    ph = pd.DataFrame([
+        {"player_name": "A Guard", "split": "H1", "tov": 5, "tov_pct": 0.10, "tov_share": 0.2, "play_share": 0.2},
+        {"player_name": "A Guard", "split": "H2", "tov": 9, "tov_pct": 0.20, "tov_share": 0.4, "play_share": 0.2},
+        {"player_name": "B Wing", "split": "H1", "tov": 2, "tov_pct": 0.08, "tov_share": 0.1, "play_share": 0.1},
+        {"player_name": "B Wing", "split": "H2", "tov": 2, "tov_pct": 0.05, "tov_share": 0.1, "play_share": 0.1},
+    ])
+    cards = S.player_cards(ph, "A Guard")
+    assert [c.title for c in cards] == ["Most turnovers after halftime: Guard", "Sloppiest after halftime: Guard",
+                                        "Safest with the ball: Wing"]
+    assert cards[2].big == "1 in 20"
+
+    ranks = pd.DataFrame({"1st half": [15, 3, 23], "2nd half": [25, 19, 20], "change": [24, 28, 12]},
+                         index=["Net rating", "Shooting accuracy (eFG%)", "Offensive rebounding"])
+    lc = S.league_cards(ranks)
+    assert [c.big for c in lc] == ["24th of 30", "28th of 30", "12th of 30"]
+    assert lc[1].title == "Worst after halftime: shooting accuracy (eFG%)"
+
+
+def test_game_cards():
+    row = pd.Series({"halftime_margin": 7, "final_margin": -3, "overtime_periods": 0}, name="g1")
+    halves = pd.DataFrame({"split": ["H1", "H2"], "margin": [7, -10]})
+    tov = pd.DataFrame({"game_id": ["g1"] * 3, "is_team": [True, True, False], "period": [3, 4, 3],
+                        "player_name": ["Garland", "Dunn", "Other"]})
+    cards = S.game_cards(row, halves, tov, "Garland")
+    assert [c.big for c in cards] == ["+7", "-10", "-3", "2"]
+    assert cards[3].small == "1 of them by Garland." and cards[2].tone == "bad"
