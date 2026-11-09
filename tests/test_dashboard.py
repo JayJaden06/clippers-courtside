@@ -87,9 +87,13 @@ def test_answer_page_runs_and_what_if_toggles_work():
 
 def test_what_now_page_runs():
     at = _app("whatnow")
-    assert [h.value for h in at.header][:3] == ["Does the starting five need to change?",
-                                               "Should Garland handle the ball less?",
-                                               "Will the players coming back help?"]
+    assert [h.value for h in at.header] == [
+        "Does the starting five need to change?", "Who plays after halftime, and how it goes",
+        "Should Garland handle the ball less?", "Defense, rebounding and matchups",
+        "Chemistry: how much have they played together?", "Will the players coming back help?",
+        "Who stopped shooting after halftime?", "What would change this advice"]
+    assert "What's causing Garland's turnovers?" in [s.value for s in at.subheader]
+    assert any(m.label == "Steals by a second defender" for m in at.metric)
 
 
 @pytest.mark.parametrize("page, key", [("replay", "game_season"), ("players", "player_season"),
