@@ -44,6 +44,9 @@ class Settings(BaseSettings):
         "Brandon Ingram", "Max Strus", "Bradley Beal", "Yanic Konan Niederhäuser", "Baba Miller",
     ])
 
+    # Companion project: did Intuit Dome (and The Wall) change the Clippers' home court?
+    wall_study_url: str = "https://clippers-home-court-h46at8hpdebg9gdcaunm87.streamlit.app"
+
     # HTTP client
     request_timeout: int = 60
     request_sleep_seconds: float = 0.6

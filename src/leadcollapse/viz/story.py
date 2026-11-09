@@ -502,3 +502,36 @@ def league_cards(ranks: pd.DataFrame) -> list[Verdict]:
         out.append(Verdict(f"Holds up best: {_lower(best)}", f"{ordinal(int(rest[best]))} of 30",
                            "Their best change after halftime, compared with the other 29 teams.", "good", "ranks"))
     return out
+
+
+# ------------------------------------------------------------- The Wall
+
+INTUIT_DOME_FIRST_SEASON = "2024-25"
+
+
+def wall_check(ft: pd.DataFrame) -> Verdict | None:
+    """Do opponents miss more free throws after halftime at Intuit Dome (The Wall)?
+
+    Pools every Intuit Dome season in ``ft`` (from ``dashboard_data.opp_ft_by_half``). The Wall "could be
+    helping" only if opponents' home second-half FT% is lower than their first-half FT% by more than two
+    standard errors of the difference. Teams switch baskets at halftime, and the box score doesn't say which
+    end a team shot at, so this can't isolate The Wall's half; it can only say whether a half-to-half drop
+    exists at home at all.
+    """
+    home = ft[(ft["where"] == "home") & (ft["season"] >= INTUIT_DOME_FIRST_SEASON)]
+    if home.empty:
+        return None
+    by = home.groupby("split")[["ftm", "fta"]].sum()
+    if not {"H1", "H2"} <= set(by.index) or (by["fta"] == 0).any():
+        return None
+    p = by["ftm"] / by["fta"]
+    se = ((p * (1 - p) / by["fta"]).sum()) ** 0.5
+    diff = p["H2"] - p["H1"]
+    helping = diff < -2 * se
+    return Verdict(
+        "Is it The Wall?", "Maybe" if helping else "No",
+        f"At Intuit Dome, opponents make {p['H1']:.0%} of their free throws before halftime and {p['H2']:.0%} "
+        "after, so they don't miss more in the second half." if not helping else
+        f"At Intuit Dome, opponents make {p['H1']:.0%} of their free throws before halftime and only "
+        f"{p['H2']:.0%} after.",
+        "warn" if helping else "info", "wall")

@@ -194,3 +194,20 @@ def test_game_cards():
     assert cards[3].small == "Most: Dunn and Garland (1 each)." and cards[2].tone == "bad"
     tov2 = pd.concat([tov, tov.iloc[[1]]])  # Dunn now has 2
     assert S.game_cards(row, halves, tov2, "Garland")[3].small == "Most: Dunn (2). Garland had 1."
+
+
+def _ft(rows):
+    t = pd.DataFrame(rows, columns=["season", "where", "split", "ftm", "fta"])
+    t["ft_pct"] = t["ftm"] / t["fta"]
+    return t
+
+
+def test_wall_check_needs_a_real_second_half_drop_at_home():
+    same = _ft([("2025-26", "home", "H1", 380, 500), ("2025-26", "home", "H2", 385, 500),
+                ("2025-26", "road", "H1", 300, 400), ("2025-26", "road", "H2", 280, 400)])
+    v = S.wall_check(same)
+    assert v.big == "No" and "76%" in v.small and "77%" in v.small
+    drop = _ft([("2025-26", "home", "H1", 400, 500), ("2025-26", "home", "H2", 340, 500)])  # 80% -> 68%
+    assert S.wall_check(drop).big == "Maybe"
+    # seasons before Intuit Dome (2024-25) don't count
+    assert S.wall_check(_ft([("2023-24", "home", "H1", 400, 500), ("2023-24", "home", "H2", 300, 500)])) is None
