@@ -87,6 +87,17 @@ def page_top(title: str, subtitle: str) -> None:
     st.markdown(f'<div class="page-sub">{subtitle}</div>', unsafe_allow_html=True)
 
 
+def label_positions(x: pd.Series, y: pd.Series, dx: float, dy: float) -> list[str]:
+    """A label position per point: above it, unless a nearby point already uses that spot (then below, right, left)."""
+    xs, ys = list(x), list(y)
+    out: list[str] = []
+    for i in range(len(xs)):
+        taken = {out[j] for j in range(i) if abs(xs[i] - xs[j]) < dx and abs(ys[i] - ys[j]) < dy}
+        out.append(next((p for p in ("top center", "bottom center", "middle right", "middle left") if p not in taken),
+                        "top center"))
+    return out
+
+
 def signed(v: float, digits: int = 1) -> str:
     return f"{v:+.{digits}f}".replace("-", "−")
 
@@ -362,9 +373,11 @@ def page_answer() -> None:
 # =================================================================== games
 
 def page_whatnow() -> None:
+    n_games = int(meta.get("games", 0))
     page_top("What needs to happen now",
-             "The lineup, Garland's role and the players coming back: what the numbers point to. This is evidence, "
-             "not a coaching plan. It's 8 games, and the injured players' numbers are from last season.")
+             "The lineup, the minutes, Garland's role, defense, matchups and the players coming back: what the numbers "
+             f"point to. This is evidence, not a coaching plan. It's {n_games} games, and the injured players' numbers "
+             "are from last season.")
     res = {r["id"]: r for r in data.analysis.get("results", [])}
     lg = data.ranks[(data.ranks["season"] == season_now) & (data.ranks["split"] == "H2")
                     & (data.ranks["metric"] == "efg_pct")]["league_mean"]
@@ -373,15 +386,25 @@ def page_whatnow() -> None:
     sd = W.shooting_drop(data.player_box, season_now, team, league_h2)
     sf = W.starting_five(data.player_box, data.lineups, season_now, team)
     bl = (W.ball_load(data.player_box, data.lineups, res["H3"]["key"], season_now, team, focus,
-                      int(meta.get("games", 1))) if "H3" in res else None)
+                      n_games or 1) if "H3" in res else None)
     cands = W.candidates(data.history, data.player_box, season_now, team, settings.watch_players, league_h2)
+    rot = W.rotation(data.player_box, data.onoff, data.bio, season_now, team) if len(data.onoff) else None
+    tracked = len(data.matchups) and len(data.bio)
+    dfn = W.defenders(data.matchups, data.hustle, data.bio, season_now, team) if tracked else None
+    gl = W.glass(data.game_halves, season_now, season_prev)
+    ids = data.player_box.loc[data.player_box["player_name"] == focus, "player_id"]
+    pr = (W.pressure(data.matchups, data.turnovers, data.bio, season_now, season_prev, team, settings.team_id,
+                     int(ids.iloc[0])) if tracked and len(ids) and "stealer_id" in data.turnovers else None)
+    chem = W.chemistry(data.player_box, data.lineups, season_now, season_prev, team)
 
     st.markdown('<div class="tldr"><b>In short</b><ul>'
-                + "".join(f"<li>{line}</li>" for line in W.summary_lines(sf, bl, cands, sd, focus))
+                + "".join(f"<li>{line}</li>" for line in W.summary_lines(sf, bl, cands, sd, focus, rot, dfn, gl, pr))
                 + "</ul></div>", unsafe_allow_html=True)
-    st.markdown('<div class="jump"><a href="#starters">Starting five</a><a href="#garland">Garland\'s role</a>'
-                '<a href="#returning">Players coming back</a><a href="#shooting">Who stopped shooting</a>'
-                '<a href="#watch">What would change this</a></div>', unsafe_allow_html=True)
+    st.markdown('<div class="jump"><a href="#starters">Starting five</a><a href="#minutes">Minutes</a>'
+                '<a href="#garland">Garland\'s role</a><a href="#defense">Defense and rebounding</a>'
+                '<a href="#chemistry">Chemistry</a><a href="#returning">Players coming back</a>'
+                '<a href="#shooting">Who stopped shooting</a><a href="#watch">What would change this</a></div>',
+                unsafe_allow_html=True)
 
     # ------------------------------------------------------------ starting five
     st.header("Does the starting five need to change?", divider="gray", anchor="starters")
@@ -413,6 +436,55 @@ def page_whatnow() -> None:
             show(fig, 200, showlegend=False)
         st.caption("So the fix is less about who starts and more about the bench and mixed lineups that play most of "
                    "the second half. Lineup numbers swing a lot on a few possessions; treat this as a direction.")
+
+    # ------------------------------------------------------------ minutes
+    st.header("Who plays after halftime, and how it goes", divider="gray", anchor="minutes")
+    if rot is None or rot.empty:
+        st.info("Run `leadcollapse build` first.")
+    else:
+        st.write("Each dot is a player: how many second-half minutes he gets a game, and how the score moves while "
+                 "he's on the floor after halftime. Bigger dots play more fourth-quarter minutes. Hover for the "
+                 "details.")
+        r = rot[rot["h2_min_on"] > 0].sort_values("h2_mpg").copy()
+        r["pos"] = label_positions(r["h2_mpg"], r["h2_net_on"], dx=0.8, dy=4)
+        tag =np.where(r["struggling"], "Minutes to rethink", np.where(r["earned"], "Earned a longer look", "Other"))
+        styles = {"Minutes to rethink": (BAD, "circle"), "Earned a longer look": (GOOD, "circle"),
+                  "Other": (MUTED_BAR, "circle")}
+        fig = go.Figure()
+        for name, (color, symbol) in styles.items():
+            z = r[tag == name]
+            if z.empty:
+                continue
+            fig.add_trace(go.Scatter(
+                x=z["h2_mpg"], y=z["h2_net_on"], mode="markers+text", name=name,
+                text=[n.split(" ", 1)[-1] + (" (R)" if rk else "") for n, rk in zip(z["player_name"], z["rookie"])],
+                textposition=list(z["pos"]),
+                marker=dict(color=color, size=8 + 3 * z["q4_mpg"], symbol=symbol, line=dict(color=BG, width=1.5)),
+                customdata=np.column_stack([z["player_name"], z["mpg"], z["q4_mpg"], z["h2_min_on"], z["h2_on_off"],
+                                            z["gp"]]),
+                hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[5]} games, %{customdata[1]:.1f} min a game"
+                              "<br>2nd half: %{x:.1f} min a game · 4th quarter: %{customdata[2]:.1f}"
+                              "<br>Score with him on after halftime: %{y:+.1f} per 100"
+                              "<br>vs when he sits: %{customdata[4]:+.1f} (%{customdata[3]:.0f} min)<extra></extra>"))
+        fig.add_hline(y=0, line=dict(color=GRAY, width=1))
+        fig.update_xaxes(title="Second-half minutes per game")
+        fig.update_yaxes(title="Score with him on, after halftime (per 100)")
+        show(fig, 440)
+        st.caption("(R) = rookie. Under 40 second-half minutes, a few good or bad possessions decide the number. "
+                   "On-court numbers also depend on who else is out there.")
+        with st.expander("All the minutes, as a table"):
+            st.dataframe(
+                rot[["player_name", "rookie", "gp", "mpg", "h2_mpg", "q4_mpg", "h2_net_on", "h2_on_off", "h2_reb36"]],
+                hide_index=True, width="stretch",
+                column_config={
+                    "player_name": "Player", "rookie": st.column_config.CheckboxColumn("Rookie"),
+                    "gp": "Games", "mpg": st.column_config.NumberColumn("Min/game", format="%.1f"),
+                    "h2_mpg": st.column_config.NumberColumn("2nd-half min/game", format="%.1f"),
+                    "q4_mpg": st.column_config.NumberColumn("4th-qtr min/game", format="%.1f"),
+                    "h2_net_on": st.column_config.NumberColumn("2nd half, on (per 100)", format="%+.1f"),
+                    "h2_on_off": st.column_config.NumberColumn("On minus off", format="%+.1f"),
+                    "h2_reb36": st.column_config.NumberColumn("2nd-half rebounds/36", format="%.1f"),
+                })
 
     # ------------------------------------------------------------ Garland
     st.header(f"Should {focus_last} handle the ball less?", divider="gray", anchor="garland")
@@ -456,6 +528,167 @@ def page_whatnow() -> None:
                 f"- The with/without split is big but mixed up with who he plays alongside, so it's a flag, not proof.")
             st.caption("Other players shown: 40+ second-half minutes and at least 8% of the team's second-half plays.")
 
+    if pr is not None:
+        st.subheader(f"What's causing {focus_last}'s turnovers?")
+        st.write("Player tracking records who was guarding him on every possession, so his turnovers can be split "
+                 f"by the defender's size. Defenders {W._ft_in(W.LONG_IN)} and taller guard him "
+                 f"{pr.long_poss_share:.0%} of the time.")
+        left, right = st.columns([1.3, 1], gap="large")
+        with left:
+            groups = [f"{focus_last}, this season", f"{focus_last}, last season (with LAC)", "His teammates, this season"]
+            fig = go.Figure()
+            for label, vals, color in (
+                    (f"Guarded by someone {W._ft_in(W.LONG_IN)}+", [pr.tov100_long, pr.prior_tov100_long,
+                                                                   pr.mates_tov100_long], FOCUS),
+                    ("Guarded by someone shorter", [pr.tov100_short, pr.prior_tov100_short, pr.mates_tov100_short],
+                     H1C)):
+                fig.add_trace(go.Bar(y=groups, x=vals, name=label, orientation="h", marker_color=color,
+                                     text=[f"{v:.1f}" for v in vals], textposition="outside",
+                                     hovertemplate="%{y}<br>" + label + ": %{x:.1f} turnovers per 100<extra></extra>"))
+            fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.08)
+            fig.update_xaxes(title="Turnovers per 100 possessions he's guarded",
+                             range=[0, max(pr.tov100_long, pr.tov100_short) * 1.3])
+            fig.update_yaxes(autorange="reversed")
+            show(fig, 300)
+        with right:
+            c = st.columns(2)
+            c[0].metric("Steals by a second defender", f"{pr.help_share:.0%}", border=True,
+                        help=f"{pr.help} of his {pr.tov} turnovers were stolen by someone other than the man guarding "
+                             "him: a trap, a double team, or a help defender jumping the pass.")
+            c[1].metric("Same for his teammates", f"{pr.mates_help_share:.0%}", border=True,
+                        help=f"Last season (his Clippers games): {pr.prior_help_share:.0%}.")
+            st.markdown(
+                f"- **Long defenders are new trouble.** This season he turns it over "
+                f"**{pr.tov100_long / pr.tov100_short:.1f}x** as often against them; last season there was no gap, and "
+                "his teammates don't have one.\n"
+                f"- **Double teams?** Public data doesn't log them. The closest thing it has, steals by a second "
+                f"defender, is {'higher' if pr.trapped else 'not higher'} for him than for his teammates. So the "
+                f"numbers point {'to traps' if pr.trapped else 'more to the man guarding him than to traps'}. "
+                "Video would settle it.")
+            types = {"bad_pass": "bad passes", "lost_ball": "lost balls", "violation": "travels and other violations",
+                     "offensive_foul": "offensive fouls", "shot_clock": "shot-clock violations"}
+            mix = ", ".join(f"{n} {types.get(k, k)}" for k, n in sorted(pr.h2_types.items(), key=lambda kv: -kv[1]))
+            st.markdown(f"- **After halftime:** {mix}.")
+        f = pr.forcers.head(6)
+        if len(f):
+            st.caption("Defenders credited with the most of his turnovers: " + "; ".join(
+                f"{r.def_player} ({r.def_team}, {W._ft_in(r.height_in) if r.height_in == r.height_in else '?'}): "
+                f"{r.tov:.0f}" for r in f.itertuples()) + f". Tracking covers {pr.games} of {n_games} games so far "
+                "(it's published a few hours after each game).")
+
+    # ------------------------------------------------------------ defense and the glass
+    st.header("Defense, rebounding and matchups", divider="gray", anchor="defense")
+    st.badge("Rebounding got worse after halftime" if gl.worse else "Rebounding holds up",
+             color="orange" if gl.worse else "blue")
+    c = st.columns(4)
+    c[0].metric("Opponents' rebound share, 1st half", f"{gl.opp_oreb_h1:.0%}", border=True,
+                help="Share of their own missed shots that opponents get back. Lower is better for the Clippers.")
+    c[1].metric("2nd half", f"{gl.opp_oreb_h2:.0%}", border=True,
+                delta=f"{100 * (gl.opp_oreb_h2 - gl.prior_opp_oreb_h2):+.0f} pts vs last season", delta_color="inverse")
+    c[2].metric("2nd half, last season", f"{gl.prior_opp_oreb_h2:.0%}", border=True)
+    c[3].metric("Opponent second-chance points", f"{gl.opp_2nd_h2:.1f}", border=True,
+                help=f"Per game after halftime ({gl.opp_2nd_h1:.1f} before it; last season {gl.prior_opp_2nd_h2:.1f}).")
+
+    if dfn is None or dfn.table.empty:
+        st.info("Matchup tracking isn't in the data yet. Run `leadcollapse pull` then `leadcollapse build`.")
+    else:
+        st.subheader("Who gets attacked on defense?")
+        st.write("Player tracking credits every possession to the defender guarding the ball-handler or shooter. Across "
+                 "the right = guarding players heavier than him; higher up = opponents score more on him. The dashed "
+                 "line is the team average.")
+        t = dfn.table
+        fig = go.Figure()
+        for is_rookie, sym, name in ((False, "circle", "Veterans"), (True, "diamond", "Rookies")):
+            z = t[t["rookie"] == is_rookie]
+            if z.empty:
+                continue
+            fig.add_trace(go.Scatter(
+                x=z["wt_gap"], y=z["pts100"], mode="markers+text", name=name, showlegend=False,
+                text=z["player_name"].str.split(" ", n=1).str[-1], textposition="top center",
+                marker=dict(size=13 if is_rookie else 11, symbol=sym,
+                            color=[BAD if a else MUTED_BAR for a in z["attacked"]], line=dict(color=BG, width=1.5)),
+                customdata=np.column_stack([z["player_name"], z["own_ht"].map(W._ft_in), z["own_wt"], z["opp_wt"],
+                                            z["fg_pct"], z["poss"], z["contested_shots_36"].fillna(0),
+                                            z["deflections_36"].fillna(0), z["def_box_outs"].fillna(0)]),
+                hovertemplate="<b>%{customdata[0]}</b> (%{customdata[1]}, %{customdata[2]:.0f} lb)"
+                              "<br>Guards players averaging %{customdata[3]:.0f} lb"
+                              "<br>%{y:.1f} points allowed per 100 possessions guarded"
+                              "<br>Opponents shoot %{customdata[4]:.0%} on him (%{customdata[5]:.0f} possessions)"
+                              "<br>Per 36: %{customdata[6]:.1f} contests, %{customdata[7]:.1f} deflections"
+                              "<br>Defensive box-outs: %{customdata[8]:.0f}<extra></extra>"))
+        for name, color, sym in ((f"Opponents score {W.ATTACKED_BY:.0f}+ more on him", BAD, "circle"),
+                                 ("Everyone else", MUTED_BAR, "circle"), ("Rookie", MUTED_BAR, "diamond")):
+            fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", name=name,
+                                     marker=dict(color=color, size=11, symbol=sym)))
+        fig.add_hline(y=dfn.team_pts100, line=dict(color=INK_MARK, width=1, dash="dash"),
+                      annotation_text="team average", annotation_position="bottom left")
+        fig.add_vline(x=0, line=dict(color=GRAY, width=1))
+        fig.update_xaxes(title="Weight of who he guards minus his own (lb)  →  giving up size")
+        fig.update_yaxes(title="Points allowed per 100 possessions guarded")
+        show(fig, 440)
+        st.caption(f"Red = opponents score {W.ATTACKED_BY:.0f}+ more per 100 on him than on the team. Whole games, "
+                   f"{dfn.games} games with tracking. Points with no clear defender (fast breaks, scrambles) aren't "
+                   "counted, so these run lower than a normal defensive rating.")
+        small = t[t["gives_up_size"]]
+        for r in small.itertuples():
+            st.markdown(f"- **{r.player_name}** ({W._ft_in(r.own_ht)}, {r.own_wt:.0f} lb"
+                        f"{', rookie' if r.rookie else ''}) guards players who average **{r.opp_wt:.0f} lb**. "
+                        f"Opponents shoot **{r.fg_pct:.0%}** on him (team {dfn.team_fg:.0%}), and he has "
+                        f"**{r.def_box_outs:.0f}** defensive box-outs in {r.hustle_min:.0f} minutes.")
+        with st.expander("The effort stats (contests, deflections, box-outs)"):
+            st.dataframe(
+                t[["player_name", "rookie", "hustle_min", "contested_shots_36", "deflections_36", "def_box_outs_36",
+                   "pts100", "fg_pct", "shooting_fouls"]].sort_values("hustle_min", ascending=False),
+                hide_index=True, width="stretch",
+                column_config={
+                    "player_name": "Player", "rookie": st.column_config.CheckboxColumn("Rookie"),
+                    "hustle_min": st.column_config.NumberColumn("Minutes tracked", format="%.0f"),
+                    "contested_shots_36": st.column_config.NumberColumn("Contests/36", format="%.1f"),
+                    "deflections_36": st.column_config.NumberColumn("Deflections/36", format="%.1f"),
+                    "def_box_outs_36": st.column_config.NumberColumn("Def. box-outs/36", format="%.1f"),
+                    "pts100": st.column_config.NumberColumn("Pts allowed/100", format="%.1f"),
+                    "fg_pct": st.column_config.NumberColumn("Opp. FG%", format="percent"),
+                    "shooting_fouls": st.column_config.NumberColumn("Shooting fouls", format="%.0f"),
+                })
+            st.caption("Hustle stats are counted by NBA staff from video and tracking; they're the closest public "
+                       "numbers to effort. Whole games only.")
+
+    # ------------------------------------------------------------ chemistry
+    st.header("Chemistry: how much have they played together?", divider="gray", anchor="chemistry")
+    st.write("Chemistry itself can't be measured. What can be: how much of the team is new, and how each pair of "
+             "players does when they share the floor after halftime.")
+    c = st.columns([1, 2.2])
+    c[0].metric("Minutes from players who were here last season", f"{chem.continuity:.0%}", border=True)
+    c[1].markdown("**New this season:** " + (", ".join(chem.new[:6]) or "nobody")
+                  + "  \n**Back from last season:** " + ", ".join(chem.returning[:8]))
+    p = chem.pairs
+    if len(p):
+        names = sorted(set(p["a"]) | set(p["b"]), key=lambda n: -(p.loc[p["a"] == n, "min"].sum()
+                                                                    + p.loc[p["b"] == n, "min"].sum()))
+        short = {n: n.split(" ", 1)[-1] for n in names}
+        z = pd.DataFrame(np.nan, index=names, columns=names)
+        hover = pd.DataFrame("", index=names, columns=names)
+        for r in p.itertuples():
+            txt = (f"{r.a} + {r.b}<br>{r.net:+.1f} per 100 in {r.min:.0f} second-half minutes<br>"
+                   + ("New pair this season" if r.new_pair else f"{r.prior_min:.0f} minutes together last season"))
+            for x, y in ((r.a, r.b), (r.b, r.a)):
+                z.loc[x, y] = r.net
+                hover.loc[x, y] = txt
+        lim = max(20, float(np.nanmax(np.abs(z.values))))
+        fig = go.Figure(go.Heatmap(
+            z=z.values, x=[short[n] for n in names], y=[short[n] for n in names], customdata=hover.values,
+            zmin=-lim, zmax=lim, colorscale=[[0, BAD], [0.5, "#2a2a28"], [1, GOOD]], xgap=2, ygap=2,
+            colorbar=dict(title="per 100", thickness=12), hovertemplate="%{customdata}<extra></extra>",
+            hoverongaps=False))
+        fig.update_yaxes(autorange="reversed", showgrid=False)
+        fig.update_xaxes(side="top", showgrid=False)
+        show(fig, 120 + 38 * len(names))
+        best, worst = p.iloc[-1], p.iloc[0]
+        st.caption(f"Pairs with {25} or more second-half minutes together. Best: {best['a']} + {best['b']} "
+                   f"({best['net']:+.0f}); worst: {worst['a']} + {worst['b']} ({worst['net']:+.0f}). "
+                   f"{int(p['new_pair'].sum())} of {len(p)} pairs never played together last season. Blank = under 25 "
+                   "minutes. Pairs overlap, so one player's bad nights show up in all of his pairs.")
+
     # ------------------------------------------------------------ returning players
     st.header("Will the players coming back help?", divider="gray", anchor="returning")
     st.write("Each player is measured on what this team is missing after halftime: shooting, threes, holding on to "
@@ -473,7 +706,7 @@ def page_whatnow() -> None:
         fig.add_trace(go.Scatter(
             x=cand_df["tov_pct"], y=cand_df["efg"], mode="markers+text", name="Coming back / new to the rotation",
             text=[n.split(" ", 1)[-1] for n in cand_df["name"]],
-            textposition=["top center" if i % 2 == 0 else "bottom center" for i in range(len(cand_df))],
+            textposition=label_positions(cand_df["tov_pct"], cand_df["efg"], dx=0.02, dy=0.03),
             marker=dict(color=FOCUS, size=15, symbol="diamond", line=dict(color=BG, width=1.5)),
             customdata=cand_df[["name", "sample"]],
             hovertemplate="%{customdata[0]}<br>Shooting %{y:.1%}<br>Turnover rate %{x:.1%}"
@@ -494,6 +727,8 @@ def page_whatnow() -> None:
             st.markdown(f'<div class="big-q">{c.name}</div>', unsafe_allow_html=True)
             st.caption("Hasn't played yet this season" if c.this_season_minutes == 0
                        else f"{c.this_season_minutes:.0f} minutes so far this season")
+            if c.mpg == c.mpg:
+                st.caption(f"Played {c.mpg:.0f} min a game in {c.games} games ({c.sample.split(',')[0]})")
             for h in c.helps:
                 st.badge(f"Helps: {h}", color=help_color.get(h, "gray"))
             if c.small_sample:
@@ -542,6 +777,14 @@ def page_whatnow() -> None:
     if sf is not None:
         watch.append("**The starting five becomes a problem** if its second-half net rating falls more than "
                      f"{W.STARTERS_MARGIN:.0f} points below everyone else's.")
+    if pr is not None:
+        watch.append(f"**{focus_last} has adjusted to length** once his turnovers against long defenders drop under "
+                     f"{W.LENGTH_RATIO}x his rate against shorter ones. It's {pr.tov100_long / pr.tov100_short:.1f}x "
+                     "today. **Teams are trapping him** if steals by a second defender rise "
+                     f"{W.TRAP_MARGIN:.0%} above his teammates' share.")
+    watch.append("**The rebounding is fixed** when opponents get back under "
+                 f"{gl.prior_opp_oreb_h2 + W.GLASS_WORSE:.1%} of their misses after halftime (last season's level plus "
+                 f"{W.GLASS_WORSE * 100:.0f} points). It's {gl.opp_oreb_h2:.1%} today.")
     st.markdown("\n".join(f"- {w}" for w in watch))
     st.caption("Everything on this page reruns with `leadcollapse all` after each game. The rules behind each verdict "
                "are listed at the top of src/leadcollapse/viz/whatnow.py.")
