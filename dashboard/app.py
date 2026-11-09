@@ -268,6 +268,47 @@ def page_answer() -> None:
             for card in cards:
                 st.markdown(f"**{card.question}** {card.answer}. {card.text}")
 
+    # ---------------------------------------------------------- The Wall
+    ft = D.opp_ft_by_half(data.game_halves)
+    wall = S.wall_check(ft)
+    if wall is not None:
+        st.subheader("Is it The Wall?", anchor="wall")
+        left, right = st.columns([1, 1.6], gap="large")
+        with left:
+            answer_cards([W.Verdict("The answer", wall.big, wall.small, wall.tone, wall.anchor)], link=False,
+                         big_size="1.6rem")
+            st.markdown("The Wall is the 51-row student section behind one basket at Intuit Dome. If it rattled "
+                        "opponents at the line after halftime, their second-half free throws would drop at home.")
+            st.link_button("See the full Intuit Dome study", settings.wall_study_url,
+                           icon=":material/open_in_new:", width="stretch")
+        with right:
+            order = sorted(ft["season"].unique(), reverse=True)
+            x = [f"{s_}<br>{'At Intuit Dome' if w_ == 'home' else 'On the road'}" for s_ in order
+                 for w_ in ("home", "road")]
+            fig = go.Figure()
+            for split, color, label in (("H1", H1C, "Before halftime"), ("H2", H2C, "After halftime")):
+                rows = [ft[(ft["season"] == s_) & (ft["where"] == w_) & (ft["split"] == split)]
+                        for s_ in order for w_ in ("home", "road")]
+                vals = [float(r_["ft_pct"].iloc[0]) if len(r_) else None for r_ in rows]
+                att = [int(r_["fta"].iloc[0]) if len(r_) else 0 for r_ in rows]
+                fig.add_trace(go.Bar(x=x, y=vals, name=label, marker_color=color, customdata=att,
+                                     text=[f"{v:.0%}" if v is not None else "" for v in vals],
+                                     textposition="outside",
+                                     hovertemplate="%{x}<br>" + label + ": %{y:.1%} on %{customdata} free throws"
+                                                   "<extra></extra>"))
+            fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.06)
+            fig.update_yaxes(tickformat=".0%", range=[0, 1.12], title="Opponents' free throws made")
+            st.markdown("**Opponents at the free-throw line, before vs after halftime**")
+            show(fig, 320)
+        with st.expander("Details"):
+            st.markdown(
+                "- Teams switch baskets at halftime, so visitors face The Wall for only one half. The box score "
+                "doesn't record which end a team shot at, so this checks whether opponents miss more after "
+                "halftime at home at all. They don't.\n"
+                "- Includes late free throws from intentional fouls.\n"
+                "- The home-court study looks at every arena since 2013-14 and finds the same thing: visitors' "
+                "free-throw shooting at Intuit Dome isn't consistently worse than at other arenas.")
+
     # ---------------------------------------------------------- 4. since last season
     section_n = 4 if helps else 3
     if not data.comparison.empty and season_prev in data.attribution:
@@ -284,7 +325,7 @@ def page_answer() -> None:
         new = [r.name for r in reasons if r.status == S.NEW]
         same = [r.name for r in reasons if r.status == S.SAME]
         better = [r.name for r in reasons if r.status == S.BETTER]
-        answer_cards([W.Verdict(title, ", ".join(names) or "Nothing", sub, tone, "changes")
+        answer_cards([W.Verdict(title, " · ".join(names) or "Nothing", sub, tone, "changes")
                       for title, names, sub, tone in (
                           ("New this season", new, "Worse than last season by a point a game or more.", "bad"),
                           ("Same as last season", same, "Hurt then, hurts now.", "warn"),
