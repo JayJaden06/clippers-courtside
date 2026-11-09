@@ -177,24 +177,28 @@ def page_answer() -> None:
 
     # ---------------------------------------------------------- 1. ranked reasons
     section("1. Why they blow leads, ranked", "reasons",
-            "Each bar is how many points a game that part of the game costs them after halftime." if hurts else "")
+            "Each pair of bars is one part of the game: <b>red = this season</b>, gray = last season. Left of zero = "
+            "it costs them points after halftime; right = it helps." if hurts else "")
     if hurts:
         names = [f"{i}. {r.name}" for i, r in enumerate(hurts, 1)]
         fig = go.Figure()
-        fig.add_trace(go.Bar(
-            y=names, x=[-r.per_game for r in hurts], orientation="h", name=f"{season_now}",
-            marker_color=BAD, text=[f"−{-r.per_game:.1f} pts/game" for r in hurts], textposition="outside",
-            customdata=[r.detail for r in hurts],
-            hovertemplate="<b>%{y}</b><br>%{customdata}<extra></extra>"))
-        fig.add_trace(go.Scatter(
-            y=names, x=[max(-r.prev_per_game, 0) for r in hurts], mode="markers", name=f"{season_prev}",
-            marker=dict(symbol="line-ns", size=26, line=dict(width=3, color=INK_MARK)),
-            customdata=[r.prev_per_game for r in hurts],
-            hovertemplate=f"{season_prev}: " + "%{customdata:+.1f} pts/game<extra></extra>"))
+        for label, vals, color in ((f"This season ({season_now})", [r.per_game for r in hurts], BAD),
+                                   (f"Last season ({season_prev})", [r.prev_per_game for r in hurts], MUTED_BAR)):
+            fig.add_trace(go.Bar(
+                y=names, x=vals, orientation="h", name=label, marker_color=color,
+                text=[f"{signed(v)} a game" for v in vals], textposition="outside", cliponaxis=False,
+                customdata=[r.detail for r in hurts],
+                hovertemplate="<b>%{y}</b><br>" + label + ": %{x:+.1f} points a game after halftime"
+                              "<br>%{customdata}<extra></extra>"))
+        lo = min(min(r.per_game, r.prev_per_game) for r in hurts)
+        hi = max(max(r.per_game, r.prev_per_game) for r in hurts)
+        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1))
+        fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.08)
         fig.update_yaxes(autorange="reversed")
-        fig.update_xaxes(title="Points per game lost after halftime", range=[0, max(-hurts[0].per_game * 1.3, 1)])
-        show(fig, 90 + 58 * len(hurts))
-        st.caption(f"Red bars = this season. White ticks = the same thing last season ({season_prev}).")
+        fig.update_xaxes(title="Points a game after halftime  (← costs them · helps them →)",
+                         range=[lo * 1.45, max(hi, 0) * 1.45 + 0.8], zeroline=False)
+        show(fig, 110 + 70 * len(hurts))
+        st.caption("Ranked by how much each costs this season. Hover a bar for the stat behind it.")
         with st.expander("Details for each reason"):
             if helps:
                 st.markdown("The shares add up to more than 100% because a few things got *better* after halftime "
