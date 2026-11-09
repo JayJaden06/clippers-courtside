@@ -42,10 +42,12 @@ FACTOR_PLAIN = {
     "shooting": ("Clippers' shooting", "Making a lower share of their shots after halftime."),
     "opp_shooting": ("Opponents' shooting", "How well opponents shot. Positive = opponents shot worse, "
                      "which helped the Clippers."),
-    "turnovers": ("Turnovers", "Possessions lost to turnovers instead of ending in a shot."),
-    "rebounding": ("Second chances", "Offensive rebounds: extra shots for the Clippers (or given up to "
-                   "opponents)."),
-    "free_throws": ("Free throws", "Points from the free-throw line, for and against."),
+    "turnovers": ("Turnovers, Clippers vs opponents", "Possessions the Clippers lose to turnovers, minus the "
+                  "ones opponents lose. Negative = the Clippers come out behind."),
+    "rebounding": ("Second chances, Clippers vs opponents", "Extra shots from offensive rebounds: the Clippers' "
+                   "minus the opponents'. Negative = opponents get more second chances."),
+    "free_throws": ("Free throws, Clippers vs opponents", "Points from the free-throw line: the Clippers' minus "
+                    "the opponents'. Negative = opponents gain more at the line."),
     "pace": ("Number of possessions", "Fewer or more trips down the floor."),
     "residual": ("Can't tell", "Points the bookkeeping can't place in any one bucket."),
 }
@@ -261,8 +263,8 @@ def _detail(factor: str, h: pd.DataFrame, n_games: int) -> str:
         return (f"Opponents grab {a['opp_oreb_pct']:.0%} of their own misses before halftime and "
                 f"{b['opp_oreb_pct']:.0%} after, so they get more second chances.")
     if factor == "free_throws":
-        return (f"Opponents get {a['opp_ft_rate']:.2f} free throws per shot before halftime and "
-                f"{b['opp_ft_rate']:.2f} after.")
+        return (f"Free throws per shot before halftime → after: Clippers {a['ft_rate']:.2f} → {b['ft_rate']:.2f}, "
+                f"opponents {a['opp_ft_rate']:.2f} → {b['opp_ft_rate']:.2f}.")
     if factor == "pace":
         return (f"{a['possessions'] / n_games:.0f} possessions per game before halftime, "
                 f"{b['possessions'] / n_games:.0f} after.")
@@ -433,6 +435,16 @@ def game_cards(row: pd.Series, halves: pd.DataFrame, turnovers: pd.DataFrame, fo
     ht, fin = int(row["halftime_margin"]), int(row["final_margin"])
     t = turnovers[(turnovers["game_id"] == row.name) & turnovers["is_team"] & turnovers["period"].isin([3, 4])]
     mine = int((t["player_name"] == focus_last).sum())
+    counts = t["player_name"].dropna().value_counts()
+    if counts.empty:
+        who = "No player turnovers after halftime."
+    else:
+        top = sorted(counts[counts == counts.iloc[0]].index)
+        each = " each" if len(top) > 1 else ""
+        names = top[0] if len(top) == 1 else ", ".join(top[:-1]) + " and " + top[-1]
+        who = f"Most: {names} ({counts.iloc[0]}{each})."
+        if focus_last not in top:
+            who += f" {focus_last} had {mine}."
     return [
         Verdict("At halftime", f"{ht:+d}", "Clippers ahead (+) or behind (−) going into the break.",
                 "good" if ht > 0 else "bad" if ht < 0 else "info", "game"),
@@ -441,7 +453,7 @@ def game_cards(row: pd.Series, halves: pd.DataFrame, turnovers: pd.DataFrame, fo
         Verdict("Final", f"{fin:+d}", f"{'Won' if fin > 0 else 'Lost'} by {abs(fin)}" + (" in overtime." if
                                                                                       row["overtime_periods"] else "."),
                 "good" if fin > 0 else "bad", "game"),
-        Verdict("Turnovers after halftime", str(len(t)), f"{mine} of them by {focus_last}.", "info", "game"),
+        Verdict("Turnovers after halftime", str(len(t)), who, "info", "game"),
     ]
 
 
