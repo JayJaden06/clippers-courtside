@@ -191,4 +191,6 @@ def test_game_cards():
                         "player_name": ["Garland", "Dunn", "Other"]})
     cards = S.game_cards(row, halves, tov, "Garland")
     assert [c.big for c in cards] == ["+7", "-10", "-3", "2"]
-    assert cards[3].small == "1 of them by Garland." and cards[2].tone == "bad"
+    assert cards[3].small == "Most: Dunn and Garland (1 each)." and cards[2].tone == "bad"
+    tov2 = pd.concat([tov, tov.iloc[[1]]])  # Dunn now has 2
+    assert S.game_cards(row, halves, tov2, "Garland")[3].small == "Most: Dunn (2). Garland had 1."
