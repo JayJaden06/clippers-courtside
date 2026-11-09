@@ -1,0 +1,31 @@
+name: keep-awake
+
+# Streamlit Community Cloud puts an app to sleep after 12 hours without visitors, and a sleeping
+# app shows a "get this app back up" button instead of the dashboard. This opens the dashboard in
+# a headless browser twice a day and clicks that button if it's there, so the app stays awake.
+#
+# Set the app's address once: repo Settings -> Secrets and variables -> Actions -> Variables ->
+# New variable APP_URL. Until then the job is skipped.
+on:
+  schedule:
+    - cron: "30 15 * * *" # 15:30 UTC = 7:30-8:30am Pacific, after the 7am refresh
+    - cron: "30 3 * * *" # 03:30 UTC = 7:30-8:30pm Pacific
+  workflow_dispatch:
+  pull_request:
+    paths: [.github/workflows/keep-awake.yml]
+
+jobs:
+  wake:
+    if: ${{ vars.APP_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      APP_URL: ${{ vars.APP_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: Visit the dashboard
+        run: python scripts/wake_app.py

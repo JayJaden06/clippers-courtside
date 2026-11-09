@@ -20,3 +20,6 @@ Thumbs.db
 # Local browser-automation leftovers
 .playwright-mcp/
 %USERPROFILE%/
+
+# Daily refresh logs (scripts/daily_refresh.ps1)
+logs/

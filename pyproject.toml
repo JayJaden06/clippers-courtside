@@ -28,7 +28,7 @@ leadcollapse = "leadcollapse.cli:app"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
-dashboard = ["streamlit>=1.35"]
+dashboard = ["streamlit>=1.67"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/leadcollapse"]
