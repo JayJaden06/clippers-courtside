@@ -7,7 +7,9 @@ Sources:
 
 Live-ball turnover: the play-by-play logs a separate STEAL event for the
 other team at the same timestamp. That is exact (PBP steals equal box-score
-steals in every game), so no guessing from the turnover type.
+steals in every game), so no guessing from the turnover type. The stealer is
+kept (``stealer_id``) so turnovers can be matched to who was guarding the
+player (see ``leadcollapse.viz.whatnow.pressure``).
 
 Points off a turnover (play-by-play estimate): the other team's points from
 the turnover until the committing team's next possession event (a shot or
@@ -83,7 +85,8 @@ def turnover_events(events: pd.DataFrame) -> pd.DataFrame:
         for i in game.index[game["action_type"] == "Turnover"]:
             t = game.loc[i]
             same_time = game[(game["elapsed"] == t["elapsed"]) & (game.index > i) & (game.index <= i + 3)]
-            live = bool((is_steal.loc[same_time.index] & (same_time["team_id"] != t["team_id"])).any())
+            steals = same_time[is_steal.loc[same_time.index] & (same_time["team_id"] != t["team_id"])]
+            live = len(steals) > 0
             person = t["person_id"]
             is_team_tov = bool(t["is_team_action"])
             rows.append({
@@ -93,7 +96,10 @@ def turnover_events(events: pd.DataFrame) -> pd.DataFrame:
                 "person_id": None if is_team_tov else int(person),
                 "player_name": None if is_team_tov else t["player_name"],
                 "sub_type": t["sub_type"], "category": categorize(t["sub_type"]),
-                "live_ball": live, "pts_off": _points_off(game, i, t["team_id"]),
+                "live_ball": live,
+                "stealer_id": int(steals["person_id"].iloc[0]) if live else None,
+                "stealer_name": steals["player_name"].iloc[0] if live else None,
+                "pts_off": _points_off(game, i, t["team_id"]),
                 "margin_before": t["margin"],
             })
     return pd.DataFrame(rows)

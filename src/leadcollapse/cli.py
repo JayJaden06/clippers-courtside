@@ -16,7 +16,7 @@ from rich.logging import RichHandler
 
 from leadcollapse.analysis import hypotheses
 from leadcollapse.config import get_settings
-from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players
+from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players, tracking
 from leadcollapse.nba_client import NBAClient
 from leadcollapse.transform import fouls, halves, leads, league_context, onoff, turnovers
 
@@ -59,6 +59,9 @@ def pull(season: SeasonOpt = None) -> None:
     players.player_half_splits(client, pid, settings.comparison_season, settings.season_type)
     players.player_game_log(client, pid, settings.comparison_season, settings.season_type)
     players.player_history(client, settings.watch_players, _history_seasons(settings), settings.season_type)
+    _, _, skipped = tracking.load_tracking(client, df)
+    if skipped:
+        console.print(f"tracking not published yet for {len(skipped)} game(s); the next pull will retry them")
     for s in sorted(df["season"].unique()):
         # Season-to-date dashboards change after every game in the current season.
         refresh = s == settings.current_season
@@ -66,8 +69,9 @@ def pull(season: SeasonOpt = None) -> None:
             lineups.load_onoff(client, settings.team_id, s, settings.season_type)
             lineups.load_lineups(client, settings.team_id, s, settings.season_type)
             league.load_league(client, s, settings.season_type)
+            tracking.load_bio(client, s, settings.season_type)
     console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}, "
-                  f"on/off, lineups, league): {client.stats}")
+                  f"on/off, lineups, league, tracking): {client.stats}")
 
 
 @app.command()
@@ -182,6 +186,17 @@ def build(season: SeasonOpt = None) -> None:
     console.print(
         f"on/off: {len(onoff_h)} rows; lineups: {lineup_h['group_id'].nunique()} lineups (minutes add up); "
         f"league ranks: {len(ranks)} rows (team totals match box scores)"
+    )
+
+    matchups, hustle, skipped = tracking.load_tracking(client, df)
+    coverage = tracking.check_matchups(matchups, player_box)
+    bio = pd.concat([tracking.load_bio(client, s, settings.season_type) for s in seasons], ignore_index=True)
+    for name, frame in (("matchups", matchups), ("hustle", hustle), ("player_bio", bio)):
+        frame.to_parquet(out / f"{name}.parquet", index=False)
+        frame.round(4).to_csv(out / f"{name}.csv", index=False)
+    console.print(
+        f"tracking: {matchups['game_id'].nunique()} games of matchups and hustle "
+        f"({len(skipped)} not published yet), matchups cover {coverage:.0%} of points; bio for {len(bio)} players"
     )
     console.print(f"wrote to {settings.processed_dir}")
 
