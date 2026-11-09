@@ -13,7 +13,8 @@ from dataclasses import dataclass
 import pandas as pd
 
 from leadcollapse.analysis.decompose import FACTORS
-from leadcollapse.analysis.hypotheses import CONTRIBUTES, DRIVES
+from leadcollapse.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
+from leadcollapse.viz.whatnow import Verdict
 
 GLOSSARY = {
     "Possession": "One trip down the floor: it ends with a shot that's made or rebounded by the defense, "
@@ -376,3 +377,116 @@ def worst_collapse(game_leads: pd.DataFrame, season: str) -> dict | None:
     date = pd.Timestamp(row["game_date"])
     where = "vs" if row["is_home"] else "at"
     return {"game_id": row["game_id"], "label": f"{date:%b} {date.day} {where} {row['opponent_abbreviation']}"}
+
+
+# ------------------------------------------------------------- answer cards for each page
+# Each card: a short headline, one big number, one line that says what the number is.
+
+THEORY_TONE = {"yes": "bad", "partly": "warn", "no": "info"}
+
+
+def _first_sentence(text: str) -> str:
+    end = text.find(". ")
+    return text if end < 0 else text[: end + 1]
+
+
+def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_season: str) -> list[Verdict]:
+    out = [
+        Verdict("Fine before halftime, behind after it", f"{hl['h1_per_game']:+.1f} → {hl['h2_per_game']:+.1f}",
+                "Average score margin per game: first halves, then second halves.",
+                "bad" if hl["h2_per_game"] < hl["h1_per_game"] else "good", "reasons"),
+        Verdict("Early leads blown", f"{hl['blown']} of {hl['leads']}",
+                "Games where they led by 8 or more early on and still lost.", "bad" if hl["blown"] else "good",
+                "changes"),
+        Verdict("Shots stop falling after halftime", f"{hl['efg_h1']:.0%} → {hl['efg_h2']:.0%}",
+                "Shooting accuracy (threes count extra), first half then second half.",
+                "bad" if hl["efg_h2"] < hl["efg_h1"] else "good", "reasons"),
+    ]
+    hurts = [r for r in reasons if r.per_game < 0]
+    if hurts:
+        top = hurts[0]
+        out.append(Verdict(f"Biggest reason: {_lower(top.name)}", f"{top.per_game:+.1f}",
+                           f"Points a game it costs them after halftime ({top.share:.0%} of the drop).", "bad",
+                           "reasons"))
+    if "H3" in results:
+        share = results["H3"]["key"]["share_of_swing"]
+        label = "the main cause" if share >= DRIVES else "part of it" if share >= CONTRIBUTES else "a small part"
+        out.append(Verdict(f"Garland's turnovers: {label}", f"{share:.0%}",
+                           "of the second-half drop comes from Garland's extra turnovers.", "warn", "theories"))
+    new = [r.name for r in reasons if r.status == NEW]
+    out.append(Verdict("New problems this season", str(len(new)),
+                       (f"Not a problem in {prev_season}: " + ", ".join(_lower(n) for n in new) + ".") if new
+                       else f"Everything that hurts now also hurt in {prev_season}.",
+                       "warn" if new else "info", "changes"))
+    return out
+
+
+def theory_cards(cards: list[Card]) -> list[Verdict]:
+    return [Verdict(c.question, c.answer, _first_sentence(c.text), THEORY_TONE.get(c.tone, "info"), "theories")
+            for c in cards]
+
+
+def game_cards(row: pd.Series, halves: pd.DataFrame, turnovers: pd.DataFrame, focus_last: str) -> list[Verdict]:
+    """Cards for one game: halftime, final, the second-half swing, and turnovers after halftime."""
+    h = halves.assign(split=halves["split"].astype(str)).set_index("split")
+    h2 = float(h.loc["H2", "margin"]) if "H2" in h.index else float("nan")
+    ht, fin = int(row["halftime_margin"]), int(row["final_margin"])
+    t = turnovers[(turnovers["game_id"] == row.name) & turnovers["is_team"] & turnovers["period"].isin([3, 4])]
+    mine = int((t["player_name"] == focus_last).sum())
+    return [
+        Verdict("At halftime", f"{ht:+d}", "Clippers ahead (+) or behind (−) going into the break.",
+                "good" if ht > 0 else "bad" if ht < 0 else "info", "game"),
+        Verdict("Second half", f"{h2:+.0f}", "How much the Clippers won (+) or lost (−) the 3rd and 4th quarters by.",
+                "good" if h2 > 0 else "bad" if h2 < 0 else "info", "game"),
+        Verdict("Final", f"{fin:+d}", f"{'Won' if fin > 0 else 'Lost'} by {abs(fin)}" + (" in overtime." if
+                                                                                      row["overtime_periods"] else "."),
+                "good" if fin > 0 else "bad", "game"),
+        Verdict("Turnovers after halftime", str(len(t)), f"{mine} of them by {focus_last}.", "info", "game"),
+    ]
+
+
+def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
+    """Who loses the ball most after halftime, who falls off most, and who is safest."""
+    h2 = ph[ph["split"] == "H2"]
+    if h2.empty:
+        return []
+    out = []
+    most = h2.sort_values("tov", ascending=False).iloc[0]
+    out.append(Verdict(f"Most turnovers after halftime: {most['player_name'].split(' ', 1)[-1]}", f"{most['tov']:.0f}",
+                       f"{most['tov_share']:.0%} of the team's second-half turnovers, while handling "
+                       f"{most['play_share']:.0%} of its plays.", "bad", "who"))
+    w = ph.pivot(index="player_name", columns="split", values="tov_pct")
+    if {"H1", "H2"} <= set(w.columns):
+        jump = (w["H2"] - w["H1"]).sort_values()
+        name = jump.index[-1]
+        out.append(Verdict(f"Sloppiest after halftime: {name.split(' ', 1)[-1]}",
+                           f"{w.loc[name, 'H1']:.0%} → {w.loc[name, 'H2']:.0%}",
+                           f"Share of {name.split(' ', 1)[-1]}'s plays that end in a turnover, first half then second.",
+                           "warn", "sloppier"))
+    regular = h2[h2["play_share"] >= 0.08]
+    if len(regular):
+        safe = regular.sort_values("tov_pct").iloc[0]
+        last = safe["player_name"].split(" ", 1)[-1]
+        out.append(Verdict(f"Safest with the ball: {last}", f"1 in {round(1 / safe['tov_pct'])}" if safe["tov_pct"]
+                           else "0", f"of {last}'s second-half plays ends in a turnover (among regular ball-handlers).",
+                           "good", "who"))
+    return out
+
+
+def league_cards(ranks: pd.DataFrame) -> list[Verdict]:
+    """``ranks``: the team's ranks by stat (rows), with the first-to-second-half change rank in the last column."""
+    change = ranks.iloc[:, -1].drop(labels=["Pace (possessions)"], errors="ignore").astype(int)
+    out = []
+    if "Net rating" in change.index:
+        overall = int(change["Net rating"])
+        out.append(Verdict("How much they fall off after halftime", f"{ordinal(overall)} of 30",
+                           "Rank among the 30 teams for the change from first half to second (1st = holds up best).",
+                           "bad" if overall > 20 else "good" if overall <= 10 else "info", "teams"))
+    rest = change.drop(labels=["Net rating"], errors="ignore")
+    if len(rest):
+        worst, best = rest.idxmax(), rest.idxmin()
+        out.append(Verdict(f"Worst after halftime: {_lower(worst)}", f"{ordinal(int(rest[worst]))} of 30",
+                           f"Only {30 - int(rest[worst])} teams fall off more on this after halftime.", "bad", "ranks"))
+        out.append(Verdict(f"Holds up best: {_lower(best)}", f"{ordinal(int(rest[best]))} of 30",
+                           "Their best change after halftime, compared with the other 29 teams.", "good", "ranks"))
+    return out
