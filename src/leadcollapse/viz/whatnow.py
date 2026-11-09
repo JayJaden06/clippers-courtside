@@ -20,8 +20,8 @@ Minutes, defense, matchups and chemistry (tracking data is full-game only):
   or better on 40+ second-half minutes while averaging under 20 minutes; he is
   "struggling after halftime" at a second-half on-court net of -15 or worse on
   60+ minutes;
-- a defender "gets attacked" if opponents score 3+ points per 100 matchup
-  possessions more against him than against the team as a whole, and "gives up
+- a defender "gets scored on" if opponents shoot 5+ percentage points better
+  against him than against the team as a whole (on 30+ shots), and "gives up
   size" if the players he guards average 25+ lb more than he weighs;
 - the second-half glass "got worse" if opponents rebound 3+ points more of
   their misses after halftime than they did last season;
@@ -52,7 +52,7 @@ STARTERS_MARGIN = 5.0
 LOAD_RATIO = 1.5
 EARNED_ON_OFF, EARNED_MIN, EARNED_MPG = 10.0, 40, 20
 STRUGGLE_NET, STRUGGLE_MIN = -15.0, 60
-ATTACKED_BY = 3.0
+ATTACKED_FG, ATTACKED_MIN_FGA = 0.05, 30
 HEAVIER_BY = 25
 GLASS_WORSE = 0.03
 LONG_IN = 78  # 6'6"
@@ -90,6 +90,7 @@ class ShootingDrop:
     team_h1: float
     team_h2: float
     league_h2: float
+    team_fg3_h2: float = float("nan")
 
 
 def shooting_drop(player_box: pd.DataFrame, season: str, team: str, league_h2: float,
@@ -99,10 +100,11 @@ def shooting_drop(player_box: pd.DataFrame, season: str, team: str, league_h2: f
     w.columns = [f"{a}_{b.lower()}" for a, b in w.columns]
     w = w[(w["minutes_h1"] >= min_minutes) & (w["minutes_h2"] >= min_minutes)].copy()
     w["change"] = w["efg_h2"] - w["efg_h1"]
-    team_tot = h.groupby(level="split")[["fgm", "fg3m", "fga"]].sum()
+    team_tot = h.groupby(level="split")[["fgm", "fg3m", "fga", "fg3a"]].sum()
     team = (team_tot["fgm"] + 0.5 * team_tot["fg3m"]) / team_tot["fga"]
     return ShootingDrop(w.sort_values("change").reset_index(), int((w["change"] < 0).sum()), len(w),
-                        float(team["H1"]), float(team["H2"]), league_h2)
+                        float(team["H1"]), float(team["H2"]), league_h2,
+                        float(team_tot.loc["H2", "fg3m"] / team_tot.loc["H2", "fg3a"]))
 
 
 # ------------------------------------------------------------ returning players
@@ -223,6 +225,8 @@ class StartingFive:
     rest_h2_min: float
     rest_h2_net: float
     not_the_problem: bool
+    h2_pm: float = 0.0  # raw second-half plus-minus, season total
+    rest_h2_pm: float = 0.0
 
 
 def starting_five(player_box: pd.DataFrame, lineups: pd.DataFrame, season: str, team: str) -> StartingFive | None:
@@ -241,8 +245,10 @@ def starting_five(player_box: pd.DataFrame, lineups: pd.DataFrame, season: str, 
     h1m, h1n = net(l[is5 & (l["split"] == "H1")])
     h2m, h2n = net(l[is5 & (l["split"] == "H2")])
     rm, rn = net(l[~is5 & (l["split"] == "H2")])
+    pm = lambda d: float(d["pts"].sum() - d["opp_pts"].sum())  # noqa: E731
     return StartingFive(list(five), int((groups == five).sum()), h1m, h1n, h2m, h2n, rm, rn,
-                        h2m > 0 and h2n >= rn + STARTERS_MARGIN)
+                        h2m > 0 and h2n >= rn + STARTERS_MARGIN,
+                        pm(l[is5 & (l["split"] == "H2")]), pm(l[~is5 & (l["split"] == "H2")]))
 
 
 # ------------------------------------------------------------- minutes
@@ -279,6 +285,9 @@ def rotation(player_box: pd.DataFrame, onoff: pd.DataFrame, bio: pd.DataFrame, s
     r["h2_min_on"] = o["min_on"].reindex(r.index).fillna(0)
     r["h2_net_on"] = o["net_rtg_on"].reindex(r.index)
     r["h2_on_off"] = o["net_on_off"].reindex(r.index)
+    # Plus-minus with him on the floor after halftime (from the on-court rating and possessions).
+    r["h2_pm"] = (o["net_rtg_on"] * o["poss_on"] / 100).reindex(r.index)
+    r["h2_pm_pg"] = r["h2_pm"] / r["gp"]
     r["rookie"] = _bio_by_id(bio, season)["rookie"].reindex(r.index).fillna(False).astype(bool) if len(bio) else False
     r["earned"] = ((r["h2_on_off"] >= EARNED_ON_OFF) & (r["h2_min_on"] >= EARNED_MIN) & (r["mpg"] < EARNED_MPG))
     r["struggling"] = (r["h2_net_on"] <= STRUGGLE_NET) & (r["h2_min_on"] >= STRUGGLE_MIN)
@@ -331,11 +340,12 @@ def defenders(matchups: pd.DataFrame, hustle: pd.DataFrame, bio: pd.DataFrame, s
     t["hustle_min"] = t["player_id"].map(hu["minutes"])
     t["def_box_outs"] = t["player_id"].map(hu["def_box_outs"])
     team_pts100 = 100 * d["pts"].sum() / d["partial_poss"].sum()
-    t["attacked"] = t["pts100"] >= team_pts100 + ATTACKED_BY
+    team_fg = d["fgm"].sum() / d["fga"].sum()
+    t["attacked"] = (t["fg_pct"] >= team_fg + ATTACKED_FG) & (t["fga"] >= ATTACKED_MIN_FGA)
     t["wt_gap"] = t["opp_wt"] - t["own_wt"]
     t["gives_up_size"] = t["wt_gap"] >= HEAVIER_BY
     t = t[t["poss"] >= min_poss].sort_values("poss", ascending=False).reset_index(drop=True)
-    return Defense(t, float(team_pts100), float(d["fgm"].sum() / d["fga"].sum()), int(d["game_id"].nunique()))
+    return Defense(t, float(team_pts100), float(team_fg), int(d["game_id"].nunique()))
 
 
 @dataclass
@@ -488,6 +498,7 @@ def chemistry(player_box: pd.DataFrame, lineups: pd.DataFrame, season: str, prio
     cur = pair_minutes(lineups[(lineups["season"] == season) & (lineups["split"] == "H2")])
     old = pair_minutes(lineups[(lineups["season"] == prior) & (lineups["split"] == "REG")])
     cur["net"] = 100 * (cur["pts"] - cur["opp_pts"]) / cur["poss"].where(cur["poss"] > 0)
+    cur["pm"] = cur["pts"] - cur["opp_pts"]
     cur["prior_min"] = old["min"].reindex(cur.index).fillna(0)
     cur = cur[cur["min"] >= min_pair_minutes].reset_index()
     cur["a"] = cur["a_id"].map(names)
@@ -605,4 +616,81 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
                 bits.append("small sample")
             return f"{c.name} ({', '.join(bits)})"
         out.append(f"<b>For the second-chance problem, try the rebounders:</b> {_names([tag(c) for c in glass])}.")
+    return out
+
+
+# ------------------------------------------------------------- the answer cards
+
+@dataclass
+class Verdict:
+    """One answer card: a short headline, one big number, one line of context."""
+    title: str
+    big: str
+    small: str
+    tone: str  # "good", "bad", "warn" or "info"
+    anchor: str  # section to jump to
+
+
+def _last(name: str) -> str:
+    return name.split(" ", 1)[-1]
+
+
+def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate], sd: ShootingDrop, focus: str,
+             rot: pd.DataFrame | None = None, defense: Defense | None = None, gl: Glass | None = None,
+             pr: Pressure | None = None, n_games: int = 1) -> list[Verdict]:
+    """The same rules as ``summary_lines``, as cards: few words, one number each."""
+    out: list[Verdict] = []
+    last = _last(focus)
+    n = max(n_games, 1)
+    if sf is not None and sf.h2_min > 0:
+        out.append(Verdict(
+            "Keep the starting five" if sf.not_the_problem else "Rethink the starting five",
+            f"{sf.h2_pm / n:+.1f} vs {sf.rest_h2_pm / n:+.1f}",
+            "points a game after halftime: starters together vs every other lineup",
+            "good" if sf.not_the_problem else "bad", "starters"))
+    if bl is not None:
+        out.append(Verdict(
+            f"{last}: less ball after halftime, for now" if bl.should_handle_less else f"{last}'s workload is fine",
+            f"{bl.tov_pct_h2:.0%}", f"of his second-half plays end in a turnover (last season {bl.prior_tov_pct_h2:.0%})",
+            "bad" if bl.should_handle_less else "good", "garland"))
+    if pr is not None:
+        if pr.trapped:
+            out.append(Verdict("Teams are trapping him", f"{pr.help_share:.0%}",
+                               f"of his turnovers are stolen by a second defender (teammates {pr.mates_help_share:.0%})",
+                               "bad", "garland"))
+        elif pr.length_problem:
+            out.append(Verdict("Long defenders, not double teams", f"{pr.tov100_long / pr.tov100_short:.1f}x",
+                               f"more turnovers when someone {_ft_in(LONG_IN)}+ guards him (no gap last season)",
+                               "warn", "garland"))
+    shooters = [c for c in cands if "threes" in c.helps and not c.small_sample]
+    if shooters:
+        out.append(Verdict("Biggest fix: the shooters coming back",
+                           " · ".join(f"{c.fg3_pct:.0%}" for c in shooters),
+                           f"{', '.join(_last(c.name) for c in shooters)} from three after halftime; the Clippers "
+                           f"shoot {sd.team_fg3_h2:.0%} now", "good", "returning"))
+    if gl is not None and gl.worse:
+        out.append(Verdict("Finish possessions with a rebound", f"{gl.opp_oreb_h2:.0%}",
+                           f"of their misses opponents get back after halftime (last season {gl.prior_opp_oreb_h2:.0%})",
+                           "bad", "defense"))
+    if defense is not None and rot is not None and len(defense.table):
+        q4 = rot.set_index("player_id")["q4_mpg"]
+        small = defense.table[defense.table["gives_up_size"]].copy()
+        if len(small):
+            r = small.assign(q4=small["player_id"].map(q4).fillna(0)).sort_values("q4", ascending=False).iloc[0]
+            out.append(Verdict(f"{_last(r['player_name'])} gets out-muscled", f"{r['own_wt']:.0f} vs {r['opp_wt']:.0f} lb",
+                               f"his weight vs the players he guards; they shoot {r['fg_pct']:.0%} on him",
+                               "warn", "defense"))
+    if rot is not None and len(rot):
+        more = rot[rot["earned"]]
+        less = rot[rot["struggling"]]
+        if len(more):
+            out.append(Verdict("More minutes: " + " & ".join(_last(x) for x in more["player_name"]),
+                               " · ".join(f"{v:+.0f}" for v in more["h2_on_off"]),
+                               "points per 100 trips better with them on after halftime (small samples)",
+                               "good", "minutes"))
+        if len(less):
+            out.append(Verdict("Fewer late minutes: " + ", ".join(_last(x) for x in less["player_name"]),
+                               " · ".join(f"{v:+.0f}" for v in less["h2_pm_pg"]),
+                               "points a game the team loses with each of them on after halftime",
+                               "bad", "minutes"))
     return out

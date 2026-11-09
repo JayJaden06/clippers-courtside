@@ -128,13 +128,22 @@ def test_length_and_size_rules():
     assert p.length_problem and not p.trapped and p.prior_tov100_long == pytest.approx(3)
 
     # On defense: 10 (175 lb) guards 100 (230 lb) and gives up 55 lb; 11 guards 101 and doesn't
-    d = pd.DataFrame([_matchup("g1", 100, 10, 50, pts=20, fgm=8, fga=10, off_team="OPP", def_team="LAC"),
-                      _matchup("g1", 101, 11, 50, pts=5, fgm=2, fga=10, off_team="OPP", def_team="LAC")])
+    # opponents shoot 60% on 10 and 40% on 11 (team 50%), on 40 shots each
+    d = pd.DataFrame([_matchup("g1", 100, 10, 50, pts=60, fgm=24, fga=40, off_team="OPP", def_team="LAC"),
+                      _matchup("g1", 101, 11, 50, pts=40, fgm=16, fga=40, off_team="OPP", def_team="LAC")])
     hustle = pd.DataFrame(columns=["season", "team_abbreviation", "player_id", "minutes", "contested_shots",
                                    "deflections", "def_box_outs"])
     dfn = W.defenders(d, hustle, bio, "2026-27", "LAC", min_poss=0).table.set_index("player_id")
     assert dfn.loc[10, "gives_up_size"] and not dfn.loc[11, "gives_up_size"]
-    assert dfn.loc[10, "attacked"] and dfn.loc[10, "rookie"]
+    assert dfn.loc[10, "attacked"] and not dfn.loc[11, "attacked"] and dfn.loc[10, "rookie"]
+
+
+def test_verdict_cards_on_synthetic_rules():
+    sf = W.StartingFive(["A", "B", "C", "D", "E"], 5, 50, 0, 40, 2.0, 200, -12.0, True, h2_pm=1.0, rest_h2_pm=-45.0)
+    sd = W.ShootingDrop(pd.DataFrame(), 0, 0, 0.55, 0.50, 0.53, 0.33)
+    cards = W.verdicts(sf, None, [], sd, "Darius Garland", n_games=9)
+    assert [c.title for c in cards] == ["Keep the starting five"]
+    assert cards[0].big == "+0.1 vs -5.0" and cards[0].anchor == "starters"
 
 
 @pytest.mark.skipif(not (PROCESSED / "matchups.parquet").exists(), reason="run leadcollapse build")
