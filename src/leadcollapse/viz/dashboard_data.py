@@ -8,7 +8,7 @@ and so the dashboard never touches the network or the raw cache: it reads
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
@@ -66,6 +66,10 @@ class DashboardData:
     player_box: pd.DataFrame
     lineups: pd.DataFrame
     history: pd.DataFrame
+    onoff: pd.DataFrame = field(default_factory=pd.DataFrame)
+    matchups: pd.DataFrame = field(default_factory=pd.DataFrame)
+    hustle: pd.DataFrame = field(default_factory=pd.DataFrame)
+    bio: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     @property
     def seasons(self) -> list[str]:
@@ -81,6 +85,10 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
     for season, name in ((meta.get("season"), "attribution.csv"), (meta.get("comparison_season"), "attribution_prior.csv")):
         if season and (a / name).exists():
             attribution[season] = pd.read_csv(a / name)
+
+    def optional(name: str) -> pd.DataFrame:
+        return pd.read_parquet(p / f"{name}.parquet") if (p / f"{name}.parquet").exists() else pd.DataFrame()
+
     return DashboardData(
         game_halves=pd.read_parquet(p / "game_halves.parquet"),
         game_leads=pd.read_parquet(p / "game_leads.parquet"),
@@ -94,8 +102,11 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         attribution=attribution,
         player_box=pd.read_parquet(p / "player_box.parquet"),
         lineups=pd.read_parquet(p / "lineup_halves.parquet"),
-        history=(pd.read_parquet(p / "player_history_halves.parquet")
-                 if (p / "player_history_halves.parquet").exists() else pd.DataFrame()),
+        history=optional("player_history_halves"),
+        onoff=optional("onoff_halves"),
+        matchups=optional("matchups"),
+        hustle=optional("hustle"),
+        bio=optional("player_bio"),
     )
 
 
