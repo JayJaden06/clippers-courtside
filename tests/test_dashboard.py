@@ -83,6 +83,7 @@ def test_answer_page_runs_and_what_if_toggles_work():
         at.toggle(key=key).set_value(True).run()
         assert not at.exception, (key, at.exception[0].value)
     assert any(m.label == "Second halves, per game" for m in at.metric)
+    assert "Is it The Wall?" in [s.value for s in at.subheader]
 
 
 def test_what_now_page_runs():

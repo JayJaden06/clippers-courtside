@@ -259,3 +259,14 @@ def full_stat_sheet(ranks: pd.DataFrame, season: str) -> pd.DataFrame:
         "Rank of the change": ordinal(int(r.loc[m, "change"])), "Better if": better_direction(m).replace(
             " is better", "").replace("descriptive", "n/a"),
     } for m in order])
+
+
+def opp_ft_by_half(game_halves: pd.DataFrame) -> pd.DataFrame:
+    """Opponents' free throws by season, home/road and half, with the standard error of their FT%."""
+    g = game_halves[game_halves["split"].astype(str).isin(["H1", "H2"])]
+    g = g.assign(split=g["split"].astype(str), where=g["is_home"].map({True: "home", False: "road"}))
+    t = g.groupby(["season", "where", "split"]).agg(ftm=("opp_ftm", "sum"), fta=("opp_fta", "sum"),
+                                                     games=("game_id", "nunique")).reset_index()
+    t["ft_pct"] = t["ftm"] / t["fta"].where(t["fta"] > 0)
+    t["se"] = (t["ft_pct"] * (1 - t["ft_pct"]) / t["fta"].where(t["fta"] > 0)) ** 0.5
+    return t
