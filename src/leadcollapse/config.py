@@ -38,6 +38,11 @@ class Settings(BaseSettings):
 
     # The player the turnover hypothesis is about; looked up by name, never by id.
     focus_player: str = "Darius Garland"
+    # Players the "What now?" page looks at: returning from injury or new to the rotation. Their
+    # half-by-half history is pulled for the comparison season and the one before, from any team.
+    watch_players: list[str] = Field(default_factory=lambda: [
+        "Brandon Ingram", "Max Strus", "Bradley Beal", "Yanic Konan Niederhäuser", "Baba Miller",
+    ])
 
     # HTTP client
     request_timeout: int = 60
@@ -77,3 +82,9 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def previous_season(season: str) -> str:
+    """'2025-26' -> '2024-25'."""
+    start = int(season[:4]) - 1
+    return f"{start}-{str(start + 1)[-2:]}"

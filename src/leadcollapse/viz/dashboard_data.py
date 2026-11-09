@@ -63,6 +63,9 @@ class DashboardData:
     games: pd.DataFrame
     comparison: pd.DataFrame
     attribution: dict[str, pd.DataFrame]
+    player_box: pd.DataFrame
+    lineups: pd.DataFrame
+    history: pd.DataFrame
 
     @property
     def seasons(self) -> list[str]:
@@ -89,6 +92,10 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         games=pd.read_parquet(p / "games.parquet"),
         comparison=pd.read_csv(a / "season_comparison.csv") if (a / "season_comparison.csv").exists() else pd.DataFrame(),
         attribution=attribution,
+        player_box=pd.read_parquet(p / "player_box.parquet"),
+        lineups=pd.read_parquet(p / "lineup_halves.parquet"),
+        history=(pd.read_parquet(p / "player_history_halves.parquet")
+                 if (p / "player_history_halves.parquet").exists() else pd.DataFrame()),
     )
 
 
