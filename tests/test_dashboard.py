@@ -91,7 +91,7 @@ def test_what_now_page_runs():
     assert [h.value for h in at.header] == [
         "Does the starting five need to change?", "Who plays after halftime, and how it goes",
         "Should Garland handle the ball less?", "Defense, rebounding and size", "Chemistry: which duos work?",
-        "Will the players coming back help?", "Who stopped shooting after halftime?"]
+        "Will the returning players help?", "Who stopped shooting after halftime?"]
     page_html = " ".join(m.value for m in at.markdown)
     assert page_html.count('class="vcard"') >= 5  # the answer cards
     assert "Is he being double-teamed into them?" in page_html

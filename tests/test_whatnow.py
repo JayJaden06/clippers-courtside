@@ -175,3 +175,31 @@ def test_tracking_rules_on_the_committed_data():
     c = W.chemistry(pb, lu, season, prior, "LAC")
     assert 0 < c.continuity < 1 and not set(c.new) & set(c.returning)
     assert (c.pairs["min"] >= 25).all() and (c.pairs["a_id"] < c.pairs["b_id"]).all()
+
+
+def test_garland_text_follows_the_numbers():
+    """The size card and sentence change when he adjusts, and when the gap was there last season too."""
+    from dataclasses import replace
+
+    bio = pd.DataFrame([
+        {"season": "2026-27", "player_id": 100, "height_in": 80, "weight_lb": 230, "rookie": False},
+        {"season": "2026-27", "player_id": 101, "height_in": 74, "weight_lb": 190, "rookie": False},
+        {"season": "2026-27", "player_id": 10, "height_in": 73, "weight_lb": 175, "rookie": True},
+    ])
+    m = pd.DataFrame([_matchup("g1", 10, 100, 100, tov=10), _matchup("g1", 10, 101, 100, tov=2),
+                      _matchup("g0", 10, 100, 100, tov=3, season="2025-26"),
+                      _matchup("g0", 10, 101, 100, tov=3, season="2025-26")])
+    p = W.pressure(m, pd.DataFrame([_tov("g1", 10) for _ in range(12)]), bio, "2026-27", "2025-26", "LAC", 1, 10)
+    sd = W.ShootingDrop(pd.DataFrame(), 0, 0, 0.55, 0.50, 0.53, 0.33)
+
+    def size_card(pr):
+        return next((c for c in W.verdicts(None, None, [], sd, "Darius Garland", pr=pr) if "bigger" in c.title), None)
+
+    assert p.size_ratio == pytest.approx(5) and not p.size_gap_last_season
+    assert "made no difference" in size_card(p).small
+    worse_before = replace(p, prior_tov100_long=9.0)
+    assert worse_before.size_gap_last_season and "last season too" in size_card(worse_before).small
+    adjusted = replace(p, tov100_long=2.5, length_problem=False)
+    assert size_card(adjusted) is None
+    assert not any("bigger defender" in line for line in W.summary_lines(None, None, [], sd, "Darius Garland",
+                                                                          pr=adjusted))
