@@ -9,6 +9,8 @@ update with the data, and every picture has an ``aria-label`` that says what it 
 
 from __future__ import annotations
 
+import hashlib
+
 from dataclasses import dataclass
 from html import escape
 
@@ -121,26 +123,42 @@ def wall_court(ft_before: float, ft_after: float, c: Ink = DARK) -> str:
 
 # ------------------------------------------------------------------ players to scale
 
-def _person(cx: float, ground: float, height_in: float, weight_lb: float, color: str, px_per_in: float = 3.2) -> str:
-    """A simple standing figure: height to scale, shoulder width scaled by weight."""
+def _head(cx: float, cy: float, r: float, color: str, photo: str | None) -> str:
+    """A round head; with ``photo`` (an NBA headshot URL) the player's face, ringed in the figure's color."""
+    if not photo:
+        return f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{color}"/>'
+    uid = "h" + hashlib.md5(f"{photo}{cx}{cy}".encode()).hexdigest()[:8]
+    w = 2 * r * 1.6
+    return (f'<clipPath id="{uid}"><circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}"/></clipPath>'
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="#2c2c29"/>'
+            f'<image href="{photo}" x="{cx - w / 2:.1f}" y="{cy - r * 1.05:.1f}" width="{w:.1f}" '
+            f'height="{w / 1.368:.1f}" clip-path="url(#{uid})"/>'
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="none" stroke="{color}" stroke-width="3"/>')
+
+
+def _person(cx: float, ground: float, height_in: float, weight_lb: float, color: str, px_per_in: float = 3.2,
+            photo: str | None = None) -> str:
+    """A simple standing figure: height to scale, shoulder width scaled by weight; ``photo`` puts a face on it."""
     h = height_in * px_per_in
     top = ground - h
     head_r = h * 0.07
     shoulders = h * 0.25 * (weight_lb / 200) ** 0.9
     torso_top, torso_bot = top + head_r * 2 + 4, top + h * 0.56
     leg_w = shoulders * 0.36
-    return (f'<circle cx="{cx:.1f}" cy="{top + head_r:.1f}" r="{head_r:.1f}" fill="{color}"/>'
-            f'<rect x="{cx - shoulders / 2:.1f}" y="{torso_top:.1f}" width="{shoulders:.1f}" '
+    body = (f'<rect x="{cx - shoulders / 2:.1f}" y="{torso_top:.1f}" width="{shoulders:.1f}" '
             f'height="{torso_bot - torso_top:.1f}" rx="{shoulders * 0.28:.1f}" fill="{color}"/>'
             f'<rect x="{cx - shoulders * 0.42:.1f}" y="{torso_bot - 2:.1f}" width="{leg_w:.1f}" '
             f'height="{ground - torso_bot + 2:.1f}" rx="{leg_w / 2:.1f}" fill="{color}"/>'
             f'<rect x="{cx + shoulders * 0.42 - leg_w:.1f}" y="{torso_bot - 2:.1f}" width="{leg_w:.1f}" '
             f'height="{ground - torso_bot + 2:.1f}" rx="{leg_w / 2:.1f}" fill="{color}"/>')
+    # a face is drawn bigger than the plain head, and last, so it sits on top of the shoulders
+    r = head_r * (1.45 if photo else 1)
+    return body + _head(cx, top + head_r - (r - head_r), r, color, photo)
 
 
 def height_matchup(name: str, height_in: float, weight_lb: float, every_tall: float, every_short: float,
                    prior_every_tall: float, prior_every_short: float, tall_in: float = 78,
-                   c: Ink = DARK) -> str:
+                   c: Ink = DARK, photo: str | None = None) -> str:
     """The player next to a bigger and a shorter defender, with how often he turns it over against each."""
     ground = 300
     body = []
@@ -148,7 +166,7 @@ def height_matchup(name: str, height_in: float, weight_lb: float, every_tall: fl
                c.bad),
               (610, "Guarded by someone shorter", tall_in - 4, every_short, prior_every_short, c.good))
     for cx, title, d_height, every, prior, color in panels:
-        body += [_person(cx - 50, ground, height_in, weight_lb, c.focus),
+        body += [_person(cx - 50, ground, height_in, weight_lb, c.focus, photo=photo),
                  _person(cx + 50, ground, d_height, 215, c.gray),
                  f'<line x1="{cx - 130}" y1="{ground}" x2="{cx + 130}" y2="{ground}" stroke="{c.courtline}" '
                  'stroke-width="3"/>',
@@ -164,11 +182,11 @@ def height_matchup(name: str, height_in: float, weight_lb: float, every_tall: fl
 
 
 def size_matchup(name: str, height_in: float, weight_lb: float, opp_height_in: float, opp_weight_lb: float,
-                 fg_allowed: float, team_fg: float, c: Ink = DARK) -> str:
+                 fg_allowed: float, team_fg: float, c: Ink = DARK, photo: str | None = None) -> str:
     """The player next to the average player he guards, drawn wider by weight."""
     ground = 290
     gap = opp_weight_lb - weight_lb
-    body = [_person(250, ground, height_in, weight_lb, c.focus),
+    body = [_person(250, ground, height_in, weight_lb, c.focus, photo=photo),
             _person(450, ground, opp_height_in, opp_weight_lb, c.gray),
             f'<line x1="150" y1="{ground}" x2="550" y2="{ground}" stroke="{c.courtline}" stroke-width="3"/>',
             _text(250, ground + 30, name, 20, c.ink, 700),
