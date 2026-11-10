@@ -192,3 +192,10 @@ def test_game_cards_show_the_matchup_in_both_teams_colors():
     at = _app("replay")
     html = " ".join(m.value for m in at.markdown)
     assert html.count('class="gm"') >= 5 and "--opp:" in html
+
+
+def test_drawings_have_their_numbers_beside_them():
+    html = " ".join(m.value for m in _app("answer").markdown)
+    assert "<h4>Half by half</h4>" in html and html.count('class="cmp-row"') >= 4
+    players = " ".join(m.value for m in _app("players").markdown)
+    assert players.count('class="slop-row"') >= 5 and ("Sloppier" in players or "Safer" in players)

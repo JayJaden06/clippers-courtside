@@ -191,6 +191,39 @@ h1, .hero {color: #13213f}
 .gfx {background: #ffffff; border-radius: 16px; padding: 1rem 1.2rem; box-shadow: 0 4px 16px rgba(19,33,63,.07);
       margin-bottom: .6rem}
 .gfx.bare {background: none; box-shadow: none; padding: 0}
+/* ---- side panels: the numbers that go with a drawing, beside it */
+.cmp {background: #ffffff; border-radius: 16px; padding: 1rem 1.2rem .6rem 1.2rem;
+      box-shadow: 0 4px 16px rgba(19,33,63,.07)}
+.cmp h4 {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.35rem; margin: 0 0 .25rem 0;
+         color: #13213f; padding: 0}
+.cmp-row {padding: .6rem 0 .45rem 0; border-top: 1px solid #f0ede6}
+.cmp-top {display: flex; justify-content: space-between; align-items: baseline; gap: .6rem}
+.cmp-label {font-weight: 650; font-size: .92rem}
+.cmp-vals {font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; font-weight: 800; white-space: nowrap}
+.cmp-vals .b {color: #7f7d77; font-weight: 600}
+.cmp-sub {font-size: .78rem; opacity: .7; margin-top: .1rem}
+.trk {position: relative; height: 14px; margin: .35rem 0 .1rem 0}
+.trk::before {content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: #ebe8e1;
+              border-radius: 2px}
+.trk .ln {position: absolute; top: 6px; height: 2px; opacity: .6}
+.trk .dot {position: absolute; top: 1px; width: 12px; height: 12px; border-radius: 50%; transform: translateX(-50%)}
+.who-row {display: flex; align-items: center; gap: .65rem; padding: .5rem 0; border-top: 1px solid #f0ede6}
+.who-row img {width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top;
+              background: #e3e0d8}
+.who-row .nm {flex: 1; font-size: .92rem; line-height: 1.2}
+.who-row .nm span {font-size: .78rem; opacity: .65}
+.who-row .n {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.5rem; color: #d95926}
+/* ---- who gets sloppier: one row per player, before (gray) to after (colored), two columns */
+.slop {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1rem; margin: .4rem 0 1rem 0}
+.slop-row {display: grid; grid-template-columns: 52px 1fr auto; gap: .2rem .8rem; align-items: center;
+           background: #ffffff; border-radius: 14px; padding: .7rem .9rem; box-shadow: 0 4px 16px rgba(19,33,63,.07)}
+.slop-row img {grid-row: span 2; width: 52px; height: 52px; border-radius: 50%; object-fit: cover;
+               object-position: top; background: #e3e0d8}
+.slop-row .nm {font-weight: 700}
+.slop-row .vals {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 800; text-align: right}
+.slop-row .vals .b {color: #7f7d77; font-weight: 600}
+.slop-row .trk {grid-column: 2 / 4; margin: 0}
+.chip.sm {font-size: .7rem; padding: .08rem .45rem; margin-left: .4rem; vertical-align: .1rem}
 /* ---- small motion: cards rise in, mini-charts draw left to right, cards lift on hover */
 @keyframes rise {from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none}}
 @keyframes draw {from {clip-path: inset(0 100% 0 0)} to {clip-path: inset(0 0 0 0)}}
@@ -307,6 +340,31 @@ def next_step(page, blurb: str) -> None:
     right.page_link(page, label=f"Next: {page.title} →", width="stretch")
 
 
+def track(before: float, after: float, lo: float, hi: float, after_color: str) -> str:
+    """A thin before -> after track: gray dot at ``before``, colored dot at ``after``, a line between."""
+    pos = lambda v: max(0.0, min(100.0, 100 * (v - lo) / (hi - lo) if hi > lo else 0.0))  # noqa: E731
+    a, b = pos(before), pos(after)
+    return (f'<div class="trk"><span class="ln" style="left:{min(a, b):.1f}%;width:{abs(b - a):.1f}%;'
+            f'background:{after_color}"></span><span class="dot" style="left:{a:.1f}%;background:{MUTED_BAR}">'
+            f'</span><span class="dot" style="left:{b:.1f}%;background:{after_color}"></span></div>')
+
+
+def compare_panel(title: str, rows: list[tuple]) -> str:
+    """A white side panel of before -> after rows.
+
+    ``rows``: (label, before text, after text, before value, after value, higher is better, lo, hi, small print).
+    """
+    out = [f'<div class="cmp"><h4>{title}</h4>']
+    for label, bt, at, bv, av, up, lo, hi, sub in rows:
+        better = (av > bv) if up else (av < bv)
+        color = GOOD if better and abs(av - bv) > 1e-9 else BAD if abs(av - bv) > 1e-9 else MUTED_BAR
+        out.append(f'<div class="cmp-row"><div class="cmp-top"><span class="cmp-label">{label}</span>'
+                   f'<span class="cmp-vals"><span class="b">{_minus(bt)}</span> → '
+                   f'<span style="color:{color}">{_minus(at)}</span></span></div>'
+                   + track(bv, av, lo, hi, color) + (f'<div class="cmp-sub">{sub}</div>' if sub else "") + "</div>")
+    return "".join(out) + "</div>"
+
+
 def signed(v: float, digits: int = 1) -> str:
     return f"{v:+.{digits}f}".replace("-", "−")
 
@@ -416,7 +474,23 @@ def page_answer() -> None:
             glossary_button()
     if hl:
         with st.container(key="band_navy_answer"):
-            picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]), max_width="760px")
+            h_ = D.season_halves(data.game_halves).loc[season_now]
+            n_g = max(int(h_.loc["H1", "games"]), 1)
+            court_col, num_col = st.columns([1.55, 1], gap="medium", vertical_alignment="center")
+            with court_col:
+                picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]))
+            num_col.markdown(compare_panel("Half by half", [
+                ("Score margin, a game", signed(hl["h1_per_game"]), signed(hl["h2_per_game"]),
+                 hl["h1_per_game"], hl["h2_per_game"], True, -10, 10, "first half → second half"),
+                ("Shooting accuracy (eFG%)", f'{h_.loc["H1", "efg_pct"]:.0%}', f'{h_.loc["H2", "efg_pct"]:.0%}',
+                 h_.loc["H1", "efg_pct"], h_.loc["H2", "efg_pct"], True, 0.40, 0.65, ""),
+                ("Three-point shooting", f'{h_.loc["H1", "fg3_pct"]:.0%}', f'{h_.loc["H2", "fg3_pct"]:.0%}',
+                 h_.loc["H1", "fg3_pct"], h_.loc["H2", "fg3_pct"], True, 0.25, 0.50, ""),
+                ("Turnovers, a game", f'{h_.loc["H1", "tov_all"] / n_g:.1f}', f'{h_.loc["H2", "tov_all"] / n_g:.1f}',
+                 h_.loc["H1", "tov_all"] / n_g, h_.loc["H2", "tov_all"] / n_g, False, 4, 14,
+                 f'opponents score {h_.loc["H1", "opp_pts_off_tov"] / n_g:.1f} → '
+                 f'{h_.loc["H2", "opp_pts_off_tov"] / n_g:.1f} a game off them'),
+            ]), unsafe_allow_html=True)
             # The court above already shows the half-by-half margin, and section 3 lists what's new.
             answer_cards([c_ for c_ in S.answer_page_cards(hl, reasons, res, season_prev)
                           if not c_.title.startswith(("Fine before", "New problems"))])
@@ -503,7 +577,14 @@ def page_answer() -> None:
         pts = lambda h: list(zip(cur.loc[cur["half"] == h, "loc_x"], cur.loc[cur["half"] == h, "loc_y"],  # noqa: E731
                                  cur.loc[cur["half"] == h, "made"]))
         zones = [(zn, r.mean_h1, r.mean_h2, int(r.size_h1), int(r.size_h2)) for zn, r in z.iterrows()]
-        picture(G.shot_map(pts("H1"), pts("H2"), zones), max_width="1060px")
+        n_g = max(cur["game_id"].nunique(), 1)
+        map_col, zone_col = st.columns([2.35, 1], gap="medium", vertical_alignment="center")
+        with map_col:
+            picture(G.shot_map(pts("H1"), pts("H2"), zones))
+        zone_col.markdown(compare_panel("Zone by zone", [
+            (zn, f"{r.mean_h1:.0%}", f"{r.mean_h2:.0%}", r.mean_h1, r.mean_h2, True, 0.2, 0.75,
+             f"{r.size_h1 / n_g:.1f} → {r.size_h2 / n_g:.1f} shots a game") for zn, r in z.iterrows()]),
+            unsafe_allow_html=True)
         with st.expander("Details"):
             st.markdown(
                 "- Every Clippers field-goal attempt this season from the NBA's shot charts; overtime left out. "
@@ -854,10 +935,19 @@ def page_whatnow() -> None:
             me = data.bio[data.bio["player_name"] == focus].sort_values("season").tail(1)
             ht = float(me["height_in"].iloc[0]) if len(me) else 73.0
             wt = float(me["weight_lb"].iloc[0]) if len(me) else 190.0
-            picture(G.height_matchup(focus_last, ht, wt, 100 / pr.tov100_long, 100 / pr.tov100_short,
-                                     100 / pr.prior_tov100_long, 100 / pr.prior_tov100_short, W.LONG_IN,
-                                     photo=face(focus)),
-                    max_width="820px")
+            draw_col, who_col = st.columns([1.6, 1], gap="medium", vertical_alignment="center")
+            with draw_col:
+                picture(G.height_matchup(focus_last, ht, wt, 100 / pr.tov100_long, 100 / pr.tov100_short,
+                                         100 / pr.prior_tov100_long, 100 / pr.prior_tov100_short, W.LONG_IN,
+                                         photo=face(focus)))
+            rows_ = "".join(
+                f'<div class="who-row"><img src="{face(x.def_player) or ""}" alt=""><div class="nm"><b>'
+                f'{x.def_player}</b><br><span>{x.def_team} · '
+                f'{W._ft_in(x.height_in) if x.height_in == x.height_in else "?"}</span></div>'
+                f'<div class="n">{x.tov:.0f}</div></div>' for x in pr.forcers.head(6).itertuples())
+            who_col.markdown(f'<div class="cmp"><h4>Who forces them</h4><div class="cmp-sub" style="margin-bottom:'
+                             f'.3rem">The defenders credited with the most of {focus_last}\'s turnovers this '
+                             f"season (player tracking).</div>{rows_}</div>", unsafe_allow_html=True)
         with st.expander("Details"):
             st.markdown(
                 f"- He handles {bl.play_share_h2:.0%} of the team's second-half plays and makes "
@@ -1754,13 +1844,25 @@ def page_players() -> None:
                    "games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
-                "Each row is one player after halftime: count the balls to his orange one, and that's how many plays "
-                "he gets per turnover. Fewer balls = sloppier.")
-        wl = ph.pivot(index="player_name", columns="split", values="tov_pct")
-        every = lambda v: 1 / v if v and v > 0 else 99.0  # noqa: E731
-        ladder = sorted(((n_.split(" ", 1)[-1], every(wl.loc[n_, "H1"]), every(wl.loc[n_, "H2"])) for n_ in wl.index),
-                        key=lambda r_: r_[2])
-        picture(G.ball_ladder(ladder), max_width="980px")
+                "How often one of his plays ends in a turnover: before halftime (gray dot) and after it. "
+                "Sloppiest after halftime first.")
+        wl = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2", ascending=False)
+        every = lambda v: f"1 in {round(1 / v)}" if v and v > 0 else "none"  # noqa: E731
+        hi_ = float(wl.to_numpy().max()) * 1.08
+        rows_ = []
+        for n_, r_ in wl.iterrows():
+            d_ = r_["H2"] - r_["H1"]
+            color, verdict = ((BAD, "Sloppier") if d_ >= 0.02 else (GOOD, "Safer") if d_ <= -0.02
+                              else (MUTED_BAR, "About the same"))
+            rows_.append(
+                f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{n_.split(" ", 1)[-1]}'
+                f'<span class="chip sm" style="background:{color}">{verdict}</span></div>'
+                f'<div class="vals"><span class="b">{every(r_["H1"])}</span> → '
+                f'<span style="color:{color}">{every(r_["H2"])}</span></div>'
+                + track(r_["H1"], r_["H2"], 0, hi_, color) + "</div>")
+        st.markdown(f'<div class="slop">{"".join(rows_)}</div>', unsafe_allow_html=True)
+        st.caption("Plays = shots, free-throw trips and turnovers. Sloppier or safer = a change of 2+ percentage "
+                   "points in how often his plays end in a turnover. Players with 40+ minutes in each half.")
         w = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2")
         tov = ph.pivot(index="player_name", columns="split", values="tov").reindex(w.index)
         fig = go.Figure()
