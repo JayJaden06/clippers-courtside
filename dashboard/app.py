@@ -16,6 +16,7 @@ import streamlit as st
 from leadcollapse.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
 from leadcollapse.config import get_settings
 from leadcollapse.viz import dashboard_data as D
+from leadcollapse.viz import graphics as G
 from leadcollapse.viz import story as S
 from leadcollapse.viz import whatnow as W
 
@@ -53,6 +54,8 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 .v-title {font-weight: 700; font-size: 1rem; line-height: 1.25}
 .v-big {font-size: 1.9rem; font-weight: 800; line-height: 1.15; margin: .35rem 0 .2rem 0}
 .v-small {font-size: .86rem; opacity: .72; line-height: 1.3}
+.gfx svg {width: 100%; height: auto; display: block}
+.gfx {margin: .3rem 0 .6rem 0}
 .takeaway {font-size: 1.18rem; margin: .2rem 0 .8rem 0}
 .page-sub {opacity: .75; font-size: 1.05rem; margin-top: -.6rem; margin-bottom: .8rem}
 </style>
@@ -69,13 +72,20 @@ def load() -> D.DashboardData:
 def show(fig: go.Figure, height: int, key: str | None = None, select: bool = False, **layout):
     """Render a plotly figure; with ``select=True`` clicks on points rerun the app and are returned."""
     settings_ = dict(height=height, margin=dict(l=8, r=8, t=36, b=8), hovermode="closest",
-                     legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, title=None),
-                     hoverlabel=dict(align="left"), clickmode="event+select" if select else None)
+                     legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, title=None, font=dict(size=13)),
+                     hoverlabel=dict(align="left", font=dict(size=13)), font=dict(size=13),
+                     barcornerradius=4, clickmode="event+select" if select else None)
     fig.update_layout(**(settings_ | layout))
     fig.update_xaxes(showgrid=False, zeroline=False)
     fig.update_yaxes(zeroline=False)
     return st.plotly_chart(fig, width="stretch", config=PLOTLY_CONFIG, key=key,
                            on_select="rerun" if select else "ignore", selection_mode="points")
+
+
+def picture(svg: str, max_width: str | None = None) -> None:
+    """Render one of the SVG graphics from leadcollapse.viz.graphics."""
+    style = f' style="max-width:{max_width};margin-left:auto;margin-right:auto"' if max_width else ""
+    st.markdown(svg.replace('<div class="gfx">', f'<div class="gfx"{style}>', 1), unsafe_allow_html=True)
 
 
 def clicked(event, field: str, memo: str):
@@ -148,6 +158,7 @@ def page_answer() -> None:
             "Is it Darius Garland's turnovers? "
             + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
             + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
+        picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]), max_width="760px")
         answer_cards(S.answer_page_cards(hl, reasons, res, season_prev))
         glossary_button()
 
@@ -273,12 +284,15 @@ def page_answer() -> None:
     wall = S.wall_check(ft)
     if wall is not None:
         st.subheader("Is it The Wall?", anchor="wall")
-        left, right = st.columns([1, 1.6], gap="large")
+        dome = ft[(ft["where"] == "home") & (ft["season"] >= S.INTUIT_DOME_FIRST_SEASON)]
+        by = dome.groupby("split")[["ftm", "fta"]].sum()
+        st.markdown(f'<div class="takeaway"><b>{wall.big}.</b> {wall.small}</div>', unsafe_allow_html=True)
+        picture(G.wall_court(by.loc["H1", "ftm"] / by.loc["H1", "fta"], by.loc["H2", "ftm"] / by.loc["H2", "fta"]),
+                max_width="900px")
+        left, right = st.columns([1, 2.2], gap="large", vertical_alignment="center")
         with left:
-            answer_cards([W.Verdict("The answer", wall.big, wall.small, wall.tone, wall.anchor)], link=False,
-                         big_size="1.6rem")
-            st.markdown("The Wall is the 51-row student section behind one basket at Intuit Dome. If it rattled "
-                        "opponents at the line after halftime, their second-half free throws would drop at home.")
+            st.markdown("The Wall is 51 rows of Clippers fans behind one basket. If it rattled opponents at the "
+                        "line after halftime, their second-half free throws would drop at home.")
             st.link_button("See the full Intuit Dome study", settings.wall_study_url,
                            icon=":material/open_in_new:", width="stretch")
         with right:
@@ -588,24 +602,14 @@ def page_whatnow() -> None:
                            f"{pr.mates_help_share:.0%}). Double teams aren't logged publicly; this is the closest "
                            "proxy.")
         if pr is not None:
-            st.markdown(f"**Bigger defenders are the new problem.** How often {focus_last} loses the ball, by the height of "
-                        f"the man guarding him:")
-            groups = ["This season", "Last season (with LAC)"]
-            fig = go.Figure()
-            for label, vals, color in (
-                    (f"Guarded by someone {W._ft_in(W.LONG_IN)} or taller", [pr.tov100_long, pr.prior_tov100_long],
-                     FOCUS),
-                    ("Guarded by someone shorter", [pr.tov100_short, pr.prior_tov100_short], H1C)):
-                fig.add_trace(go.Bar(y=groups, x=vals, name=label, orientation="h", marker_color=color,
-                                     text=[f"1 turnover every {100 / v:.0f} times" if v else "" for v in vals],
-                                     textposition="outside",
-                                     hovertemplate="%{y}<br>" + label + ": %{x:.1f} turnovers per 100 times guarded"
-                                                   "<extra></extra>"))
-            fig.update_layout(barmode="group", bargap=0.35, bargroupgap=0.1)
-            fig.update_xaxes(title="Turnovers per 100 times he's guarded",
-                             range=[0, max(pr.tov100_long, pr.tov100_short, pr.prior_tov100_long) * 1.7])
-            fig.update_yaxes(autorange="reversed")
-            show(fig, 240)
+            st.markdown(f"**Bigger defenders are the new problem.** How often {focus_last} loses the ball, by the "
+                        "height of the player guarding him:")
+            me = data.bio[data.bio["player_name"] == focus].sort_values("season").tail(1)
+            ht = float(me["height_in"].iloc[0]) if len(me) else 73.0
+            wt = float(me["weight_lb"].iloc[0]) if len(me) else 190.0
+            picture(G.height_matchup(focus_last, ht, wt, 100 / pr.tov100_long, 100 / pr.tov100_short,
+                                     100 / pr.prior_tov100_long, 100 / pr.prior_tov100_short, W.LONG_IN),
+                    max_width="820px")
         with st.expander("Details"):
             st.markdown(
                 f"- He handles {bl.play_share_h2:.0%} of the team's second-half plays and makes "
@@ -636,16 +640,36 @@ def page_whatnow() -> None:
                 " And some of the rotation is giving up a lot of size." if dfn is not None and
                 dfn.table["gives_up_size"].any() else ""),
             ("Rebounding got worse", "orange") if gl.worse else ("Rebounding holds up", "blue"))
-    left, right = st.columns([1, 1.5], gap="large")
+    left, right = st.columns([1, 1.2], gap="large")
     with left:
-        st.markdown("**Missed shots the other team gets back**")
-        xs = ["1st half", "2nd half", "2nd half,<br>last season"]
-        ys = [gl.opp_oreb_h1, gl.opp_oreb_h2, gl.prior_opp_oreb_h2]
-        fig = go.Figure(go.Bar(x=xs, y=ys, marker_color=[MUTED_BAR, BAD if gl.worse else MUTED_BAR, LIGHT],
-                               text=[f"{v:.0%}" for v in ys], textposition="outside",
-                               hovertemplate="%{x}: %{y:.1%}<extra></extra>"))
-        fig.update_yaxes(tickformat=".0%", range=[0, max(ys) * 1.3], title="Lower is better")
-        show(fig, 300, showlegend=False)
+        st.markdown("**Of every 100 shots the other team misses, how many they grab back**")
+        picture(G.missed_shots(gl.opp_oreb_h1, gl.opp_oreb_h2, gl.prior_opp_oreb_h2))
+    with right:
+        small = dfn.table[dfn.table["gives_up_size"]] if dfn is not None and len(dfn.table) else None
+        if small is not None and len(small):
+            q4 = rot.set_index("player_id")["q4_mpg"] if rot is not None else pd.Series(dtype=float)
+            r_ = small.assign(q4=small["player_id"].map(q4).fillna(0)).sort_values("q4", ascending=False).iloc[0]
+            who = r_["player_name"].split(" ", 1)[-1]
+            st.markdown(f"**{who} gives up size{' as a rookie' if r_['rookie'] else ''}**")
+            picture(G.size_matchup(who, r_["own_ht"], r_["own_wt"], r_["opp_ht"], r_["opp_wt"], r_["fg_pct"],
+                                   dfn.team_fg))
+    left, right = st.columns([1, 1], gap="large")
+    with left:
+        if dfn is not None and len(dfn.table):
+            t = dfn.table.sort_values("fg_pct", ascending=True)
+            st.markdown("**How well opponents shoot when he's the defender**")
+            fig = go.Figure(go.Bar(
+                y=t["player_name"].str.split(" ", n=1).str[-1] + np.where(t["rookie"], " (R)", ""), x=t["fg_pct"],
+                orientation="h", marker_color=[BAD if a_ else MUTED_BAR for a_ in t["attacked"]],
+                text=[f"{v:.0%}" for v in t["fg_pct"]], textposition="outside",
+                customdata=np.column_stack([t["player_name"], t["fga"]]),
+                hovertemplate="%{customdata[0]}: opponents shoot %{x:.1%} on %{customdata[1]:.0f} shots"
+                              "<extra></extra>"))
+            fig.add_vline(x=dfn.team_fg, line=dict(color=INK_MARK, width=1, dash="dash"),
+                          annotation_text=f"team {dfn.team_fg:.0%}", annotation_position="top")
+            fig.update_xaxes(tickformat=".0%", range=[0, float(t["fg_pct"].max()) * 1.25])
+            show(fig, 90 + 30 * len(t), showlegend=False)
+            st.caption(f"Red = opponents shoot {W.ATTACKED_FG:.0%}+ better on him than on the team. (R) = rookie.")
     with right:
         if dfn is not None and len(dfn.table):
             t = dfn.table.sort_values("wt_gap")
@@ -666,19 +690,6 @@ def page_whatnow() -> None:
             show(fig, 90 + 30 * len(t))
             st.caption("Orange line = guards players 25+ lb heavier than himself.")
     if dfn is not None and len(dfn.table):
-        t = dfn.table.sort_values("fg_pct", ascending=False)
-        st.markdown("**How well opponents shoot when he's the defender**")
-        fig = go.Figure(go.Bar(
-            x=t["player_name"].str.split(" ", n=1).str[-1] + np.where(t["rookie"], " (R)", ""), y=t["fg_pct"],
-            marker_color=[BAD if a else MUTED_BAR for a in t["attacked"]],
-            text=[f"{v:.0%}" for v in t["fg_pct"]], textposition="outside",
-            customdata=np.column_stack([t["player_name"], t["fga"]]),
-            hovertemplate="%{customdata[0]}: opponents shoot %{y:.1%} on %{customdata[1]:.0f} shots<extra></extra>"))
-        fig.add_hline(y=dfn.team_fg, line=dict(color=INK_MARK, width=1, dash="dash"),
-                      annotation_text=f"team average {dfn.team_fg:.0%}", annotation_position="top right")
-        fig.update_yaxes(tickformat=".0%", range=[0, float(t["fg_pct"].max()) * 1.25])
-        show(fig, 300, showlegend=False)
-        st.caption(f"Red = opponents shoot {W.ATTACKED_FG:.0%}+ better on him than on the team. (R) = rookie.")
         with st.expander("Details and effort stats (contests, deflections, box-outs)"):
             for r_ in dfn.table[dfn.table["gives_up_size"]].itertuples():
                 st.markdown(f"- **{r_.player_name}** ({W._ft_in(r_.own_ht)}, {r_.own_wt:.0f} lb"
