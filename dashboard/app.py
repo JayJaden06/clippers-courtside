@@ -192,6 +192,21 @@ focus_last = focus.split(" ", 1)[-1]
 PLAYER_IDS = D.player_ids(data)
 TEAM_LAST = D.last_names(data.player_box, season_now, settings.team_abbreviation)
 
+# Headlines and big numbers in a condensed sports face; body text stays in the theme's sans serif.
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap');
+h1, h2, h3, .hero, .v-big, .rank, .gc-opp, .ledger-sum b, div[data-testid="stMetricValue"] {
+  font-family: 'Barlow Condensed', 'Source Sans Pro', sans-serif !important; letter-spacing: .005em}
+h1, .hero {font-weight: 800 !important}
+.hero {font-size: clamp(2.2rem, 4.6vw, 3.4rem)}
+.v-big {font-size: 2.2rem}
+[data-testid="stHeadingWithActionElements"] h1::after, .hero::after {
+  content: ""; display: block; width: 64px; height: 4px; margin-top: .45rem; border-radius: 2px;
+  background: linear-gradient(90deg, #c8102e 0 50%, #1d428a 50% 100%)}
+</style>
+""", unsafe_allow_html=True)
+
 
 def face(name: str | None) -> str | None:
     """Small headshot URL for a player's full name (None if it isn't a player we know)."""
@@ -307,7 +322,9 @@ def page_answer() -> None:
                                    (f"Last season ({season_prev})", [r.prev_per_game for r in ordered], MUTED_BAR)):
             fig.add_trace(go.Bar(
                 y=names, x=vals, orientation="h", name=label, marker_color=color,
-                text=[f"{signed(v)} a game" for v in vals], textposition="outside", cliponaxis=False,
+                # the top row names its series right on the bar (the legend stays too)
+                text=[f"{signed(v)} a game" + (f" · {label.split(' (')[0].lower()}" if i == 0 else "")
+                      for i, v in enumerate(vals)], textposition="outside", cliponaxis=False,
                 customdata=[r.detail for r in ordered],
                 hovertemplate="<b>%{y}</b><br>" + label + ": %{x:+.1f} points a game after halftime"
                               "<br>%{customdata}<extra></extra>"))
@@ -1437,14 +1454,22 @@ def page_players() -> None:
         section("Who's losing the ball after halftime?", "who",
                 "Gray = how much of the offense goes through him. Orange = how many of the turnovers he makes.")
         fig = go.Figure()
+        top = len(h2) - 1  # the last row is drawn at the top
         fig.add_trace(go.Bar(y=h2["player_name"], x=h2["play_share"], orientation="h", name="Share of team plays",
-                             marker_color=LIGHT, hovertemplate="%{y}: %{x:.0%} of plays<extra></extra>"))
+                             marker_color=LIGHT, hovertemplate="%{y}: %{x:.0%} of plays<extra></extra>",
+                             text=[f"{v:.0%}" + (" of the plays" if i == top else "")
+                                   for i, v in enumerate(h2["play_share"])],
+                             textposition="outside", cliponaxis=False))
         fig.add_trace(go.Bar(y=h2["player_name"], x=h2["tov_share"], orientation="h", name="Share of team turnovers",
                              marker_color=FOCUS,
+                             text=[f"{v:.0%}" + (" of the turnovers" if i == top else "")
+                                   for i, v in enumerate(h2["tov_share"])],
+                             textposition="outside", cliponaxis=False,
                              customdata=h2["tov"],
                              hovertemplate="%{y}: %{x:.0%} of turnovers (%{customdata:.0f})<extra></extra>"))
         fig.update_layout(barmode="group", bargap=0.25)
-        fig.update_xaxes(tickformat=".0%")
+        # room on the right for the top row's "of the turnovers" label
+        fig.update_xaxes(tickformat=".0%", range=[0, float(h2[["play_share", "tov_share"]].max().max()) * 1.32])
         fig.update_yaxes(tickvals=list(h2["player_name"]),
                          ticktext=[f"<b>{n}</b>" if n == focus else n for n in h2["player_name"]])
         names = sorted(ph["player_name"].unique())
@@ -1601,6 +1626,9 @@ def page_league() -> None:
         fig.add_trace(go.Scatter(x=[a, b], y=[name, name], mode="lines", hoverinfo="skip", showlegend=False,
                                  line=dict(color=BAD if b > a + 2 else GOOD if b < a - 2 else LIGHT, width=3)))
     for col, color, label in ((cr.columns[0], H1C, "1st half"), (cr.columns[1], H2C, "2nd half")):
+        # name the two dots on the top row, right above them (the legend stays too)
+        fig.add_annotation(x=cr.loc[stats[0], col], y=stats[0], text=label, showarrow=False, yshift=17,
+                           font=dict(size=12, color=INK_MARK))
         fig.add_trace(go.Scatter(
             x=cr.loc[stats, col], y=stats, mode="markers", name=label,
             marker=dict(color=color, size=13, line=dict(color=BG, width=1.5)),
