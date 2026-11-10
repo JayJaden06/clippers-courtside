@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from leadcollapse.analysis import gamereport as R
+from leadcollapse.analysis import gameplan as GP
 from leadcollapse.analysis import preview as P
 from leadcollapse.ingest import schedule as sched
 from leadcollapse.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
@@ -63,6 +64,9 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .v-big {font-size: 1.95rem; font-weight: 800; line-height: 1.1; margin: .15rem 0 .1rem 0; letter-spacing: -.01em}
 .v-mini svg {width: 100%; max-width: 260px; height: 40px; display: block; margin: .15rem 0 .25rem 0}
 .v-small {font-size: .84rem; opacity: .7; line-height: 1.32}
+.v-img {width: 74px; height: 54px; object-fit: cover; object-position: top; border-radius: 10px;
+         background: #2c2c29; margin-bottom: .35rem}
+.vcard:has(.v-img) .v-big {font-size: 1.6rem}
 .takeaway {font-size: 1.18rem; margin: .2rem 0 .8rem 0}
 .page-sub {opacity: .75; font-size: 1.05rem; margin-top: -.6rem; margin-bottom: .8rem}
 </style>
@@ -396,12 +400,13 @@ def _minus(text: str) -> str:
 
 def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None = None) -> None:
     """Short-headline cards with one big number each; with ``link`` a click jumps to the card's section."""
-    cards = [W.Verdict(c.title, _minus(c.big), _minus(c.small), c.tone, c.anchor, c.viz) for c in cards]
+    cards = [W.Verdict(c.title, _minus(c.big), _minus(c.small), c.tone, c.anchor, c.viz, c.image) for c in cards]
     big_style = f' style="font-size:{big_size}"' if big_size else ""
     html = "".join(
         (f'<a class="vcard" href="#{c.anchor}"' if link else '<div class="vcard"')
         + ">"
-        + (f'<div class="v-title">{c.title}</div>' if c.viz else
+        + (f'<img class="v-img" src="{c.image}" alt="" loading="lazy">' if c.image else "")
+        + (f'<div class="v-title">{c.title}</div>' if c.viz or c.image else
            f'<div class="v-title"><span class="v-dot" style="background:{TONE_COLOR.get(c.tone, GRAY)}"></span>'
            f'{c.title}</div>')
         + f'<div class="v-big"{big_style}>{c.big}</div>'
@@ -1256,85 +1261,132 @@ TAPE = [  # (label, column, higher is better)
 
 
 def page_next() -> None:
-    page_top("Next game", "The odds from season statistics alone, and what would move them. Updates every day.")
+    page_top("Upcoming games", "Every game left on the schedule with the odds from season stats. Click a game for "
+             "its game plan: what needs to happen to win, against that opponent.")
     if data.schedule.empty or data.league_periods.empty:
         st.info("No schedule yet. Run `leadcollapse pull` then `leadcollapse build`.")
-        return
-    game = sched.next_game(data.schedule, settings.team_id)
-    if game is None:
-        st.info("No games left on the schedule.")
         return
     teams = P.blended(P.team_table(data.league_periods, season_now), P.team_table(data.league_periods, season_prev))
     att = data.attribution.get(season_now)
     shooting = float(att.set_index("factor").loc["shooting", "per_game"]) if att is not None else None
-    pv = P.preview(game, teams, settings.team_id, shooting)
-    tip = pv.tipoff_utc.tz_convert("America/Los_Angeles")
-    where = "vs" if pv.home else "at"
+    tid = settings.team_id
+    upcoming = data.schedule[((data.schedule["home_id"] == tid) | (data.schedule["away_id"] == tid))
+                             & (data.schedule["status"] < 3)].sort_values("tipoff_utc").reset_index(drop=True)
+    if upcoming.empty:
+        st.info("No games left on the schedule.")
+        return
+    previews = [P.preview(g, teams, tid, shooting) for _, g in upcoming.iterrows()]
+    local = upcoming["tipoff_utc"].dt.tz_convert("America/Los_Angeles")
+    table = pd.DataFrame({
+        "": [D.logo_url(g["away_id"] if g["home_id"] == tid else g["home_id"]) for _, g in upcoming.iterrows()],
+        "Date": [f"{t:%a %b} {t.day}" for t in local],
+        "Time (PT)": [f"{t:%I:%M %p}".lstrip("0") for t in local],
+        "Where": ["Home" if pv.home else ("Neutral" if pv.neutral else "Away") for pv in previews],
+        "Opponent": [("vs " if pv.home else "@ ") + pv.opponent_name for pv in previews],
+        "Win chance": [round(100 * pv.chance) for pv in previews],
+        "Expected margin": [signed(pv.margin) for pv in previews],
+    })
+    st.markdown("**The schedule ahead** · click a game")
+    event = st.dataframe(
+        table, hide_index=True, width="stretch", height=min(38 + 35 * len(table), 400), key="upcoming",
+        on_select="rerun", selection_mode="single-row",
+        column_config={
+            "": st.column_config.ImageColumn("", width="small"),
+            "Win chance": st.column_config.ProgressColumn("Win chance", min_value=0, max_value=100, format="%d%%"),
+        })
+    rows = event.selection.rows if event and event.selection else []
+    i = rows[0] if rows else 0
+    game, pv = upcoming.iloc[i], previews[i]
+
+    # ---- the matchup
+    tip = local.iloc[i]
     st.markdown(f'<div class="kicker">{tip:%a %b} {tip.day} · {tip:%I:%M %p}'.replace(" 0", " ") + " PT · "
-                f'{pv.arena}</div><div class="hero">Clippers {where} {pv.opponent_name}</div>', unsafe_allow_html=True)
-    picture(G.odds_bar("LAC", pv.opponent, pv.chance, pv.margin), max_width="900px")
+                f'{pv.arena} · {"home" if pv.home else "away"}</div>'
+                f'<div class="hero">Clippers {"vs" if pv.home else "at"} {pv.opponent_name}</div>',
+                unsafe_allow_html=True)
+    opp_id = int(game["away_id"] if pv.home else game["home_id"])
+    picture(G.odds_bar("LAC", pv.opponent, pv.chance, pv.margin, team_logo=D.logo_url(tid),
+                       opp_logo=D.logo_url(opp_id)), max_width="900px")
 
     lac, opp = pv.lac, pv.opp
-    defenders = W.defenders(data.matchups, data.hustle, data.bio, season_now, "LAC") if len(data.matchups) else None
-    watch = P.who_to_watch(data.player_season, data.bio, season_now, pv.opponent,
-                           defenders.table if defenders is not None else None)
-    longs = P.long_rotation(data.player_season, data.bio, season_now, pv.opponent)
+    players = GP.player_table(data.player_box, season_now, "LAC")
+    misc = data.team_misc[data.team_misc["season"] == season_now] if len(data.team_misc) else pd.DataFrame(
+        columns=["team_id", "opp_pts_paint"])
+    keys = GP.game_plan(pv, teams, misc, players, shooting)
+    ceiling_pts, ceiling = GP.plan_ceiling(pv, keys)
     h2h = P.head_to_head(data.games, season_now, pv.opponent)
     tiles = [
         W.Verdict("Clippers this season", signed(lac["net"]),
-                  f"Points per 100 possessions, scored minus allowed: {P._ord(lac['net_rank'])} of 30. Blended with "
-                  f"last season ({signed(lac['prior_net'])}) for the odds.", "bad" if lac["net"] < 0 else "good",
-                  "tape", ("rank", int(lac["net_rank"]), 30)),
-        W.Verdict(f"{pv.opponent} this season", signed(opp["net"]),
-                  f"{P._ord(opp['net_rank'])} of 30. Last season {signed(opp['prior_net'])}.",
-                  "bad" if opp["net"] > lac["net"] else "good", "tape", ("rank", int(opp["net_rank"]), 30)),
-        W.Verdict("Where it's played", "Home" if pv.home else ("Neutral" if pv.neutral else "Road"),
-                  f"Worth about {P.HOME_POINTS:.0f} points to the home team.", "info", "tape"),
+                  f"Points per 100 possessions, scored minus allowed: {P._ord(lac['net_rank'])} of 30.",
+                  "bad" if lac["net"] < 0 else "good", "plan", ("rank", int(lac["net_rank"]), 30), D.logo_url(tid)),
+        W.Verdict(f"{pv.opponent} this season", signed(opp["net"]), f"{P._ord(opp['net_rank'])} of 30.",
+                  "bad" if opp["net"] > lac["net"] else "good", "plan", ("rank", int(opp["net_rank"]), 30),
+                  D.logo_url(opp_id)),
+        W.Verdict("With the game plan", f"{ceiling:.0%}",
+                  f"Win chance if the top {min(3, len(keys))} keys below all happen (worth {ceiling_pts:.1f} points; "
+                  "an optimistic ceiling, since the keys overlap).", "good", "plan",
+                  ("pair", pv.chance, ceiling, "today", "with plan")) if keys else None,
     ]
     if len(h2h):
         wins = int((h2h["result"] == "W").sum())
         tiles.append(W.Verdict("Earlier this season", f"{wins}-{len(h2h) - wins}",
-                               "; ".join(f"{'W' if r.result == 'W' else 'L'} {int(r.team_pts)}-{int(r.opp_pts)}"
-                                         for r in h2h.itertuples()), "info", "tape"))
-    answer_cards(tiles)
+                               "; ".join(f"{r.result} {int(r.team_pts)}-{int(r.opp_pts)}" for r in h2h.itertuples()),
+                               "info", "plan"))
+    answer_cards([t_ for t_ in tiles if t_ is not None], link=False)
 
-    # ---- what moves the odds
-    section("What would move the odds", "levers",
-            f"Each bar: the Clippers' win chance if they fixed one thing for this game. Today: <b>{pv.chance:.0%}</b>.")
-    if pv.levers:
-        lv = pv.levers[::-1]
-        fig = go.Figure()
-        fig.add_trace(go.Bar(y=[x.title for x in lv], x=[x.chance for x in lv], orientation="h", marker_color=GOOD,
-                             text=[f"{x.chance:.0%}  (up from {pv.chance:.0%}; worth {x.points:.1f} points a game)"
-                                   for x in lv], textposition="outside", cliponaxis=False,
-                             customdata=[x.why for x in lv],
-                             hovertemplate="%{y}<br>%{customdata}<extra></extra>"))
-        fig.add_vline(x=pv.chance, line=dict(color=INK_MARK, width=2, dash="dash"),
-                      annotation_text=f"today {pv.chance:.0%}", annotation_position="top")
-        fig.update_xaxes(tickformat=".0%", range=[0, 1.15], title="Win chance")
-        show(fig, 110 + 56 * len(lv), showlegend=False)
-        with st.expander("Why each lever"):
-            for x in pv.levers:
-                st.markdown(f"- **{x.title}**: {x.why}")
+    # ---- the game plan
+    section(f"How to beat {pv.opponent_name}", "plan",
+            "The keys to this game from both teams' season numbers, biggest first. Each shows what it's worth and "
+            "who to lean on.")
+    if keys:
+        steps = keys[:5]
+        fig = go.Figure(go.Waterfall(
+            orientation="h", measure=["absolute"] + ["relative"] * len(steps) + ["total"],
+            y=["Expected margin today"] + [k.title for k in steps] + ["With all of these"],
+            x=[pv.margin] + [k.points for k in steps] + [0],
+            text=[f"{signed(pv.margin)} · {pv.chance:.0%} to win"]
+                 + [f"+{k.points:.1f} pts · {k.chance:.0%} on its own" for k in steps]
+                 + [f"{signed(pv.margin + sum(k.points for k in steps))}"],
+            textposition="outside", cliponaxis=False, connector=dict(line=dict(color=LIGHT, width=1)),
+            increasing=dict(marker=dict(color=GOOD)), decreasing=dict(marker=dict(color=BAD)),
+            totals=dict(marker=dict(color=FOCUS)),
+            hovertemplate="%{y}<extra></extra>"))
+        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1, dash="dot"))
+        fig.update_yaxes(autorange="reversed")
+        hi = pv.margin + sum(k.points for k in steps)
+        fig.update_xaxes(title="Expected Clippers margin (points)  ·  right of the dotted line = favored",
+                         range=[min(pv.margin, 0) - 6, max(hi, 0) + 12])
+        show(fig, 120 + 46 * (len(steps) + 2), showlegend=False)
+        st.caption("Each step adds what that key is worth. The keys overlap a little, so the last bar is a best case.")
+        answer_cards([W.Verdict(
+            k.title, f"{k.chance:.0%}",
+            f"{k.why} Lean on: " + "; ".join(f"{n.split(' ', 1)[-1]} ({s_})" for n, _, s_ in k.lean_on) + ".",
+            "good", "plan", ("pair", pv.chance, k.chance, "today", "with it"),
+            D.headshot_url(k.lean_on[0][1]) if k.lean_on else None) for k in keys], link=False, big_size="1.6rem")
     else:
-        st.write("Nothing in the team's season numbers stands out as below average.")
+        st.write("Nothing in either team's numbers points to a specific key: it's about playing their usual game.")
 
-    # ---- who to watch
+    # ---- matchups
+    defenders = W.defenders(data.matchups, data.hustle, data.bio, season_now, "LAC") if len(data.matchups) else None
+    watch = P.who_to_watch(data.player_season, data.bio, season_now, pv.opponent,
+                           defenders.table if defenders is not None else None)
+    longs = P.long_rotation(data.player_season, data.bio, season_now, pv.opponent)
     if len(watch):
-        section(f"Who to watch on {pv.opponent}", "watch",
-                "Their top scorers this season, and the Clipper best suited to guard each (from player tracking).")
+        section(f"Matchups: who guards their scorers", "watch",
+                f"{pv.opponent}'s top scorers this season, and the Clipper best suited to guard each (closest in size, "
+                "fewest points allowed per possession from player tracking).")
+        ids = data.player_season.set_index("player_name")["player_id"].to_dict()
         answer_cards([W.Verdict(
             r.player_name, f"{r.pts:.1f} ppg",
             (f"{G._ft_in(r.height_in)}, {r.weight_lb:.0f} lb. " if pd.notna(r.height_in) and pd.notna(r.weight_lb)
              else "") + f"{r.reb:.1f} reb, {r.ast:.1f} ast in {r.min:.0f} min. "
-            + (f"Guard him with: {r.guard_with.rstrip('.')}." if r.guard_with else ""), "warn", "watch")
-            for r in watch.itertuples()],
-            link=False)
+            + (f"Guard him with: {r.guard_with.rstrip('.')}." if r.guard_with else ""), "warn", "watch",
+            image=D.headshot_url(ids[r.player_name]) if r.player_name in ids else None)
+            for r in watch.itertuples()], link=False)
         if len(longs) >= P.LONG_ROTATION:
             st.warning(f"{pv.opponent} plays {len(longs)} players between 6'6\" and 6'10\" in its top eight "
                        f"({', '.join(longs)}). {focus_last} turns it over about twice as often against defenders "
-                       "that size, so getting him the ball on the move or off screens matters more tonight.",
-                       icon=":material/height:")
+                       "that size: get him the ball on the move or off screens.", icon=":material/height:")
         elif longs:
             st.caption(f"{pv.opponent}'s 6'6\"-6'10\" rotation players: {', '.join(longs)}.")
 
@@ -1349,14 +1401,14 @@ def page_next() -> None:
             marker=dict(color=color, size=14, line=dict(color=BG, width=1.5)),
             hovertemplate="%{y}: %{text}<extra>" + name + "</extra>"))
     for lab, c, _ in TAPE:
-        a_, b_ = lac[f"{c}_rank"], opp[f"{c}_rank"]
-        fig.add_shape(type="line", x0=a_, x1=b_, y0=lab, y1=lab, line=dict(color=LIGHT, width=3), layer="below")
+        fig.add_shape(type="line", x0=lac[f"{c}_rank"], x1=opp[f"{c}_rank"], y0=lab, y1=lab,
+                      line=dict(color=LIGHT, width=3), layer="below")
     fig.update_xaxes(range=[31, 0], tickvals=[30, 20, 10, 1], ticktext=["30th", "20th", "10th", "1st"],
                      title="League rank this season")
     fig.update_yaxes(autorange="reversed")
     show(fig, 90 + 40 * len(TAPE))
 
-    with st.expander("How the odds are worked out"):
+    with st.expander("How the odds and the game plan are worked out"):
         st.markdown(
             f"- **Team strength** is points scored minus allowed per 100 possessions this season, blended with last "
             f"season's while the sample is small: (games x this season + {P.PRIOR_GAMES} x last season) / "
@@ -1365,6 +1417,8 @@ def page_next() -> None:
             f"{P.HOME_POINTS:.0f} points for the home team.\n"
             f"- **Win chance** treats the final margin as landing within about {P.MARGIN_SD:.1f} points of that, the "
             "usual spread of an NBA game.\n"
+            "- **Keys** only appear when the numbers point to them; each rule (and how its points are counted) is "
+            "written at the top of src/leadcollapse/analysis/gameplan.py.\n"
             "- It doesn't know about injuries, rest or travel, and isn't betting advice. Models this simple pick "
             "roughly two in three NBA games correctly.")
         st.dataframe(teams[["team_name", "gp", "net", "prior_net", "blend_net", "pace"]].sort_values(
@@ -1375,7 +1429,7 @@ PAGE_ANSWER = st.Page(page_answer, title="Blown leads", icon=":material/lightbul
 PAGE_WHATNOW = st.Page(page_whatnow, title="What now?", icon=":material/checklist:", url_path="what-now")
 PAGE_REPLAY = st.Page(page_replay, title="Game report", icon=":material/sports_basketball:", url_path="game",
                       default=True)
-PAGE_NEXT = st.Page(page_next, title="Next game", icon=":material/event:", url_path="next")
+PAGE_NEXT = st.Page(page_next, title="Upcoming", icon=":material/event:", url_path="next")
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
 PAGES = {"replay": PAGE_REPLAY, "next": PAGE_NEXT, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,

@@ -131,4 +131,4 @@ def test_replay_opens_the_game_passed_from_the_answer_page(data):
 def test_next_game_page_runs():
     at = _app("next")
     if (Path(__file__).resolve().parents[1] / "data" / "processed" / "schedule.parquet").exists():
-        assert "What would move the odds" in [h.value for h in at.header]
+        assert any(h.value.startswith("How to beat") for h in at.header)

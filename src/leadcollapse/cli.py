@@ -71,6 +71,7 @@ def pull(season: SeasonOpt = None) -> None:
             league.load_league(client, s, settings.season_type)
             tracking.load_bio(client, s, settings.season_type)
             schedule.load_player_season(client, s, settings.season_type)
+            league.load_team_misc(client, s, settings.season_type)
     with client.refreshing():  # the schedule changes daily (results, times)
         schedule.load_schedule(client, settings.current_season)
     console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}, "
@@ -215,6 +216,8 @@ def build(season: SeasonOpt = None) -> None:
     player_season = pd.concat([schedule.load_player_season(client, s, settings.season_type) for s in seasons],
                               ignore_index=True)
     sched.to_parquet(out / "schedule.parquet", index=False)
+    pd.concat([league.load_team_misc(client, s, settings.season_type) for s in seasons],
+              ignore_index=True).to_parquet(out / "team_misc.parquet", index=False)
     player_season.to_parquet(out / "player_season.parquet", index=False)
     console.print(
         f"tracking: {matchups['game_id'].nunique()} games of matchups and hustle "

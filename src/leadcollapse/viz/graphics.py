@@ -243,8 +243,9 @@ def turnover_strip(own: int, second: int, no_steal: int, c: Ink = DARK) -> str:
 
 # ------------------------------------------------------------------ win odds
 
-def odds_bar(team: str, opp: str, chance: float, margin: float, c: Ink = DARK) -> str:
-    """A tug-of-war bar: the Clippers' share of the win chance against the opponent's."""
+def odds_bar(team: str, opp: str, chance: float, margin: float, c: Ink = DARK, team_logo: str | None = None,
+             opp_logo: str | None = None) -> str:
+    """A tug-of-war bar: the Clippers' share of the win chance against the opponent's (with logos if given)."""
     w, x0, bar_w = 900, 40, 820
     split = x0 + bar_w * chance
     fav = team if chance >= 0.5 else opp
@@ -255,8 +256,10 @@ def odds_bar(team: str, opp: str, chance: float, margin: float, c: Ink = DARK) -
         else "",
         f'<line x1="{x0 + bar_w / 2}" y1="60" x2="{x0 + bar_w / 2}" y2="136" stroke="{c.ink}" stroke-width="2" '
         'stroke-dasharray="5 5" opacity="0.6"/>',
-        _text(x0, 46, team, 30, c.ink, 800, anchor="start", spacing=2),
-        _text(x0 + bar_w, 46, opp, 30, c.ink, 800, anchor="end", spacing=2),
+        (f'<image href="{escape(team_logo)}" x="{x0}" y="6" width="54" height="54"/>' if team_logo else ""),
+        (f'<image href="{escape(opp_logo)}" x="{x0 + bar_w - 54}" y="6" width="54" height="54"/>' if opp_logo else ""),
+        _text(x0 + (64 if team_logo else 0), 46, team, 30, c.ink, 800, anchor="start", spacing=2),
+        _text(x0 + bar_w - (64 if opp_logo else 0), 46, opp, 30, c.ink, 800, anchor="end", spacing=2),
         _text(x0 + 18, 109, f"{chance:.0%}", 32, "#0e0e0d" if chance > 0.12 else c.ink, 800, anchor="start"),
         _text(x0 + bar_w - 18, 109, f"{1 - chance:.0%}", 32, "#0e0e0d" if chance < 0.88 else c.ink, 800,
               anchor="end"),
