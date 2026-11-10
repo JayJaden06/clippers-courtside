@@ -38,11 +38,10 @@ class Settings(BaseSettings):
 
     # The player the turnover hypothesis is about; looked up by name, never by id.
     focus_player: str = "Darius Garland"
-    # Players the "What now?" page looks at: returning from injury or new to the rotation. Their
-    # half-by-half history is pulled for the comparison season and the one before, from any team.
-    watch_players: list[str] = Field(default_factory=lambda: [
-        "Brandon Ingram", "Max Strus", "Bradley Beal", "Yanic Konan Niederhäuser", "Baba Miller",
-    ])
+    # The "What now?" page finds returning players on its own, from today's roster (see
+    # viz.whatnow.returning). Names here are always added on top, e.g. a player worth watching who
+    # doesn't meet that rule. Usually empty.
+    watch_players: list[str] = Field(default_factory=list)
 
     # Companion project: did Intuit Dome (and The Wall) change the Clippers' home court?
     wall_study_url: str = "https://clippers-home-court-h46at8hpdebg9gdcaunm87.streamlit.app"

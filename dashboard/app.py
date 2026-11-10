@@ -550,7 +550,9 @@ def page_whatnow() -> None:
     sd = W.shooting_drop(data.player_box, season_now, team, league_h2)
     sf = W.starting_five(data.player_box, data.lineups, season_now, team)
     bl = W.ball_load(data.player_box, data.lineups, res["H3"]["key"], season_now, team, focus, n) if "H3" in res else None
-    cands = W.candidates(data.history, data.player_box, season_now, team, settings.watch_players, league_h2)
+    back = (W.returning(data.roster, data.player_box, data.games, data.history, season_now, team,
+                        settings.watch_players) if len(data.roster) else settings.watch_players)
+    cands = W.candidates(data.history, data.player_box, season_now, team, back, league_h2)
     rot = W.rotation(data.player_box, data.onoff, data.bio, season_now, team) if len(data.onoff) else None
     tracked = len(data.matchups) and len(data.bio)
     dfn = W.defenders(data.matchups, data.hustle, data.bio, season_now, team) if tracked else None
@@ -878,8 +880,12 @@ def page_whatnow() -> None:
             if c.small_sample:
                 st.badge("Small sample", color="gray")
     with st.expander("Details"):
-        st.markdown("Numbers for players who haven't played much this season come from their most recent season with "
-                    f"{W.SMALL_SAMPLE_MIN}+ second-half minutes, on whatever team they played for.")
+        st.markdown(f"- **Who's here:** everyone on today's roster who has missed {W.MISSED_SHARE:.0%} or more of "
+                    f"the games since joining the team and played {W.PRIOR_MPG:.0f}+ minutes a game in a recent "
+                    "season. The list rebuilds itself after every refresh. The public stats don't say *why* a "
+                    "player sat (injury, rest or coach's decision), so it includes all three.\n"
+                    "- Numbers for players who haven't played much this season come from their most recent season "
+                    f"with {W.SMALL_SAMPLE_MIN}+ second-half minutes, on whatever team they played for.")
         st.dataframe(with_photos(pd.DataFrame([{
             "Player": c.name, "Sample": c.sample, "2nd-half min": c.h2_minutes, "Shooting (eFG%)": c.efg,
             "3P%": c.fg3_pct, "3PA": c.fg3a, "Turnover rate": c.tov_pct, "Rebounds/36": c.reb36} for c in cands],

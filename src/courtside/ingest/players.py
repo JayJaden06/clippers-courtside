@@ -10,7 +10,7 @@ LAC games. The player id is looked up by name, never hardcoded.
 from __future__ import annotations
 
 import pandas as pd
-from nba_api.stats.endpoints import PlayerDashboardByGameSplits, PlayerGameLog
+from nba_api.stats.endpoints import CommonTeamRoster, PlayerDashboardByGameSplits, PlayerGameLog
 from nba_api.stats.static import players
 
 from courtside.nba_client import NBAClient
@@ -57,14 +57,28 @@ def player_game_log(client: NBAClient, player_id: int, season: str, season_type:
     return df
 
 
-def player_history(client: NBAClient, names: list[str], seasons: list[str], season_type: str) -> pd.DataFrame:
-    """Half-by-half totals for each named player in each season, across every team he played for.
+def team_roster(client: NBAClient, team_id: int, season: str) -> pd.DataFrame:
+    """Today's roster: who is on the team, whether he's a rookie, and how and when he joined."""
+    df = _frame(client.get(CommonTeamRoster, team_id=team_id, season=season), "CommonTeamRoster")
+    return pd.DataFrame({
+        "season": season,
+        "player_id": df["PLAYER_ID"].astype(int),
+        "player_name": df["PLAYER"].astype(str),
+        "rookie": df["EXP"].astype(str).eq("R"),
+        "how_acquired": df["HOW_ACQUIRED"].fillna("").astype(str),
+    })
 
+
+def player_history(client: NBAClient, people: list[str | tuple[str, int]], seasons: list[str],
+                   season_type: str) -> pd.DataFrame:
+    """Half-by-half totals for each player in each season, across every team he played for.
+
+    ``people`` are names (looked up) or (name, player_id) pairs, e.g. from the roster.
     Seasons with no games (a rookie's earlier years) are skipped, not errors.
     """
     frames = []
-    for name in names:
-        pid = find_player_id(name)
+    for person in people:
+        name, pid = person if isinstance(person, tuple) else (person, find_player_id(person))
         for season in seasons:
             df = player_half_splits(client, pid, season, season_type)
             if len(df):

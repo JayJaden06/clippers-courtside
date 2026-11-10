@@ -39,6 +39,8 @@ cameras don't track.
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -133,6 +135,53 @@ def _pick_sample(rows: list[tuple[str, pd.Series]]) -> tuple[str, pd.Series] | N
         return None
     big = [r for r in rows if r[1]["minutes"] >= SMALL_SAMPLE_MIN]
     return big[0] if big else max(rows, key=lambda r: r[1]["minutes"])
+
+
+# Returning players, found from today's roster: missed at least this share of the games since he joined,
+# and played real minutes before (this many a game, over this many games, in a recent season).
+MISSED_SHARE, PRIOR_MPG, PRIOR_GAMES = 0.25, 10.0, 20
+
+
+def acquired_on(how: str) -> pd.Timestamp | None:
+    """'Traded from TOR on 09/14/26' -> 2026-09-14; None for draft picks and anything without a date."""
+    m = re.search(r"on (\d{2}/\d{2}/\d{2,4})", how or "")
+    return pd.to_datetime(m.group(1), format="%m/%d/%y" if len(m.group(1)) == 8 else "%m/%d/%Y") if m else None
+
+
+def prior_mpg(history: pd.DataFrame, player_id: int) -> float:
+    """Minutes a game in his most recent season with PRIOR_GAMES+ games (any team); 0 if none."""
+    h = history[history["player_id"] == player_id] if len(history) else history
+    seasons = sorted(h["season"].unique(), reverse=True) if len(h) else []
+    for s_ in seasons:
+        rows = h[h["season"] == s_]
+        gp = int(rows["games"].max())
+        if gp >= PRIOR_GAMES:
+            return float(rows["minutes"].sum()) / gp
+    return 0.0
+
+
+def returning(roster: pd.DataFrame, player_box: pd.DataFrame, games: pd.DataFrame, history: pd.DataFrame,
+              season: str, team: str, extra: list[str] | tuple = ()) -> list[str]:
+    """Players on today's roster who are out or just back: they've missed MISSED_SHARE+ of the team's games
+    since joining and played PRIOR_MPG+ minutes a game in a recent season. Healthy players who simply
+    don't get minutes rarely meet the second rule. Rebuilt from the data on every refresh."""
+    dates = pd.to_datetime(games.loc[games["season"] == season, "game_date"])
+    full = player_box[(player_box["season"] == season) & (player_box["team_abbreviation"] == team)
+                      & (player_box["split"].astype(str) == "FULL") & (player_box["minutes"] > 0)]
+    played = full.merge(games[["game_id", "game_date"]], on="game_id", how="left")
+    out = []
+    for r in roster.itertuples():
+        since = acquired_on(r.how_acquired)
+        possible = int((dates >= since).sum()) if since is not None else len(dates)
+        if possible == 0:
+            continue
+        mine = played[played["player_id"] == r.player_id]
+        if since is not None:
+            mine = mine[pd.to_datetime(mine["game_date"]) >= since]
+        missed = possible - mine["game_id"].nunique()
+        if missed >= max(1.0, MISSED_SHARE * possible) and prior_mpg(history, r.player_id) >= PRIOR_MPG:
+            out.append(r.player_name)
+    return out + [n for n in extra if n not in out]
 
 
 def candidates(history: pd.DataFrame, player_box: pd.DataFrame, season: str, team: str, names: list[str],
