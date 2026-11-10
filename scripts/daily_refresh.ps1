@@ -10,8 +10,9 @@ that push. It runs on this PC rather than on GitHub because stats.nba.com blocks
 
 It is careful with your work:
 - it skips (and logs why) if the repo isn't on main or has uncommitted changes;
-- it commits only when there's a new game or newly published tracking data, and otherwise
-  throws away the date-only changes the rerun makes;
+- it commits only when there's a new game, newly published tracking data, or new results
+  elsewhere in the league (for the next-game odds), and otherwise throws away the date-only
+  changes the rerun makes;
 - -DryRun does everything except commit and push, then puts the files back.
 
 Each run writes logs\refresh-YYYY-MM-DD.log.
@@ -66,9 +67,11 @@ try {
 
     Invoke-Step "leadcollapse all" $leadcollapse @("all") | Out-Null
 
-    $news = git status --porcelain -- data/processed/games.parquet data/processed/matchups.parquet
+    # New Clippers games or tracking, or other teams' results (league table, schedule) for the next-game odds.
+    $news = git status --porcelain -- data/processed/games.parquet data/processed/matchups.parquet `
+        data/processed/league_periods.parquet data/processed/schedule.parquet
     if (-not $news) {
-        Write-Log "No new games or tracking data; discarding the rerun's date-only changes."
+        Write-Log "No new games, tracking or league results; discarding the rerun's date-only changes."
         Restore-Data
         exit 0
     }

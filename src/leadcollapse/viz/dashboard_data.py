@@ -72,6 +72,9 @@ class DashboardData:
     bio: pd.DataFrame = field(default_factory=pd.DataFrame)
     segments: pd.DataFrame = field(default_factory=pd.DataFrame)
     plays: pd.DataFrame = field(default_factory=pd.DataFrame)
+    schedule: pd.DataFrame = field(default_factory=pd.DataFrame)
+    league_periods: pd.DataFrame = field(default_factory=pd.DataFrame)
+    player_season: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     @property
     def seasons(self) -> list[str]:
@@ -111,6 +114,9 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         bio=optional("player_bio"),
         segments=optional("segments"),
         plays=optional("plays"),
+        schedule=optional("schedule"),
+        league_periods=optional("league_periods"),
+        player_season=optional("player_season"),
     )
 
 
