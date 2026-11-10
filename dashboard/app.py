@@ -607,12 +607,19 @@ def page_whatnow() -> None:
             if pr is not None and pr.tov:
                 st.markdown("**Is he being double-teamed into them?**")
                 picture(G.turnover_strip(pr.steals - pr.help, pr.help, pr.tov - pr.steals))
-                st.caption(f"Only {pr.help_share:.0%} are stolen by a second defender, the way a double team "
-                           f"usually ends (teammates: {pr.mates_help_share:.0%}). Double teams aren't logged "
-                           "publicly; this is the closest proxy.")
+                st.caption((f"{pr.help_share:.0%} are stolen by a second defender, the way a double team usually "
+                            f"ends: more than his teammates ({pr.mates_help_share:.0%})." if pr.trapped else
+                            f"Only {pr.help_share:.0%} are stolen by a second defender, the way a double team "
+                            f"usually ends (teammates: {pr.mates_help_share:.0%}).")
+                           + " Double teams aren't logged publicly; this is the closest proxy.")
         if pr is not None:
-            st.markdown(f"**Bigger defenders are the new problem.** How often {focus_last} loses the ball, by the "
-                        "height of the player guarding him:")
+            if pr.length_problem:
+                size_head = ("Bigger defenders are still a problem." if pr.size_gap_last_season
+                             else "Bigger defenders are the new problem.")
+            else:
+                size_head = "Bigger defenders aren't a problem right now."
+            st.markdown(f"**{size_head}** How often {focus_last} loses the ball, by the height of the player "
+                        "guarding him:")
             me = data.bio[data.bio["player_name"] == focus].sort_values("season").tail(1)
             ht = float(me["height_in"].iloc[0]) if len(me) else 73.0
             wt = float(me["weight_lb"].iloc[0]) if len(me) else 190.0
@@ -760,7 +767,7 @@ def page_whatnow() -> None:
 
     # ------------------------------------------------------------ returning players
     shooters = [c for c in cands if c.fg3a >= W.THREE_MIN_ATT]
-    section("Will the players coming back help?", "returning",
+    section("Will the returning players help?", "returning",
             ("The returning shooters hit " + ", ".join(f"<b>{c.fg3_pct:.0%}</b>" for c in shooters)
              + f" of their threes after halftime. The Clippers hit {sd.team_fg3_h2:.0%} now.") if shooters else "")
     left, right = st.columns(2, gap="large")
@@ -842,20 +849,31 @@ def page_whatnow() -> None:
         watch = []
         if "H3" in res:
             k3 = res["H3"]["key"]
-            watch.append(f"**{focus_last} becomes the main cause** if his extra turnovers grow from "
+            watch.append(f"**{focus_last} stops being the main cause** if his extra turnovers fall from "
+                         f"{k3['share_of_swing']:.0%} to under {DRIVES:.0%} of the second-half drop."
+                         if k3["share_of_swing"] >= DRIVES else
+                         f"**{focus_last} becomes the main cause** if his extra turnovers grow from "
                          f"{k3['share_of_swing']:.0%} to {DRIVES:.0%} of the second-half drop.")
         if "H1" in res:
             k1 = res["H1"]["key"]
-            watch.append("**The collapse is confirmed (not bad luck)** once the 90% range for the drop stops "
-                         f"including zero. It's {signed(k1['boot_lo'])} to {signed(k1['boot_hi'])} today.")
-        watch.append(f"**The shooting problem is fading** if second-half shooting climbs back above the league "
-                     f"average ({league_h2:.1%}). It's {sd.team_h2:.1%} today.")
+            sure = k1["boot_lo"] > 0 or k1["boot_hi"] < 0
+            watch.append(("**The collapse could still be bad luck** if the 90% range for the drop widens to "
+                          "include zero again." if sure else
+                          "**The collapse is confirmed (not bad luck)** once the 90% range for the drop stops "
+                          "including zero.") + f" It's {signed(k1['boot_lo'])} to {signed(k1['boot_hi'])} today.")
+        watch.append((f"**The shooting has recovered**: second-half shooting is above the league average "
+                      f"({league_h2:.1%}). The problem is back if it dips under." if sd.team_h2 >= league_h2 else
+                      f"**The shooting problem is fading** if second-half shooting climbs back above the league "
+                      f"average ({league_h2:.1%}).") + f" It's {sd.team_h2:.1%} today.")
         if pr is not None:
-            watch.append(f"**{focus_last} has adjusted to bigger defenders** once his turnovers against them drop "
-                         f"under {W.LENGTH_RATIO}x his rate against shorter ones. It's "
-                         f"{pr.tov100_long / pr.tov100_short:.1f}x today.")
-        watch.append("**The rebounding is fixed** when opponents get back under "
-                     f"{gl.prior_opp_oreb_h2 + W.GLASS_WORSE:.1%} of their misses after halftime. It's "
+            watch.append((f"**{focus_last} has adjusted to bigger defenders** once his turnovers against them "
+                          f"drop under {W.LENGTH_RATIO}x his rate against shorter ones." if pr.length_problem else
+                          f"**Bigger defenders become a problem for {focus_last}** if his turnovers against them "
+                          f"climb to {W.LENGTH_RATIO}x his rate against shorter ones.")
+                         + f" It's {pr.size_ratio:.1f}x today.")
+        watch.append(("**The rebounding is fixed** when opponents get back under " if gl.worse else
+                      "**The rebounding slips** if opponents get back more than ")
+                     + f"{gl.prior_opp_oreb_h2 + W.GLASS_WORSE:.1%} of their misses after halftime. It's "
                      f"{gl.opp_oreb_h2:.1%} today.")
         st.markdown("\n".join(f"- {w}" for w in watch))
         st.caption("Everything on this page reruns with `courtside all` after each game. The rules behind each "

@@ -422,6 +422,20 @@ class Pressure:
     def help_share(self) -> float:
         return self.help / self.tov if self.tov else float("nan")
 
+    @property
+    def size_ratio(self) -> float:
+        """Turnovers per 100 against bigger defenders, as a multiple of the rate against shorter ones."""
+        return self.tov100_long / self.tov100_short if self.tov100_short else float("nan")
+
+    @property
+    def prior_size_ratio(self) -> float:
+        return self.prior_tov100_long / self.prior_tov100_short if self.prior_tov100_short else float("nan")
+
+    @property
+    def size_gap_last_season(self) -> bool:
+        """Was defender height already a problem last season (by this season's rule)?"""
+        return self.prior_size_ratio >= LENGTH_RATIO
+
 
 def pressure(matchups: pd.DataFrame, tov_events: pd.DataFrame, bio: pd.DataFrame, season: str, prior: str,
              team: str, team_id: int, focus_id: int) -> Pressure | None:
@@ -554,16 +568,18 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
         how = []
         if pr.length_problem:
             how.append(f"when a bigger defender ({_ft_in(LONG_IN)} or taller) guards him, he turns it over "
-                       f"{pr.tov100_long / pr.tov100_short:.1f}x as often as against shorter ones (last season "
-                       f"{pr.prior_tov100_long:.1f} vs {pr.prior_tov100_short:.1f} per 100, no gap)")
+                       f"{pr.size_ratio:.1f}x as often as against shorter ones (last season "
+                       f"{pr.prior_tov100_long:.1f} vs {pr.prior_tov100_short:.1f} per 100, "
+                       f"{'a gap then too' if pr.size_gap_last_season else 'no gap'})")
         if pr.trapped:
             how.append(f"{pr.help_share:.0%} of his turnovers are steals by a second defender, more than his "
                        f"teammates ({pr.mates_help_share:.0%}), which fits traps and double teams")
         else:
             how.append(f"only {pr.help_share:.0%} are steals by a second defender (teammates "
                        f"{pr.mates_help_share:.0%}), so it's mostly the man guarding him, not traps")
-        out.append(f"<b>What's causing {last}'s turnovers:</b> {'; '.join(how)}. Getting him the ball on the move or "
-                   "off a screen, away from a bigger defender, is the lever.")
+        lever = ("Getting him the ball on the move or off a screen, away from a bigger defender, is the lever."
+                 if pr.length_problem else "Moving the ball before the second defender arrives is the lever.")
+        out.append(f"<b>What's causing {last}'s turnovers:</b> {'; '.join(how)}. {lever}")
     if rot is not None and len(rot):
         bad = rot[rot["struggling"]]
         good = rot[rot["earned"]]
@@ -670,14 +686,16 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
                                f"(teammates: {pr.mates_help_share:.0%})",
                                "bad", "garland", ("share", pr.help_share, pr.mates_help_share)))
         elif pr.length_problem:
-            out.append(Verdict(f"{last} struggles against bigger defenders", f"{pr.tov100_long / pr.tov100_short:.1f}x",
+            out.append(Verdict(f"{last} struggles against bigger defenders", f"{pr.size_ratio:.1f}x",
                                f"as many turnovers when the player guarding {last} is {_ft_in(LONG_IN)} or taller. "
-                               "Last season the defender's height made no difference. It's not double teams.",
+                               + ("It was a problem last season too. " if pr.size_gap_last_season else
+                                  "Last season the defender's height made no difference. ")
+                               + "It's not double teams.",
                                "warn", "garland", ("pair", pr.tov100_short, pr.tov100_long, "shorter",
                                                    f"{_ft_in(LONG_IN)}+")))
     shooters = [c for c in cands if "threes" in c.helps and not c.small_sample]
     if shooters:
-        out.append(Verdict("Biggest fix: the shooters coming back",
+        out.append(Verdict("Biggest fix: the returning shooters",
                            " · ".join(f"{c.fg3_pct:.0%}" for c in shooters),
                            f"Three-point shooting after halftime for {_names([_last(c.name) for c in shooters])} "
                            f"(last full season). The Clippers shoot {sd.team_fg3_h2:.0%} now.", "good", "returning",
