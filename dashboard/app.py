@@ -262,7 +262,7 @@ def page_answer() -> None:
         garland_main = "H3" in res and res["H3"]["key"]["share_of_swing"] >= DRIVES
         st.markdown(
             f'<div class="lede">{hl["wins"]}-{hl["losses"]}, and {hl["blown"]} of {hl["leads"]} early leads blown. '
-            "Is it Darius Garland's turnovers? "
+            f"Is it {focus}'s turnovers? "
             + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
             + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
         picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]), max_width="760px")
@@ -337,7 +337,7 @@ def page_answer() -> None:
     section("2. The popular theories, checked", "theories")
     left, right = st.columns([1, 1.25], gap="large")
     with left:
-        st.subheader("Is it Garland?")
+        st.subheader(f"Is it {focus_last}?")
         if "H3" in res:
             k3 = res["H3"]["key"]
             share = k3["share_of_swing"]
@@ -348,7 +348,7 @@ def page_answer() -> None:
                               fillcolor=f"rgba(230,103,103,{shade})", layer="below")
                 fig.add_annotation(x=(x0 + x1) / 2, y=0.72, text=label, showarrow=False, font=dict(size=12))
             fig.add_trace(go.Bar(x=[min(share, 1)], y=[0], orientation="h", width=0.34, marker_color=FOCUS,
-                                 hovertemplate=f"Garland's extra turnovers explain {share:.0%} of the "
+                                 hovertemplate=f"{focus_last}'s extra turnovers explain {share:.0%} of the "
                                                f"second-half drop<extra></extra>"))
             fig.add_annotation(x=min(share, 1), y=-0.62, text=f"<b>{share:.0%}</b>", showarrow=False,
                                font=dict(size=20))
@@ -398,10 +398,11 @@ def page_answer() -> None:
             st.markdown(
                 "- Teams switch baskets at halftime, so visitors face The Wall for only one half. The box score "
                 "doesn't record which end a team shot at, so this checks whether opponents miss more after "
-                "halftime at home at all. They don't.\n"
+                "halftime at home at all. "
+                + ("They do, by more than chance would explain." if wall.big == "Maybe" else "They don't.") + "\n"
                 "- Includes late free throws from intentional fouls.\n"
-                "- The home-court study looks at every arena since 2013-14 and finds the same thing: visitors' "
-                "free-throw shooting at Intuit Dome isn't consistently worse than at other arenas.")
+                "- The home-court study looks at every arena since 2013-14: visitors' free-throw shooting at "
+                "Intuit Dome isn't consistently worse than at other arenas.")
 
     # ---------------------------------------------------------- 3. since last season
     section_n = 3
@@ -453,7 +454,7 @@ def page_answer() -> None:
                      if st.toggle(f"{r.name} back to last season ({signed(r.prev_per_game)} instead of "
                                   f"{signed(r.per_game)} per game)", key=f"fix_{r.factor}")}
             g_pts = res["H3"]["key"]["excess_pts"] / max(hl["games"], 1) if "H3" in res else 0.0
-            fix_g = st.toggle(f"Garland's turnovers back to his last-season rate (about {signed(g_pts)} per game)",
+            fix_g = st.toggle(f"{focus_last}'s turnovers back to his last-season rate (about {signed(g_pts)} per game)",
                               key="fix_garland", disabled="turnovers" in fixed,
                               help="Already included if you fix all turnovers.")
         new_h2 = S.what_if(hl["h2_per_game"], reasons, fixed, g_pts, fix_g)
@@ -549,7 +550,9 @@ def page_whatnow() -> None:
     sd = W.shooting_drop(data.player_box, season_now, team, league_h2)
     sf = W.starting_five(data.player_box, data.lineups, season_now, team)
     bl = W.ball_load(data.player_box, data.lineups, res["H3"]["key"], season_now, team, focus, n) if "H3" in res else None
-    cands = W.candidates(data.history, data.player_box, season_now, team, settings.watch_players, league_h2)
+    back = (W.returning(data.roster, data.player_box, data.games, data.history, season_now, team,
+                        settings.watch_players) if len(data.roster) else settings.watch_players)
+    cands = W.candidates(data.history, data.player_box, season_now, team, back, league_h2)
     rot = W.rotation(data.player_box, data.onoff, data.bio, season_now, team) if len(data.onoff) else None
     tracked = len(data.matchups) and len(data.bio)
     dfn = W.defenders(data.matchups, data.hustle, data.bio, season_now, team) if tracked else None
@@ -877,8 +880,12 @@ def page_whatnow() -> None:
             if c.small_sample:
                 st.badge("Small sample", color="gray")
     with st.expander("Details"):
-        st.markdown("Numbers for players who haven't played much this season come from their most recent season with "
-                    f"{W.SMALL_SAMPLE_MIN}+ second-half minutes, on whatever team they played for.")
+        st.markdown(f"- **Who's here:** everyone on today's roster who has missed {W.MISSED_SHARE:.0%} or more of "
+                    f"the games since joining the team and played {W.PRIOR_MPG:.0f}+ minutes a game in a recent "
+                    "season. The list rebuilds itself after every refresh. The public stats don't say *why* a "
+                    "player sat (injury, rest or coach's decision), so it includes all three.\n"
+                    "- Numbers for players who haven't played much this season come from their most recent season "
+                    f"with {W.SMALL_SAMPLE_MIN}+ second-half minutes, on whatever team they played for.")
         st.dataframe(with_photos(pd.DataFrame([{
             "Player": c.name, "Sample": c.sample, "2nd-half min": c.h2_minutes, "Shooting (eFG%)": c.efg,
             "3P%": c.fg3_pct, "3PA": c.fg3a, "Turnover rate": c.tov_pct, "Rebounds/36": c.reb36} for c in cands],
@@ -1514,33 +1521,73 @@ def page_league() -> None:
     cr = D.clippers_ranks(data.ranks, season_l)
     answer_cards(S.league_cards(cr))
     section("How every team changes after halftime", "teams",
-            "Pick a stat. Right = better after halftime than before it, left = worse. Clippers in orange.")
+            "Pick a stat. Each logo is a team: <b>left = worse after halftime, right = better</b>; higher = "
+            "better in first halves. Clippers ringed in orange.")
     metric = st.pills("Stat", list(stat_names), default="net_rtg", format_func=stat_names.get, key="league_metric")
     metric = metric or "net_rtg"
-    lv = D.league_view(data.ranks, season_l, metric, "change")
     flip = D.better_direction(metric) == "lower is better"
-    lv = lv.assign(shown=-lv["value"] if flip else lv["value"]).sort_values("shown")
+    sign = -1 if flip else 1  # so right and up always mean better
+    ch = D.league_view(data.ranks, season_l, metric, "change").set_index("team_name")
+    h1 = D.league_view(data.ranks, season_l, metric, "H1").set_index("team_name")
+    ids = data.ranks[data.ranks["season"] == season_l].drop_duplicates("team_name").set_index("team_name")["team_id"]
+    q = ch.join(h1[["value", "league_mean"]].add_suffix("_h1")).assign(team_id=ids)
+    q["x"] = sign * q["value"]
+    q["y"] = sign * (q["value_h1"] - q["league_mean_h1"])
     pct = metric not in ("net_rtg", "tov_pct")
+    scale = 100 if pct else 1
     fmt = (lambda v: f"{signed(v * 100)} pts") if pct else (lambda v: signed(v))
-    fig = go.Figure(go.Bar(
-        x=lv["shown"], y=lv["team_name"], orientation="h",
-        marker_color=[FOCUS if t else MUTED_BAR for t in lv["is_team"]],
-        customdata=np.column_stack([lv["rank"], [fmt(v) for v in lv["value"]]]),
-        hovertemplate="<b>%{y}</b><br>Change after halftime: %{customdata[1]}<br>%{customdata[0]} of 30"
-                      "<extra></extra>"))
+    q[["x", "y"]] *= scale
+    xr = float(q["x"].abs().max()) * 1.18 or 1
+    yr = float(q["y"].abs().max()) * 1.22 or 1
+    fig = go.Figure()
+    corner = dict(showarrow=False, font=dict(size=13, color=INK_MARK), opacity=0.75)
+    for x_, y_, xa, ya, text in ((-xr, yr, "left", "top", "Strong starts, fade late"),
+                                 (xr, yr, "right", "top", "Strong, and get stronger"),
+                                 (-xr, -yr, "left", "bottom", "Slow starts, get worse"),
+                                 (xr, -yr, "right", "bottom", "Slow starts, finish strong")):
+        fig.add_annotation(x=x_, y=y_, xanchor=xa, yanchor=ya, text=f"<b>{text}</b>", **corner)
+    fig.add_shape(type="rect", x0=-xr, x1=0, y0=-yr, y1=yr, fillcolor="rgba(230,103,103,0.06)", line_width=0,
+                  layer="below")
+    fig.add_shape(type="rect", x0=0, x1=xr, y0=-yr, y1=yr, fillcolor="rgba(57,135,229,0.06)", line_width=0,
+                  layer="below")
     fig.add_vline(x=0, line=dict(color=GRAY, width=1))
-    fig.update_yaxes(tickvals=list(lv["team_name"]),
-                     ticktext=[f"<b>{n}</b>" if t else n for n, t in zip(lv["team_name"], lv["is_team"])])
-    fig.update_xaxes(showticklabels=False, title="← worse after halftime        better after halftime →")
-    row = lv[lv["is_team"]].iloc[0]
+    fig.add_hline(y=0, line=dict(color=GRAY, width=1, dash="dot"))
+    lac = q[q["is_team"]]
+    fig.add_trace(go.Scatter(x=lac["x"], y=lac["y"], mode="markers", hoverinfo="skip", showlegend=False,
+                             marker=dict(size=46, color="rgba(0,0,0,0)", line=dict(color=FOCUS, width=3))))
+    fig.add_trace(go.Scatter(
+        x=q["x"], y=q["y"], mode="markers", showlegend=False, marker=dict(size=30, opacity=0),
+        customdata=np.column_stack([q.index, [fmt(v) for v in q["value"]], q["rank"],
+                                    [fmt(v) for v in q["value_h1"]], [fmt(v) for v in q["league_mean_h1"]]]),
+        hovertemplate="<b>%{customdata[0]}</b><br>Change after halftime: %{customdata[1]} "
+                      "(%{customdata[2]} of 30)<br>First halves: %{customdata[3]} (league %{customdata[4]})"
+                      "<extra></extra>"))
+    for name, r_ in q.iterrows():
+        fig.add_layout_image(source=D.logo_url(int(r_["team_id"])), xref="x", yref="y", x=r_["x"], y=r_["y"],
+                             xanchor="center", yanchor="middle", sizex=xr * 0.11, sizey=yr * 0.11,
+                             sizing="contain", layer="above")
+    fig.update_xaxes(range=[-xr, xr], showticklabels=False, showgrid=False,
+                     title="← worse after halftime            better after halftime →")
+    fig.update_yaxes(range=[-yr, yr], showticklabels=False, showgrid=False,
+                     title="← worse first halves      better first halves →")
+    row = q[q["is_team"]].iloc[0]
     left, right = st.columns([2, 1], gap="large")
     with left:
-        show(fig, 720)
+        show(fig, 620)
+        st.caption("Center lines: no change at halftime (solid), league-average first half (dotted). Hover a logo "
+                   "for the numbers.")
     with right:
         st.metric(f"Clippers: {stat_names[metric]}", f"{ordinal(int(row['rank']))} of 30", border=True,
                   help="Rank of the change from first half to second half. 1st = improves the most.")
         st.metric("Clippers' change", fmt(row["value"]), border=True,
                   help=f"League average change: {fmt(row['league_mean'])}.")
+        with st.expander("Every team, ranked"):
+            ranked = q.sort_values("rank").reset_index()
+            st.dataframe(pd.DataFrame({"logo": [D.logo_url(int(t)) for t in ranked["team_id"]],
+                                       "Team": ranked["team_name"], "Rank": ranked["rank"],
+                                       "Change": [fmt(v) for v in ranked["value"]]}),
+                         hide_index=True, width="stretch",
+                         column_config={"logo": st.column_config.ImageColumn("", width="small")})
 
     section("Where the Clippers rank on everything", "ranks",
             "Blue dot = their league rank in first halves, orange = second halves. Right = better.")

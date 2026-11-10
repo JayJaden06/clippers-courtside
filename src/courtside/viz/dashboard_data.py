@@ -77,6 +77,7 @@ class DashboardData:
     league_periods: pd.DataFrame = field(default_factory=pd.DataFrame)
     player_season: pd.DataFrame = field(default_factory=pd.DataFrame)
     team_misc: pd.DataFrame = field(default_factory=pd.DataFrame)
+    roster: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     @property
     def seasons(self) -> list[str]:
@@ -120,6 +121,7 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         league_periods=optional("league_periods"),
         player_season=optional("player_season"),
         team_misc=optional("team_misc"),
+        roster=optional("roster"),
     )
 
 

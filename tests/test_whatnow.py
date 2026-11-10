@@ -203,3 +203,33 @@ def test_garland_text_follows_the_numbers():
     assert size_card(adjusted) is None
     assert not any("bigger defender" in line for line in W.summary_lines(None, None, [], sd, "Darius Garland",
                                                                           pr=adjusted))
+
+
+def test_acquired_on_reads_the_roster_dates():
+    assert W.acquired_on("Traded from TOR on 09/14/26") == pd.Timestamp("2026-09-14")
+    assert W.acquired_on("Signed on 07/06/25") == pd.Timestamp("2025-07-06")
+    assert W.acquired_on("#5 Pick in 2026 Draft") is None
+
+
+def test_returning_players_come_from_the_roster_and_rebuild_themselves():
+    games = pd.DataFrame({"game_id": [f"g{i}" for i in range(8)], "season": "2026-27",
+                          "game_date": pd.date_range("2026-10-21", periods=8, freq="2D")})
+
+    def box(pid, n, start=0):
+        return [{"season": "2026-27", "team_abbreviation": "LAC", "split": "FULL", "minutes": 20.0,
+                 "player_id": pid, "game_id": f"g{i}"} for i in range(start, start + n)]
+
+    pb = pd.DataFrame(box(1, 8) + box(2, 2, start=6) + box(4, 1) + box(5, 3, start=5))
+    roster = pd.DataFrame([
+        {"player_id": 1, "player_name": "Healthy Starter", "how_acquired": "Signed on 07/01/25"},
+        {"player_id": 2, "player_name": "Just Back", "how_acquired": "Signed on 07/01/25"},
+        {"player_id": 3, "player_name": "Still Out", "how_acquired": "#3 Pick in 2019 Draft"},
+        {"player_id": 4, "player_name": "Deep Bench", "how_acquired": "Signed on 08/01/26"},
+        # traded in after game 4 and has played every game since: not missing games
+        {"player_id": 5, "player_name": "New Arrival", "how_acquired": "Traded from TOR on 10/30/26"},
+    ])
+    hist = pd.DataFrame([{"player_id": pid, "season": "2025-26", "split": "H1", "games": 60, "minutes": m}
+                         for pid, m in ((1, 900), (2, 900), (3, 1200), (4, 180), (5, 900))])
+    names = W.returning(roster, pb, games, hist, "2026-27", "LAC")
+    assert names == ["Just Back", "Still Out"]  # Deep Bench misses games but played 3 a game last season
+    assert W.returning(roster, pb, games, hist, "2026-27", "LAC", extra=["Watch Me"])[-1] == "Watch Me"

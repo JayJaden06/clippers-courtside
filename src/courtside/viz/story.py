@@ -57,7 +57,7 @@ LEAD_TAG = {"blown_lead": "Blown lead", "held_lead": "Held the lead"}
 QUESTIONS = {
     "H1": "Do they really fall apart after halftime?",
     "H2": "Is it turnovers?",
-    "H3": "Is it Darius Garland?",
+    "H3": "Is it {focus}?",  # filled from the analysis meta
     "H4": "Is it fouling?",
     "H5": "Is it just missed shots?",
 }
@@ -86,6 +86,7 @@ def answer_cards(analysis: dict) -> list[Card]:
     if not all(k in res for k in QUESTIONS):
         return []
     k1, k2, k3, k4, k5 = (res[i]["key"] for i in ("H1", "H2", "H3", "H4", "H5"))
+    focus = analysis.get("meta", {}).get("focus_player", "the point guard")
     chronic = res.get("SEASONS", {}).get("key", {}).get("chronic", [])
     cards = []
 
@@ -115,10 +116,11 @@ def answer_cards(analysis: dict) -> list[Card]:
 
     ans, tone = _tone_from_share(k3["share_of_swing"])
     cards.append(Card(
-        "H3", QUESTIONS["H3"], ans, tone,
-        f"He's their biggest turnover problem after halftime: {k3['tov_share_h2']:.0%} of the team's turnovers "
-        f"while handling {k3['play_share_h2']:.0%} of its plays. But even counting generously, his extra "
-        f"turnovers explain about {k3['share_of_swing']:.0%} of the drop"
+        "H3", QUESTIONS["H3"].format(focus=focus), ans, tone,
+        f"After halftime he makes {k3['tov_share_h2']:.0%} of the team's turnovers while handling "
+        f"{k3['play_share_h2']:.0%} of its plays"
+        + (" (more than his share)" if k3["tov_share_h2"] > k3["play_share_h2"] else "")
+        + f". Counting generously, his extra turnovers explain about {k3['share_of_swing']:.0%} of the drop"
         + (f", short of the {DRIVES:.0%} it would take to call him the main cause." if tone != "yes" else "."),
     ))
 
@@ -146,6 +148,11 @@ def answer_cards(analysis: dict) -> list[Card]:
     return cards
 
 
+def _last(name: str) -> str:
+    """'Darius Garland' -> 'Garland' (the focus player's name as the page uses it)."""
+    return name.split(" ", 1)[-1] if name else "the point guard"
+
+
 def _even(net: float) -> str:
     return "even" if abs(net) < 3 else "ahead" if net > 0 else "behind"
 
@@ -167,6 +174,8 @@ def headline(analysis: dict, comparison: pd.DataFrame, games: pd.DataFrame, seas
         "garland_share": float(res["H3"]["key"]["share_of_swing"]) if "H3" in res else float("nan"),
         "swing": float(res["ATTR"]["key"]["swing"]) if "ATTR" in res else float("nan"),
         "games": int(cur["games"]),
+        "focus": analysis.get("meta", {}).get("focus_player", "the point guard"),
+        "lead_threshold": int(analysis.get("meta", {}).get("lead_threshold", 8)),
     }
 
 
@@ -356,7 +365,8 @@ def sixty_seconds(reasons: list[Reason], results: dict, hl: dict, prev_season: s
                f"halftime" + (", and it's new this season." if r0.status == NEW else "."))
     if "H3" in results:
         share = results["H3"]["key"]["share_of_swing"]
-        out.append(f"<b>Garland's turnovers are {'a main cause' if share >= DRIVES else 'part of it, not the main cause'}"
+        out.append(f"<b>{_last(hl.get('focus', ''))}'s turnovers are "
+                   f"{'a main cause' if share >= DRIVES else 'part of it, not the main cause'}"
                    f"</b>: about {share:.0%} of the second-half drop.")
     new = [_lower(r.name) for r in reasons if r.status == NEW]
     same = [_lower(r.name) for r in reasons if r.status == SAME]
@@ -399,7 +409,7 @@ def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_seaso
                 "bad" if hl["h2_per_game"] < hl["h1_per_game"] else "good", "reasons",
                 ("diverge", (hl["h1_per_game"], hl["h2_per_game"]), ("1st half", "2nd half"))),
         Verdict("Early leads blown", f"{hl['blown']} of {hl['leads']}",
-                "Games where they led by 8 or more early on and still lost.", "bad" if hl["blown"] else "good",
+                f"Games where they led by {hl.get('lead_threshold', 8)} or more early on and still lost.", "bad" if hl["blown"] else "good",
                 "changes", ("dots", hl["blown"], hl["leads"])),
         Verdict("Shots stop falling after halftime", f"{hl['efg_h1']:.0%} → {hl['efg_h2']:.0%}",
                 "Shooting accuracy (threes count extra), first half then second half.",
@@ -415,8 +425,9 @@ def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_seaso
     if "H3" in results:
         share = results["H3"]["key"]["share_of_swing"]
         label = "the main cause" if share >= DRIVES else "part of it" if share >= CONTRIBUTES else "a small part"
-        out.append(Verdict(f"Garland's turnovers: {label}", f"{share:.0%}",
-                           "of the second-half drop comes from Garland's extra turnovers. The line marks "
+        last = _last(hl.get("focus", ""))
+        out.append(Verdict(f"{last}'s turnovers: {label}", f"{share:.0%}",
+                           f"of the second-half drop comes from {last}'s extra turnovers. The line marks "
                            f"{DRIVES:.0%}, where it would count as the main cause.", "warn", "theories",
                            ("share", share, DRIVES)))
     new = [r.name for r in reasons if r.status == NEW]

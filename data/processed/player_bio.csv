@@ -764,7 +764,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630702,Jaden Hardy,LAL,24.0,76,198.0,2022,False
 2026-27,1630183,Jaden McDaniels,MIN,26.0,81,185.0,2020,False
 2026-27,1630256,Jae'Sean Tate,HOU,31.0,76,239.0,Undrafted,False
-2026-27,1642942,Jahmai Mashack,MEM,23.0,76,203.0,2025,False
+2026-27,1642942,Jahmai Mashack,MEM,24.0,76,203.0,2025,False
 2026-27,1631170,Jaime Jaquez Jr.,MIL,25.0,79,225.0,2023,False
 2026-27,1631222,Jake LaRavia,LAL,25.0,80,235.0,2022,False
 2026-27,1627751,Jakob Poeltl,TOR,31.0,84,253.0,2016,False
@@ -882,6 +882,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630568,Luka Garza,BOS,27.0,82,252.0,2021,False
 2026-27,1628379,Luke Kennard,PHX,30.0,77,206.0,2017,False
 2026-27,1628436,Luke Kornet,SAS,31.0,85,250.0,Undrafted,False
+2026-27,1641869,Malachi Smith,TOR,26.0,76,205.0,Undrafted,False
 2026-27,1642502,Malevy Leons,GSW,27.0,81,206.0,Undrafted,False
 2026-27,1628370,Malik Monk,SAC,28.0,75,200.0,2017,False
 2026-27,1643576,Maliq Brown,SAS,22.0,80,225.0,2026,True
@@ -1009,7 +1010,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1642848,Tre Johnson,WAS,20.0,77,190.0,2025,False
 2026-27,1630200,Tre Jones,CHI,26.0,73,190.0,2020,False
 2026-27,1630544,Tre Mann,WAS,25.0,76,178.0,2021,False
-2026-27,1630570,Trendon Watford,NOP,25.0,81,244.0,Undrafted,False
+2026-27,1630570,Trendon Watford,NOP,26.0,81,244.0,Undrafted,False
 2026-27,1642350,Trevon Brazile,DEN,23.0,82,220.0,2026,True
 2026-27,1626168,Trey Lyles,MIN,31.0,81,234.0,2015,False
 2026-27,1630530,Trey Murphy III,NOP,26.0,81,220.0,2021,False

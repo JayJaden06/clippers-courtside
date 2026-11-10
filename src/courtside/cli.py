@@ -45,6 +45,13 @@ def _history_seasons(settings) -> list[str]:
     return [settings.comparison_season, previous_season(settings.comparison_season)]
 
 
+def _history_people(roster: pd.DataFrame, settings) -> list:
+    """Everyone on today's roster, plus any extra names in the settings (who returns is decided later)."""
+    people = list(zip(roster["player_name"], roster["player_id"].astype(int)))
+    on = set(roster["player_name"])
+    return people + [n for n in settings.watch_players if n not in on]
+
+
 @app.command()
 def pull(season: SeasonOpt = None) -> None:
     """Download and cache raw stats.nba.com data (current season's log is refreshed)."""
@@ -59,7 +66,10 @@ def pull(season: SeasonOpt = None) -> None:
     pid = players.find_player_id(settings.focus_player)
     players.player_half_splits(client, pid, settings.comparison_season, settings.season_type)
     players.player_game_log(client, pid, settings.comparison_season, settings.season_type)
-    players.player_history(client, settings.watch_players, _history_seasons(settings), settings.season_type)
+    with client.refreshing():  # the roster changes with trades, signings and waivers
+        roster = players.team_roster(client, settings.team_id, settings.current_season)
+    players.player_history(client, _history_people(roster, settings), _history_seasons(settings),
+                           settings.season_type)
     _, _, skipped = tracking.load_tracking(client, df)
     if skipped:
         console.print(f"tracking not published yet for {len(skipped)} game(s); the next pull will retry them")
@@ -155,7 +165,10 @@ def build(season: SeasonOpt = None) -> None:
         pid, settings.comparison_season, settings.team_abbreviation,
     )
     baselines.round(4).to_csv(out / "focus_player_baselines.csv", index=False)
-    history = players.player_history(client, settings.watch_players, _history_seasons(settings), settings.season_type)
+    roster = players.team_roster(client, settings.team_id, settings.current_season)
+    roster.to_parquet(out / "roster.parquet", index=False)
+    history = players.player_history(client, _history_people(roster, settings), _history_seasons(settings),
+                                     settings.season_type)
     history.to_parquet(out / "player_history_halves.parquet", index=False)
     history.round(4).to_csv(out / "player_history_halves.csv", index=False)
     console.print(
