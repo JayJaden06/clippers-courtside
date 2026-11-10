@@ -396,25 +396,29 @@ def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_seaso
     out = [
         Verdict("Fine before halftime, behind after it", f"{hl['h1_per_game']:+.1f} → {hl['h2_per_game']:+.1f}",
                 "Average score margin per game: first halves, then second halves.",
-                "bad" if hl["h2_per_game"] < hl["h1_per_game"] else "good", "reasons"),
+                "bad" if hl["h2_per_game"] < hl["h1_per_game"] else "good", "reasons",
+                ("diverge", (hl["h1_per_game"], hl["h2_per_game"]), ("1st half", "2nd half"))),
         Verdict("Early leads blown", f"{hl['blown']} of {hl['leads']}",
                 "Games where they led by 8 or more early on and still lost.", "bad" if hl["blown"] else "good",
-                "changes"),
+                "changes", ("dots", hl["blown"], hl["leads"])),
         Verdict("Shots stop falling after halftime", f"{hl['efg_h1']:.0%} → {hl['efg_h2']:.0%}",
                 "Shooting accuracy (threes count extra), first half then second half.",
-                "bad" if hl["efg_h2"] < hl["efg_h1"] else "good", "reasons"),
+                "bad" if hl["efg_h2"] < hl["efg_h1"] else "good", "reasons",
+                ("pair", hl["efg_h1"], hl["efg_h2"], "1st half", "2nd half")),
     ]
     hurts = [r for r in reasons if r.per_game < 0]
     if hurts:
         top = hurts[0]
         out.append(Verdict(f"Biggest reason: {_lower(top.name)}", f"{top.per_game:+.1f}",
                            f"Points a game it costs them after halftime ({top.share:.0%} of the drop).", "bad",
-                           "reasons"))
+                           "reasons", ("share", top.share, None)))
     if "H3" in results:
         share = results["H3"]["key"]["share_of_swing"]
         label = "the main cause" if share >= DRIVES else "part of it" if share >= CONTRIBUTES else "a small part"
         out.append(Verdict(f"Garland's turnovers: {label}", f"{share:.0%}",
-                           "of the second-half drop comes from Garland's extra turnovers.", "warn", "theories"))
+                           "of the second-half drop comes from Garland's extra turnovers. The line marks "
+                           f"{DRIVES:.0%}, where it would count as the main cause.", "warn", "theories",
+                           ("share", share, DRIVES)))
     new = [r.name for r in reasons if r.status == NEW]
     out.append(Verdict("New problems this season", str(len(new)),
                        (f"Not a problem in {prev_season}: " + ", ".join(_lower(n) for n in new) + ".") if new
@@ -453,7 +457,8 @@ def game_cards(row: pd.Series, halves: pd.DataFrame, turnovers: pd.DataFrame, fo
         Verdict("Final", f"{fin:+d}", f"{'Won' if fin > 0 else 'Lost'} by {abs(fin)}" + (" in overtime." if
                                                                                       row["overtime_periods"] else "."),
                 "good" if fin > 0 else "bad", "game"),
-        Verdict("Turnovers after halftime", str(len(t)), who, "info", "game"),
+        Verdict("Turnovers after halftime", str(len(t)), who + f" Filled dots: {focus_last}'s.", "warn", "game",
+                ("dots", mine, len(t))),
     ]
 
 
@@ -466,7 +471,8 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
     most = h2.sort_values("tov", ascending=False).iloc[0]
     out.append(Verdict(f"Most turnovers after halftime: {most['player_name'].split(' ', 1)[-1]}", f"{most['tov']:.0f}",
                        f"{most['tov_share']:.0%} of the team's second-half turnovers, while handling "
-                       f"{most['play_share']:.0%} of its plays.", "bad", "who"))
+                       f"{most['play_share']:.0%} of its plays.", "bad", "who",
+                       ("pair", most["play_share"], most["tov_share"], "plays", "turnovers")))
     w = ph.pivot(index="player_name", columns="split", values="tov_pct")
     if {"H1", "H2"} <= set(w.columns):
         jump = (w["H2"] - w["H1"]).sort_values()
@@ -474,14 +480,15 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
         out.append(Verdict(f"Sloppiest after halftime: {name.split(' ', 1)[-1]}",
                            f"{w.loc[name, 'H1']:.0%} → {w.loc[name, 'H2']:.0%}",
                            f"Share of {name.split(' ', 1)[-1]}'s plays that end in a turnover, first half then second.",
-                           "warn", "sloppier"))
+                           "warn", "sloppier", ("pair", w.loc[name, "H1"], w.loc[name, "H2"], "1st half", "2nd half")))
     regular = h2[h2["play_share"] >= 0.08]
     if len(regular):
         safe = regular.sort_values("tov_pct").iloc[0]
         last = safe["player_name"].split(" ", 1)[-1]
         out.append(Verdict(f"Safest with the ball: {last}", f"1 in {round(1 / safe['tov_pct'])}" if safe["tov_pct"]
                            else "0", f"of {last}'s second-half plays ends in a turnover (among regular ball-handlers).",
-                           "good", "who"))
+                           "good", "who",
+                           ("dots", 1, min(20, round(1 / safe["tov_pct"]))) if safe["tov_pct"] else None))
     return out
 
 
@@ -493,14 +500,17 @@ def league_cards(ranks: pd.DataFrame) -> list[Verdict]:
         overall = int(change["Net rating"])
         out.append(Verdict("How much they fall off after halftime", f"{ordinal(overall)} of 30",
                            "Rank among the 30 teams for the change from first half to second (1st = holds up best).",
-                           "bad" if overall > 20 else "good" if overall <= 10 else "info", "teams"))
+                           "bad" if overall > 20 else "good" if overall <= 10 else "info", "teams",
+                           ("rank", overall, 30)))
     rest = change.drop(labels=["Net rating"], errors="ignore")
     if len(rest):
         worst, best = rest.idxmax(), rest.idxmin()
         out.append(Verdict(f"Worst after halftime: {_lower(worst)}", f"{ordinal(int(rest[worst]))} of 30",
-                           f"Only {30 - int(rest[worst])} teams fall off more on this after halftime.", "bad", "ranks"))
+                           f"Only {30 - int(rest[worst])} teams fall off more on this after halftime.", "bad", "ranks",
+                           ("rank", int(rest[worst]), 30)))
         out.append(Verdict(f"Holds up best: {_lower(best)}", f"{ordinal(int(rest[best]))} of 30",
-                           "Their best change after halftime, compared with the other 29 teams.", "good", "ranks"))
+                           "Their best change after halftime, compared with the other 29 teams.", "good", "ranks",
+                           ("rank", int(rest[best]), 30)))
     return out
 
 

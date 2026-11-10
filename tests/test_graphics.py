@@ -51,3 +51,25 @@ def test_turnover_strip_one_square_per_turnover():
     squares = [r for r in root.iter("{http://www.w3.org/2000/svg}rect") if r.get("width") == "26"]
     assert len(squares) == 38
     assert sum(r.get("fill") == G.DARK.focus for r in squares) == 8
+
+
+def test_mini_pictures():
+    dots = _svg(G.mini(("dots", 4, 6), "bad"))
+    circles = list(dots.iter("{http://www.w3.org/2000/svg}circle"))
+    assert len(circles) == 6 and sum(c.get("fill") == G.DARK.bad for c in circles) == 4
+    rank = _svg(G.mini(("rank", 24, 30), "bad"))
+    big = [c for c in rank.iter("{http://www.w3.org/2000/svg}circle") if c.get("r") == "7"]
+    assert len(big) == 1
+    for viz in (("pair", 0.58, 0.52, "1st", "2nd"), ("share", 0.35, 0.40), ("diverge", (0.7, -4.6), ("a", "b"))):
+        _svg(G.mini(viz, "warn"))  # well-formed
+    assert G.mini(("nope",)) == ""
+
+
+def test_scoreboard_and_ball_ladder():
+    texts = _texts(G.scoreboard("LAC", "MIA", [24, 43, 20, 20, 9], [33, 19, 26, 29, 10], False))
+    assert {"Q1", "Q4", "OT", "2ND HALF", "FINAL"} <= set(texts)
+    assert "116" in texts and "117" in texts and "40" in texts and "55" in texts  # finals; 2nd halves
+    ladder = _svg(G.ball_ladder([("Garland", 5.0, 4.0), ("Lopez", 10.0, 12.0)]))
+    reds = [c for c in ladder.iter("{http://www.w3.org/2000/svg}circle") if c.get("fill") == G.DARK.bad]
+    balls = list(ladder.iter("{http://www.w3.org/2000/svg}circle"))
+    assert len(reds) == 2 and len(balls) == 4 + 12

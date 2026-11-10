@@ -50,14 +50,16 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 .tldr {border-left: 4px solid #d95926; padding: .2rem 0 .2rem 1rem; margin: .6rem 0 .4rem 0}
 .tldr li {margin-bottom: .35rem; font-size: 1.05rem}
 .vcards {display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .8rem; margin: .4rem 0 1rem 0}
-.vcard {display: block; text-decoration: none !important; color: inherit !important; background: #1f1f1d;
-        border-radius: 10px; border-left: 5px solid #898781; padding: .85rem 1rem; transition: transform .12s}
-.vcard:hover {transform: translateY(-2px); background: #262624}
-.v-title {font-weight: 700; font-size: 1rem; line-height: 1.25}
-.v-big {font-size: 1.9rem; font-weight: 800; line-height: 1.15; margin: .35rem 0 .2rem 0}
-.v-small {font-size: .86rem; opacity: .72; line-height: 1.3}
-.gfx svg {width: 100%; height: auto; display: block}
-.gfx {margin: .3rem 0 .6rem 0}
+.vcard {display: flex; flex-direction: column; gap: .15rem; text-decoration: none !important; color: inherit !important;
+        background: linear-gradient(180deg, #22221f 0%, #1b1b19 100%); border: 1px solid #2c2c29; border-radius: 14px;
+        padding: .9rem 1rem .85rem 1rem; transition: transform .12s, border-color .12s}
+a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
+.v-title {font-weight: 650; font-size: .9rem; line-height: 1.25; opacity: .8}
+.v-dot {display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-right: .4rem;
+        vertical-align: .08rem}
+.v-big {font-size: 1.95rem; font-weight: 800; line-height: 1.1; margin: .15rem 0 .1rem 0; letter-spacing: -.01em}
+.v-mini svg {width: 100%; max-width: 260px; height: 40px; display: block; margin: .15rem 0 .25rem 0}
+.v-small {font-size: .84rem; opacity: .7; line-height: 1.32}
 .takeaway {font-size: 1.18rem; margin: .2rem 0 .8rem 0}
 .page-sub {opacity: .75; font-size: 1.05rem; margin-top: -.6rem; margin-bottom: .8rem}
 </style>
@@ -312,10 +314,13 @@ def page_answer() -> None:
         answer_cards([
             W.Verdict("Early leads blown", f"{int(cur['blown_leads'])} of {cur_leads}",
                       f"Last season: {int(prev['blown_leads'])} of {prev_leads} "
-                      f"({prev['blown_leads'] / max(prev_leads, 1):.0%}).", "bad", "changes"),
+                      f"({prev['blown_leads'] / max(prev_leads, 1):.0%}).", "bad", "changes",
+                      ("pair", prev["blown_leads"] / max(prev_leads, 1), cur["blown_leads"] / max(cur_leads, 1),
+                       "last year", "now")),
             W.Verdict("Second halves, a game", signed(cur["margin_h2_per_game"]),
                       f"Last season: {signed(prev['margin_h2_per_game'])} a game.", "bad"
-                      if cur["margin_h2_per_game"] < prev["margin_h2_per_game"] else "good", "changes"),
+                      if cur["margin_h2_per_game"] < prev["margin_h2_per_game"] else "good", "changes",
+                      ("diverge", (prev["margin_h2_per_game"], cur["margin_h2_per_game"]), ("last year", "now"))),
         ] + [W.Verdict(title, " · ".join(names), sub, tone, "changes")
              for title, names, sub, tone in (
                  ("New this season", new, "Worse than last season by a point a game or more.", "bad"),
@@ -388,13 +393,17 @@ def _minus(text: str) -> str:
 
 def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None = None) -> None:
     """Short-headline cards with one big number each; with ``link`` a click jumps to the card's section."""
-    cards = [W.Verdict(c.title, _minus(c.big), _minus(c.small), c.tone, c.anchor) for c in cards]
+    cards = [W.Verdict(c.title, _minus(c.big), _minus(c.small), c.tone, c.anchor, c.viz) for c in cards]
     big_style = f' style="font-size:{big_size}"' if big_size else ""
     html = "".join(
         (f'<a class="vcard" href="#{c.anchor}"' if link else '<div class="vcard"')
-        + f' style="border-left-color:{TONE_COLOR.get(c.tone, GRAY)}">'
-        f'<div class="v-title">{c.title}</div><div class="v-big"{big_style}>{c.big}</div>'
-        f'<div class="v-small">{c.small}</div>' + ("</a>" if link else "</div>")
+        + ">"
+        + (f'<div class="v-title">{c.title}</div>' if c.viz else
+           f'<div class="v-title"><span class="v-dot" style="background:{TONE_COLOR.get(c.tone, GRAY)}"></span>'
+           f'{c.title}</div>')
+        + f'<div class="v-big"{big_style}>{c.big}</div>'
+        + (f'<div class="v-mini">{G.mini(c.viz, c.tone)}</div>' if c.viz else "")
+        + f'<div class="v-small">{c.small}</div>' + ("</a>" if link else "</div>")
         for c in cards)
     st.markdown(f'<div class="vcards">{html}</div>', unsafe_allow_html=True)
 
@@ -669,7 +678,7 @@ def page_whatnow() -> None:
         st.markdown("**How much of the team is new**")
         answer_cards([W.Verdict("Minutes from players who were here last season", f"{chem.continuity:.0%}",
                                 f"New this season: {', '.join(n.split(' ', 1)[-1] for n in chem.new[:5]) or 'nobody'}.",
-                                "info", "chemistry")], link=False)
+                                "info", "chemistry", ("share", chem.continuity, None))], link=False)
     with right:
         if len(p):
             show_p = pd.concat([p.head(5), p.tail(5)]).drop_duplicates(subset=["a_id", "b_id"]).sort_values("pm")
@@ -849,7 +858,14 @@ def page_replay() -> None:
                               & data.game_halves["split"].astype(str).isin(["H1", "H2"])]
     att = D.game_attribution(data.game_halves, gid)
 
-    answer_cards(S.game_cards(row, halves, data.turnovers, focus_last), link=False)
+    mq = D.game_margin(data.margins, gid).groupby("period")[["team_score", "opp_score"]].max()
+    team_q = mq["team_score"].diff().fillna(mq["team_score"]).astype(int).tolist()
+    opp_q = mq["opp_score"].diff().fillna(mq["opp_score"]).astype(int).tolist()
+    board, tile = st.columns([3.2, 1], gap="medium", vertical_alignment="center")
+    with board:
+        picture(G.scoreboard("LAC", row["opponent_abbreviation"], team_q, opp_q, row["final_margin"] > 0))
+    with tile:
+        answer_cards([S.game_cards(row, halves, data.turnovers, focus_last)[-1]], link=False)
     with st.container(border=True):
         tag = S.LEAD_TAG.get(row["lead_class"], "")
         if tag:
@@ -971,8 +987,13 @@ def page_players() -> None:
         st.caption("Orange longer than gray = more than his share of turnovers. Click a player to see his games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
-                "Each line goes from a player's first half (blue) to his second half (orange). Further right = "
-                "more of his plays end in a turnover.")
+                "Each row is one player after halftime: count the balls to his red one, and that's how many plays "
+                "he gets per turnover. Fewer balls = sloppier.")
+        wl = ph.pivot(index="player_name", columns="split", values="tov_pct")
+        every = lambda v: 1 / v if v and v > 0 else 99.0  # noqa: E731
+        ladder = sorted(((n_.split(" ", 1)[-1], every(wl.loc[n_, "H1"]), every(wl.loc[n_, "H2"])) for n_ in wl.index),
+                        key=lambda r_: r_[2])
+        picture(G.ball_ladder(ladder), max_width="980px")
         w = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2")
         tov = ph.pivot(index="player_name", columns="split", values="tov").reindex(w.index)
         fig = go.Figure()
@@ -987,10 +1008,10 @@ def page_players() -> None:
                               "<extra>" + label + "</extra>"))
         fig.update_xaxes(tickformat=".0%", title="Turnover rate (share of a player's plays that end in a turnover)")
         fig.update_yaxes(tickvals=list(w.index), ticktext=[f"<b>{n}</b>" if n == focus else n for n in w.index])
-        show(fig, 80 + 40 * len(w))
-        with st.expander("Details"):
+        with st.expander("Details: the same numbers as a before/after chart"):
             st.markdown("Players with 40+ minutes in each half. Hover for the counts: a big jump on very few plays can "
                         "be a couple of bad possessions.")
+            show(fig, 80 + 40 * len(w))
 
         section("One player, game by game", "one")
         player = st.selectbox("Player", names, key="player_pick")

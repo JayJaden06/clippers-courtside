@@ -239,3 +239,139 @@ def turnover_strip(own: int, second: int, no_steal: int, c: Ink = DARK) -> str:
     return _svg(per_row * (cell + gap), y - 10, "".join(body),
                 f"{total} turnovers: {own} stolen by his own defender, {second} by a second defender, "
                 f"{no_steal} with no steal.")
+
+
+# ------------------------------------------------------------------ mini pictures for the stat tiles
+
+TONES = {"good": "good", "bad": "bad", "warn": "focus", "info": "gray"}
+
+
+def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
+    """A small picture of one number, drawn inside a stat tile (240 x 40).
+
+    - ``("dots", k, n)``: n dots, the first k filled ("4 of 6 leads blown");
+    - ``("pair", a, b, label_a, label_b)``: two bars, before and after ("58% -> 52%");
+    - ``("share", p, mark)``: a filled bar from 0 to 1, with a tick at ``mark`` (a threshold);
+    - ``("rank", r, n)``: n dots from best (right) to worst (left), the r-th one highlighted;
+    - ``("diverge", values, labels)``: bars either side of zero, blue up / red down.
+    """
+    color = getattr(c, TONES.get(tone, "gray"))
+    kind, *a = viz
+    w, h = 240, 40
+    out: list[str] = []
+    if kind == "dots":
+        k, n = int(a[0]), int(a[1])
+        r = max(3.0, min(8.0, (w - 4) / max(n, 1) / 2 - 2))
+        step = min((w - 2 * r) / max(n - 1, 1), 2 * r + 7) if n > 1 else 0
+        out += [f'<circle cx="{r + 1 + i * step:.1f}" cy="20" r="{r:.1f}" '
+                + (f'fill="{color}"/>' if i < k else f'fill="none" stroke="{c.muted}" stroke-width="1.5"/>')
+                for i in range(n)]
+    elif kind == "pair":
+        va, vb, la, lb = float(a[0]), float(a[1]), str(a[2]), str(a[3])
+        top = max(abs(va), abs(vb), 1e-9)
+        for y, v, label, fill in ((4, va, la, c.gray), (23, vb, lb, color)):
+            out.append(_text(0, y + 11, label, 11, c.muted, anchor="start"))
+            out.append(f'<rect x="52" y="{y}" width="{max(3.0, 184 * abs(v) / top):.1f}" height="13" rx="3" '
+                       f'fill="{fill}"/>')
+    elif kind == "share":
+        p = float(a[0])
+        mark = float(a[1]) if len(a) > 1 and a[1] is not None else None
+        out.append(f'<rect x="0" y="14" width="{w}" height="12" rx="6" fill="{c.empty}"/>')
+        out.append(f'<rect x="0" y="14" width="{max(6.0, w * min(max(p, 0), 1)):.1f}" height="12" rx="6" '
+                   f'fill="{color}"/>')
+        if mark is not None:
+            x = w * mark
+            out.append(f'<line x1="{x:.1f}" y1="6" x2="{x:.1f}" y2="34" stroke="{c.ink}" stroke-width="2"/>')
+    elif kind == "rank":
+        r_, n = int(a[0]), int(a[1])
+        step = (w - 16) / max(n - 1, 1)
+        for i in range(1, n + 1):
+            x = w - 8 - (i - 1) * step  # 1st on the right
+            out.append(f'<circle cx="{x:.1f}" cy="16" r="{7 if i == r_ else 3}" '
+                       f'fill="{color if i == r_ else c.empty}"/>')
+        out.append(_text(w - 2, 38, "best", 10, c.muted, anchor="end"))
+        out.append(_text(2, 38, "worst", 10, c.muted, anchor="start"))
+    elif kind == "diverge":
+        values, labels = list(a[0]), list(a[1])
+        lim = max([abs(v) for v in values] + [1e-9])
+        slot = w / len(values)
+        out.append(f'<line x1="0" y1="20" x2="{w}" y2="20" stroke="{c.muted}" stroke-width="1"/>')
+        for i, (v, label) in enumerate(zip(values, labels)):
+            x = i * slot + slot * 0.3
+            hgt = max(2.0, 17 * abs(v) / lim)
+            y = 20 - hgt if v >= 0 else 20
+            out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{slot * 0.4:.1f}" height="{hgt:.1f}" rx="2" '
+                       f'fill="{c.good if v > 0 else c.bad if v < 0 else c.gray}"/>')
+            out.append(_text(x + slot * 0.2, 38 if v >= 0 else 10, label, 9, c.muted))
+    else:
+        return ""
+    return (f'<svg class="mini" viewBox="0 0 {w} {h}" preserveAspectRatio="xMinYMid meet" aria-hidden="true" '
+            f'xmlns="http://www.w3.org/2000/svg">{"".join(out)}</svg>')
+
+
+# ------------------------------------------------------------------ the scoreboard
+
+def scoreboard(team: str, opp: str, team_q: list[int], opp_q: list[int], won: bool, c: Ink = DARK) -> str:
+    """An arena-style scoreboard: points in each quarter (and overtime), the second half, and the final."""
+    periods = [f"Q{i}" if i <= 4 else ("OT" if i == 5 else f"{i - 4}OT") for i in range(1, len(team_q) + 1)]
+    cols = periods + ["2ND HALF", "FINAL"]
+    t2, o2 = sum(team_q[2:4]), sum(opp_q[2:4])
+    rows = [(team, team_q + [t2, sum(team_q)]), (opp, opp_q + [o2, sum(opp_q)])]
+    x0, cw = 130, 82
+    width = x0 + cw * len(cols) + 16
+    body = [f'<rect x="0" y="0" width="{width}" height="196" rx="14" fill="#0e0e0d" stroke="{c.courtline}" '
+            'stroke-width="2"/>']
+    for j, col in enumerate(cols):
+        body.append(_text(x0 + cw * j + cw / 2, 40, col, 15, c.muted, 700, spacing=1.5))
+    for i, (name, vals) in enumerate(rows):
+        y = 92 + i * 62
+        body.append(_text(26, y, name, 30, c.ink, 800, anchor="start", spacing=2))
+        for j, v in enumerate(vals):
+            other = rows[1 - i][1][j]
+            col = cols[j]
+            won_col = v > other
+            fill = c.ink if won_col else c.muted
+            if i == 0 and col in ("2ND HALF", "FINAL"):
+                fill = c.good if v > other else c.bad if v < other else c.ink
+            body.append(_text(x0 + cw * j + cw / 2, y + 2, str(v), 36 if col == "FINAL" else 30, fill,
+                              800 if won_col or col in ("2ND HALF", "FINAL") else 500))
+    for sep in (x0 + cw * 2, x0 + cw * len(periods)):  # halftime, then the totals
+        body.append(f'<line x1="{sep}" y1="18" x2="{sep}" y2="178" stroke="{c.courtline}" stroke-width="2"/>')
+    body.append(_text(x0 + cw * 2, 190, "HALFTIME", 11, c.courtline, 700, spacing=1.5))
+    body.append(f'<line x1="20" y1="122" x2="{width - 20}" y2="122" stroke="{c.empty}" stroke-width="1.5"/>')
+    return _svg(width, 200, "".join(body),
+                f"Scoreboard: {team} {sum(team_q)}, {opp} {sum(opp_q)}. Second half {t2}-{o2}. "
+                f"{'Won' if won else 'Lost'}.")
+
+
+# ------------------------------------------------------------------ 1 in N, as basketballs
+
+def _ball(cx: float, cy: float, r: float, fill: str, line: str) -> str:
+    return (f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{fill}"/>'
+            f'<path d="M{cx - r:.1f} {cy:.1f} H{cx + r:.1f} M{cx:.1f} {cy - r:.1f} V{cy + r:.1f}" '
+            f'stroke="{line}" stroke-width="1.2" fill="none"/>')
+
+
+def ball_ladder(rows: list[tuple[str, float, float]], c: Ink = DARK, max_balls: int = 25) -> str:
+    """One row per player: N basketballs, one red, for '1 turnover every N plays' after halftime.
+
+    ``rows``: (name, plays per turnover before halftime, plays per turnover after halftime).
+    """
+    r, step, x0, row_h = 9.5, 23, 190, 44
+    body = [_text(x0, 22, "After halftime: one turnover every … plays", 15, c.muted, 700, anchor="start"),
+            _text(x0 + step * max_balls + 40, 22, "Before halftime", 15, c.muted, 700, anchor="start")]
+    for i, (name, before, after) in enumerate(rows):
+        y = 58 + i * row_h
+        n = max(1, round(after))
+        body.append(_text(x0 - 16, y + 6, name, 17, c.ink, 700, anchor="end"))
+        for k in range(min(n, max_balls)):
+            body.append(_ball(x0 + r + k * step, y, r, c.bad if k == 0 else c.empty, "#1a1a19" if k == 0 else c.gray))
+        label = f"{n}" + ("+" if n > max_balls else "")
+        body.append(_text(x0 + min(n, max_balls) * step + 8, y + 6, label, 17, c.bad if n <= 5 else c.ink, 800,
+                          anchor="start"))
+        b = f"every {before:.0f}" if before == before and before > 0 else "no turnovers"
+        body.append(_text(x0 + step * max_balls + 40, y + 6, b, 16, c.muted, anchor="start"))
+    width = x0 + step * max_balls + 180
+    return _svg(width, 40 + row_h * len(rows), "".join(body),
+                "How often each player's second-half plays end in a turnover: "
+                + "; ".join(f"{name} one in {after:.0f}" for name, _, after in rows))

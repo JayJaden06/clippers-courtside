@@ -175,12 +175,13 @@ def test_player_and_league_cards():
     cards = S.player_cards(ph, "A Guard")
     assert [c.title for c in cards] == ["Most turnovers after halftime: Guard", "Sloppiest after halftime: Guard",
                                         "Safest with the ball: Wing"]
-    assert cards[2].big == "1 in 20"
+    assert cards[2].big == "1 in 20" and cards[2].viz == ("dots", 1, 20)
 
     ranks = pd.DataFrame({"1st half": [15, 3, 23], "2nd half": [25, 19, 20], "change": [24, 28, 12]},
                          index=["Net rating", "Shooting accuracy (eFG%)", "Offensive rebounding"])
     lc = S.league_cards(ranks)
     assert [c.big for c in lc] == ["24th of 30", "28th of 30", "12th of 30"]
+    assert [c.viz for c in lc] == [("rank", 24, 30), ("rank", 28, 30), ("rank", 12, 30)]
     assert lc[1].title == "Worst after halftime: shooting accuracy (eFG%)"
 
 
@@ -191,9 +192,10 @@ def test_game_cards():
                         "player_name": ["Garland", "Dunn", "Other"]})
     cards = S.game_cards(row, halves, tov, "Garland")
     assert [c.big for c in cards] == ["+7", "-10", "-3", "2"]
-    assert cards[3].small == "Most: Dunn and Garland (1 each)." and cards[2].tone == "bad"
+    assert cards[3].small == "Most: Dunn and Garland (1 each). Filled dots: Garland's." and cards[2].tone == "bad"
+    assert cards[3].viz == ("dots", 1, 2)
     tov2 = pd.concat([tov, tov.iloc[[1]]])  # Dunn now has 2
-    assert S.game_cards(row, halves, tov2, "Garland")[3].small == "Most: Dunn (2). Garland had 1."
+    assert S.game_cards(row, halves, tov2, "Garland")[3].small.startswith("Most: Dunn (2). Garland had 1.")
 
 
 def _ft(rows):

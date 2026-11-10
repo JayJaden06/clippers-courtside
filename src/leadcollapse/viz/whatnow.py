@@ -623,12 +623,18 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
 
 @dataclass
 class Verdict:
-    """One answer card: a short headline, one big number, one line of context."""
+    """One answer tile: a short headline, one big number, a small picture of it, one line of context.
+
+    ``viz`` (optional) describes the picture; see ``leadcollapse.viz.graphics.mini``:
+    ``("dots", k, n)``, ``("pair", before, after, label_before, label_after)``, ``("share", p, mark)``,
+    ``("rank", r, n)`` or ``("diverge", (value, ...), (label, ...))``.
+    """
     title: str
     big: str
     small: str
     tone: str  # "good", "bad", "warn" or "info"
     anchor: str  # section to jump to
+    viz: tuple | None = None
 
 
 def _last(name: str) -> str:
@@ -647,35 +653,40 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
             "Keep the starting five" if sf.not_the_problem else "Rethink the starting five",
             f"{sf.h2_pm / n:+.1f} vs {sf.rest_h2_pm / n:+.1f}",
             "Points a game after halftime: the five starters on the floor together vs every other lineup",
-            "good" if sf.not_the_problem else "bad", "starters"))
+            "good" if sf.not_the_problem else "bad", "starters",
+            ("diverge", (sf.h2_pm / n, sf.rest_h2_pm / n), ("starters", "others"))))
     if bl is not None:
         out.append(Verdict(
             f"{last}: less ball after halftime, for now" if bl.should_handle_less else f"{last}'s workload is fine",
             f"{bl.tov_pct_h2:.0%}", f"of {last}'s plays after halftime end in a turnover. Last season it was "
             f"{bl.prior_tov_pct_h2:.0%}.",
-            "bad" if bl.should_handle_less else "good", "garland"))
+            "bad" if bl.should_handle_less else "good", "garland",
+            ("pair", bl.prior_tov_pct_h2, bl.tov_pct_h2, "last year", "now")))
     if pr is not None:
         if pr.trapped:
             out.append(Verdict(f"Teams are trapping {last}", f"{pr.help_share:.0%}",
                                f"of {last}'s turnovers are stolen by a second defender, not the one guarding him "
                                f"(teammates: {pr.mates_help_share:.0%})",
-                               "bad", "garland"))
+                               "bad", "garland", ("share", pr.help_share, pr.mates_help_share)))
         elif pr.length_problem:
             out.append(Verdict(f"{last} struggles against bigger defenders", f"{pr.tov100_long / pr.tov100_short:.1f}x",
                                f"as many turnovers when the player guarding {last} is {_ft_in(LONG_IN)} or taller. "
                                "Last season the defender's height made no difference. It's not double teams.",
-                               "warn", "garland"))
+                               "warn", "garland", ("pair", pr.tov100_short, pr.tov100_long, "shorter",
+                                                   f"{_ft_in(LONG_IN)}+")))
     shooters = [c for c in cands if "threes" in c.helps and not c.small_sample]
     if shooters:
         out.append(Verdict("Biggest fix: the shooters coming back",
                            " · ".join(f"{c.fg3_pct:.0%}" for c in shooters),
                            f"Three-point shooting after halftime for {_names([_last(c.name) for c in shooters])} "
-                           f"(last full season). The Clippers shoot {sd.team_fg3_h2:.0%} now.", "good", "returning"))
+                           f"(last full season). The Clippers shoot {sd.team_fg3_h2:.0%} now.", "good", "returning",
+                           ("pair", sd.team_fg3_h2, max(c.fg3_pct for c in shooters), "LAC now",
+                            _last(max(shooters, key=lambda c: c.fg3_pct).name)[:9])))
     if gl is not None and gl.worse:
         out.append(Verdict("Finish possessions with a rebound", f"{gl.opp_oreb_h2:.0%}",
                            f"of their own missed shots the other team rebounds after halftime. Last season it was "
                            f"{gl.prior_opp_oreb_h2:.0%}.",
-                           "bad", "defense"))
+                           "bad", "defense", ("pair", gl.prior_opp_oreb_h2, gl.opp_oreb_h2, "last year", "now")))
     if defense is not None and rot is not None and len(defense.table):
         q4 = rot.set_index("player_id")["q4_mpg"]
         small = defense.table[defense.table["gives_up_size"]].copy()
@@ -685,7 +696,7 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
             out.append(Verdict(f"{who} gets out-muscled", f"{r['own_wt']:.0f} vs {r['opp_wt']:.0f} lb",
                                f"{who}'s weight vs the average weight of the players {who} guards. They shoot "
                                f"{r['fg_pct']:.0%} against {who}.",
-                               "warn", "defense"))
+                               "warn", "defense", ("pair", r["own_wt"], r["opp_wt"], who[:9], "guards")))
     if rot is not None and len(rot):
         more = rot[rot["earned"]]
         less = rot[rot["struggling"]]
@@ -694,11 +705,13 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
                                " · ".join(f"{v:+.0f}" for v in more["h2_on_off"]),
                                "More points per 100 trips down the floor when they play after halftime than when "
                                "they sit. Small samples.",
-                               "good", "minutes"))
+                               "good", "minutes", ("diverge", tuple(more["h2_on_off"]),
+                                                   tuple(_last(x)[:8] for x in more["player_name"]))))
         if len(less):
             out.append(Verdict("Fewer late minutes: " + ", ".join(_last(x) for x in less["player_name"]),
                                " · ".join(f"{v:+.0f}" for v in less["h2_pm_pg"]),
                                "Points a game the Clippers lose while each of them is on the floor after halftime, "
                                "in that order.",
-                               "bad", "minutes"))
+                               "bad", "minutes", ("diverge", tuple(less["h2_pm_pg"]),
+                                                  tuple(_last(x)[:8] for x in less["player_name"]))))
     return out
