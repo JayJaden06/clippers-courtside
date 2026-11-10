@@ -205,6 +205,75 @@ def size_matchup(name: str, height_in: float, weight_lb: float, opp_height_in: f
                 f"Opponents shoot {fg_allowed:.0%} against him.")
 
 
+# ------------------------------------------------------------------ the shot map
+
+ZONE_SPOTS = {"At the rim": (0, 26), "Short range": (0, 112), "Mid-range": (-150, 150), "Three": (0, 300)}
+
+
+def _half_court(c: Ink) -> str:
+    """NBA half court in shot-chart units (tenths of a foot), basket at (0, 0), drawn 500 x 470 with the
+    basket near the top. Translate by (250, 52.5) to place it."""
+    ln = f'fill="none" stroke="{c.courtline}" stroke-width="2.5"'
+    corner = 89.5  # where the 22-ft corner three meets the 23.75-ft arc
+    return "".join([
+        f'<rect x="-250" y="-52.5" width="500" height="470" rx="4" fill="{c.floor}"/>',
+        f'<rect x="-250" y="-52.5" width="500" height="470" rx="4" {ln}/>',
+        f'<rect x="-80" y="-52.5" width="160" height="190" {ln}/>',
+        f'<circle cx="0" cy="137.5" r="60" {ln}/>',
+        f'<path d="M-40 0 A40 40 0 0 0 40 0" {ln}/>',
+        f'<line x1="-30" y1="-7.5" x2="30" y2="-7.5" {ln}/>',
+        f'<circle cx="0" cy="0" r="7.5" fill="none" stroke="{c.focus}" stroke-width="2.5"/>',
+        f'<line x1="-220" y1="-52.5" x2="-220" y2="{corner}" {ln}/>',
+        f'<line x1="220" y1="-52.5" x2="220" y2="{corner}" {ln}/>',
+        f'<path d="M-220 {corner} A237.5 237.5 0 0 0 220 {corner}" {ln}/>',
+        f'<path d="M-60 417.5 A60 60 0 0 1 60 417.5" {ln}/>',
+    ])
+
+
+def shot_map(before: list[tuple[int, int, bool]], after: list[tuple[int, int, bool]],
+             zones: list[tuple[str, float, float, int, int]], c: Ink = DARK) -> str:
+    """Every shot before and after halftime on two half courts: made = filled dot, missed = small ring.
+
+    ``before``/``after`` are (loc_x, loc_y, made); ``zones`` are (zone, pct_before, pct_after, n_before,
+    n_after). Each court labels each zone with its percentage; the second court adds the change, orange
+    when it fell and blue when it rose.
+    """
+    body = []
+    for i, (title, shots, color) in enumerate((("Before halftime", before, c.muted),
+                                               ("After halftime", after, c.focus))):
+        ox = 250 + i * 560
+        body.append(_text(ox, 34, title, 26, c.ink, 700))
+        g = [_half_court(c)]
+        for x, y, made in shots:
+            if y > 410:
+                continue
+            g.append(f'<circle cx="{x}" cy="{y}" r="5.5" fill="{color}" fill-opacity="0.85"/>' if made else
+                     f'<circle cx="{x}" cy="{y}" r="4" fill="none" stroke="{c.muted}" stroke-opacity="0.45" '
+                     'stroke-width="1.5"/>')
+        for zone, p0, p1, n0, n1 in zones:
+            zx, zy = ZONE_SPOTS[zone]
+            pct = p1 if i else p0
+            change = p1 - p0
+            sub = (f"{zone.lower()} · {'▼' if change < 0 else '▲'} {abs(change) * 100:.0f}"
+                   if i and abs(change) >= 0.005 else zone.lower())
+            sub_color = (c.bad if change < 0 else c.good) if i and abs(change) >= 0.005 else c.ink
+            g += [f'<rect x="{zx - 78}" y="{zy - 30}" width="156" height="56" rx="10" fill="{c.floor}" '
+                  'fill-opacity="0.88"/>',
+                  _text(zx, zy + 2, f"{pct:.0%}", 30, c.ink, 800),
+                  _text(zx, zy + 20, sub, 14, sub_color, 600)]
+        body.append(f'<g transform="translate({ox},{80 + 52.5})">{"".join(g)}</g>')
+    legend_y = 80 + 470 + 34
+    body += [f'<circle cx="380" cy="{legend_y - 5}" r="6" fill="{c.focus}"/>',
+             _text(394, legend_y, "made", 17, c.muted, anchor="start"),
+             f'<circle cx="480" cy="{legend_y - 5}" r="4.5" fill="none" stroke="{c.muted}" stroke-width="1.5"/>',
+             _text(494, legend_y, "missed", 17, c.muted, anchor="start"),
+             _text(600, legend_y, "▼ ▲ = change in percentage points after halftime", 17, c.muted,
+                   anchor="start")]
+    return _svg(1060, legend_y + 14, "".join(body),
+                "Clippers shots on two half courts, before and after halftime, with the shooting percentage "
+                "in each zone: " + "; ".join(f"{z}: {p0:.0%} before, {p1:.0%} after" for z, p0, p1, _, _ in zones))
+
+
 # ------------------------------------------------------------------ 100 missed shots
 
 def _waffle(x0: float, y0: float, n: int, color: str, c: Ink, cell: int = 22, gap: int = 4) -> str:

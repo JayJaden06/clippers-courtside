@@ -83,3 +83,12 @@ def test_figures_can_wear_the_players_face():
     tall = G.height_matchup("Garland", 73, 192, 11, 24, 25, 22, photo=url)
     assert tall.count(f'href="{url}"') == 2  # one face per panel, each with its own clip id
     assert len(set(re.findall(r'clipPath id="(\w+)"', tall))) == 2
+
+
+def test_shot_map_draws_every_shot_and_each_zone():
+    before = [(0, 10, True), (-200, 50, False), (100, 260, True)]
+    after = [(0, 12, False), (150, 250, False)]
+    zones = [("At the rim", 0.5, 0.0, 2, 1), ("Three", 1.0, 0.0, 1, 1)]
+    svg = G.shot_map(before, after, zones)
+    assert svg.count("<circle") >= len(before) + len(after)
+    assert "50%" in svg and "▼ 100" in svg and "After halftime" in svg
