@@ -1521,33 +1521,73 @@ def page_league() -> None:
     cr = D.clippers_ranks(data.ranks, season_l)
     answer_cards(S.league_cards(cr))
     section("How every team changes after halftime", "teams",
-            "Pick a stat. Right = better after halftime than before it, left = worse. Clippers in orange.")
+            "Pick a stat. Each logo is a team: <b>left = worse after halftime, right = better</b>; higher = "
+            "better in first halves. Clippers ringed in orange.")
     metric = st.pills("Stat", list(stat_names), default="net_rtg", format_func=stat_names.get, key="league_metric")
     metric = metric or "net_rtg"
-    lv = D.league_view(data.ranks, season_l, metric, "change")
     flip = D.better_direction(metric) == "lower is better"
-    lv = lv.assign(shown=-lv["value"] if flip else lv["value"]).sort_values("shown")
+    sign = -1 if flip else 1  # so right and up always mean better
+    ch = D.league_view(data.ranks, season_l, metric, "change").set_index("team_name")
+    h1 = D.league_view(data.ranks, season_l, metric, "H1").set_index("team_name")
+    ids = data.ranks[data.ranks["season"] == season_l].drop_duplicates("team_name").set_index("team_name")["team_id"]
+    q = ch.join(h1[["value", "league_mean"]].add_suffix("_h1")).assign(team_id=ids)
+    q["x"] = sign * q["value"]
+    q["y"] = sign * (q["value_h1"] - q["league_mean_h1"])
     pct = metric not in ("net_rtg", "tov_pct")
+    scale = 100 if pct else 1
     fmt = (lambda v: f"{signed(v * 100)} pts") if pct else (lambda v: signed(v))
-    fig = go.Figure(go.Bar(
-        x=lv["shown"], y=lv["team_name"], orientation="h",
-        marker_color=[FOCUS if t else MUTED_BAR for t in lv["is_team"]],
-        customdata=np.column_stack([lv["rank"], [fmt(v) for v in lv["value"]]]),
-        hovertemplate="<b>%{y}</b><br>Change after halftime: %{customdata[1]}<br>%{customdata[0]} of 30"
-                      "<extra></extra>"))
+    q[["x", "y"]] *= scale
+    xr = float(q["x"].abs().max()) * 1.18 or 1
+    yr = float(q["y"].abs().max()) * 1.22 or 1
+    fig = go.Figure()
+    corner = dict(showarrow=False, font=dict(size=13, color=INK_MARK), opacity=0.75)
+    for x_, y_, xa, ya, text in ((-xr, yr, "left", "top", "Strong starts, fade late"),
+                                 (xr, yr, "right", "top", "Strong, and get stronger"),
+                                 (-xr, -yr, "left", "bottom", "Slow starts, get worse"),
+                                 (xr, -yr, "right", "bottom", "Slow starts, finish strong")):
+        fig.add_annotation(x=x_, y=y_, xanchor=xa, yanchor=ya, text=f"<b>{text}</b>", **corner)
+    fig.add_shape(type="rect", x0=-xr, x1=0, y0=-yr, y1=yr, fillcolor="rgba(230,103,103,0.06)", line_width=0,
+                  layer="below")
+    fig.add_shape(type="rect", x0=0, x1=xr, y0=-yr, y1=yr, fillcolor="rgba(57,135,229,0.06)", line_width=0,
+                  layer="below")
     fig.add_vline(x=0, line=dict(color=GRAY, width=1))
-    fig.update_yaxes(tickvals=list(lv["team_name"]),
-                     ticktext=[f"<b>{n}</b>" if t else n for n, t in zip(lv["team_name"], lv["is_team"])])
-    fig.update_xaxes(showticklabels=False, title="← worse after halftime        better after halftime →")
-    row = lv[lv["is_team"]].iloc[0]
+    fig.add_hline(y=0, line=dict(color=GRAY, width=1, dash="dot"))
+    lac = q[q["is_team"]]
+    fig.add_trace(go.Scatter(x=lac["x"], y=lac["y"], mode="markers", hoverinfo="skip", showlegend=False,
+                             marker=dict(size=46, color="rgba(0,0,0,0)", line=dict(color=FOCUS, width=3))))
+    fig.add_trace(go.Scatter(
+        x=q["x"], y=q["y"], mode="markers", showlegend=False, marker=dict(size=30, opacity=0),
+        customdata=np.column_stack([q.index, [fmt(v) for v in q["value"]], q["rank"],
+                                    [fmt(v) for v in q["value_h1"]], [fmt(v) for v in q["league_mean_h1"]]]),
+        hovertemplate="<b>%{customdata[0]}</b><br>Change after halftime: %{customdata[1]} "
+                      "(%{customdata[2]} of 30)<br>First halves: %{customdata[3]} (league %{customdata[4]})"
+                      "<extra></extra>"))
+    for name, r_ in q.iterrows():
+        fig.add_layout_image(source=D.logo_url(int(r_["team_id"])), xref="x", yref="y", x=r_["x"], y=r_["y"],
+                             xanchor="center", yanchor="middle", sizex=xr * 0.11, sizey=yr * 0.11,
+                             sizing="contain", layer="above")
+    fig.update_xaxes(range=[-xr, xr], showticklabels=False, showgrid=False,
+                     title="← worse after halftime            better after halftime →")
+    fig.update_yaxes(range=[-yr, yr], showticklabels=False, showgrid=False,
+                     title="← worse first halves      better first halves →")
+    row = q[q["is_team"]].iloc[0]
     left, right = st.columns([2, 1], gap="large")
     with left:
-        show(fig, 720)
+        show(fig, 620)
+        st.caption("Center lines: no change at halftime (solid), league-average first half (dotted). Hover a logo "
+                   "for the numbers.")
     with right:
         st.metric(f"Clippers: {stat_names[metric]}", f"{ordinal(int(row['rank']))} of 30", border=True,
                   help="Rank of the change from first half to second half. 1st = improves the most.")
         st.metric("Clippers' change", fmt(row["value"]), border=True,
                   help=f"League average change: {fmt(row['league_mean'])}.")
+        with st.expander("Every team, ranked"):
+            ranked = q.sort_values("rank").reset_index()
+            st.dataframe(pd.DataFrame({"logo": [D.logo_url(int(t)) for t in ranked["team_id"]],
+                                       "Team": ranked["team_name"], "Rank": ranked["rank"],
+                                       "Change": [fmt(v) for v in ranked["value"]]}),
+                         hide_index=True, width="stretch",
+                         column_config={"logo": st.column_config.ImageColumn("", width="small")})
 
     section("Where the Clippers rank on everything", "ranks",
             "Blue dot = their league rank in first halves, orange = second halves. Right = better.")
