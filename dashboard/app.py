@@ -67,6 +67,16 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .v-img {width: 74px; height: 54px; object-fit: cover; object-position: top; border-radius: 10px;
          background: #2c2c29; margin-bottom: .35rem}
 .vcard:has(.v-img) .v-big {font-size: 1.6rem}
+[data-testid="stLayoutWrapper"]:has(> .st-key-gamebar) {position: sticky; top: 3.6rem; z-index: 60}
+.st-key-gamebar {background: #141413; padding: .35rem 0 .55rem 0; border-bottom: 1px solid #2c2c29}
+.lineup {display: flex; align-items: center; gap: .9rem; padding: .55rem .2rem; border-bottom: 1px solid #262624}
+.lineup .faces {display: flex}
+.lineup .faces img {width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: top;
+                    background: #2c2c29; border: 2px solid #141413; margin-left: -10px}
+.lineup .faces img:first-child {margin-left: 0}
+.lineup .who {flex: 1; font-size: .92rem; opacity: .85}
+.lineup .pm {font-size: 1.35rem; font-weight: 800; min-width: 4.5rem; text-align: right}
+.lineup .min {font-size: .82rem; opacity: .6; min-width: 3.5rem}
 .takeaway {font-size: 1.18rem; margin: .2rem 0 .8rem 0}
 .page-sub {opacity: .75; font-size: 1.05rem; margin-top: -.6rem; margin-bottom: .8rem}
 </style>
@@ -815,53 +825,76 @@ def page_whatnow() -> None:
                    "verdict are listed at the top of src/leadcollapse/viz/whatnow.py.")
 
 
+def _step_game(key: str, labels: list[str], step: int) -> None:
+    """Previous / next game buttons."""
+    cur = st.session_state.get(key, labels[-1])
+    i = labels.index(cur) if cur in labels else len(labels) - 1
+    st.session_state[key] = labels[max(0, min(len(labels) - 1, i + step))]
+
+
 def page_replay() -> None:
     page_top("Game report", "Every game, explained: who played well, what decided it, who guarded whom, and what "
              "needed to happen. Updates after each game.")
-    top_l, top_r = st.columns([1, 3])
-    season = top_l.selectbox("Season", data.seasons, index=0, key="game_season")
-    options = D.game_options(data.game_leads, season).iloc[::-1].reset_index(drop=True)  # oldest first
     leads = data.game_leads.set_index("game_id")
-
-    # Season strip: halftime margin -> final margin for every game.
+    g_all = data.games.set_index("game_id")
+    season = st.session_state.get("game_season", data.seasons[0])
+    if season not in data.seasons:
+        season = data.seasons[0]
+    options = D.game_options(data.game_leads, season).iloc[::-1].reset_index(drop=True)  # oldest first
     strip = leads.loc[options["game_id"]].reset_index()
+    gi = g_all.reindex(strip["game_id"])
+    labels = [f"{pd.Timestamp(d):%b} {pd.Timestamp(d).day} · {'vs' if h else '@'} {o} · {r} {int(tp)}-{int(op)}"
+              for d, h, o, r, tp, op in zip(gi["game_date"], gi["is_home"], gi["opponent_abbreviation"],
+                                            gi["result"], gi["team_pts"], gi["opp_pts"])]
     xs = pd.to_datetime(strip["game_date"]).dt.strftime("%b %d").str.replace(" 0", " ") + " " + strip[
         "opponent_abbreviation"]
-    fig = go.Figure()
-    for x, h, f, blown in zip(xs, strip["halftime_margin"], strip["final_margin"],
-                              strip["lead_class"] == "blown_lead"):
-        fig.add_trace(go.Scatter(x=[x, x], y=[h, f], mode="lines", line=dict(color=BAD if blown else LIGHT, width=3),
-                                 hoverinfo="skip", showlegend=False))
-    fig.add_trace(go.Scatter(x=xs, y=strip["halftime_margin"], mode="markers", name="At halftime",
-                             marker=dict(color=H1C, size=11, line=dict(color=BG, width=1.5)),
-                             hovertemplate="%{x}<br>At halftime: %{y:+d}<extra></extra>"))
-    fig.add_trace(go.Scatter(x=xs, y=strip["final_margin"], mode="markers", name="Final",
-                             marker=dict(color=H2C, size=11, symbol="diamond", line=dict(color=BG, width=1.5)),
-                             hovertemplate="%{x}<br>Final: %{y:+d}<extra></extra>"))
-    fig.add_hline(y=0, line=dict(color=GRAY, width=1))
-    if len(strip) > 20:
-        fig.update_xaxes(showticklabels=False)
-    top_r.markdown("**Every game: halftime (●) to final (◆).** Red = a blown early lead. *Click one to open it.*")
-    labels = [f"{x} · {r}" for x, r in zip(xs, strip["result"])]
     by_x = dict(zip(xs, labels))
-    default = len(strip) - 1  # the most recent game
     pick_key = f"pick_{season}"
-    st.session_state.setdefault(pick_key, labels[default])
+    st.session_state.setdefault(pick_key, labels[-1])  # the most recent game
     jump = st.session_state.pop("jump_game", None)
     if jump in set(strip["game_id"]):
         st.session_state[pick_key] = labels[list(strip["game_id"]).index(jump)]
-    with top_r:
-        event = show(fig, 230, key=f"strip_{season}", select=True, yaxis_title="Clippers margin")
-    x = clicked(event, "x", f"strip_click_{season}")
+    x = clicked(st.session_state.get(f"strip_{season}"), "x", f"strip_click_{season}")  # a click on the strip
     if x in by_x:
         st.session_state[pick_key] = by_x[x]
-    if len(labels) <= 16:
-        pick = st.pills("Pick a game", labels, key=pick_key)
-    else:
-        pick = st.selectbox("Pick a game", labels, key=pick_key)
-    pick = pick or labels[default]
-    gid = strip["game_id"].iloc[labels.index(pick)]
+    if st.session_state[pick_key] not in labels:
+        st.session_state[pick_key] = labels[-1]
+
+    # ---- the game picker: pinned to the top of the page while scrolling
+    with st.container(key="gamebar"):
+        c_season, c_prev, c_pick, c_next, c_logo = st.columns([1.2, 0.45, 4, 0.45, 0.5], vertical_alignment="bottom",
+                                                                gap="small")
+        c_season.selectbox("Season", data.seasons, key="game_season")
+        c_prev.button("◀", key="prev_game", on_click=_step_game, args=(pick_key, labels, -1), help="Previous game",
+                      width="stretch")
+        pick = c_pick.selectbox("Game", labels, key=pick_key)
+        c_next.button("▶", key="next_game", on_click=_step_game, args=(pick_key, labels, 1), help="Next game",
+                      width="stretch")
+        gid = strip["game_id"].iloc[labels.index(pick)]
+        c_logo.image(D.logo_url(g_all.loc[gid, "opponent_id"]), width=46)
     row = leads.loc[gid]
+    where = "Home, Intuit Dome" if bool(g_all.loc[gid, "is_home"]) else "Away"
+    st.markdown(f'<div class="kicker">{pd.Timestamp(row["game_date"]):%A, %B} {pd.Timestamp(row["game_date"]).day} · '
+                f'{where}</div>', unsafe_allow_html=True)
+
+    with st.expander("Season at a glance: every game from halftime to the final (click one to open it)"):
+        fig = go.Figure()
+        for xx, h, f, blown in zip(xs, strip["halftime_margin"], strip["final_margin"],
+                                   strip["lead_class"] == "blown_lead"):
+            fig.add_trace(go.Scatter(x=[xx, xx], y=[h, f], mode="lines",
+                                     line=dict(color=BAD if blown else LIGHT, width=3), hoverinfo="skip",
+                                     showlegend=False))
+        fig.add_trace(go.Scatter(x=xs, y=strip["halftime_margin"], mode="markers", name="At halftime",
+                                 marker=dict(color=H1C, size=11, line=dict(color=BG, width=1.5)),
+                                 hovertemplate="%{x}<br>At halftime: %{y:+d}<extra></extra>"))
+        fig.add_trace(go.Scatter(x=xs, y=strip["final_margin"], mode="markers", name="Final",
+                                 marker=dict(color=H2C, size=11, symbol="diamond", line=dict(color=BG, width=1.5)),
+                                 hovertemplate="%{x}<br>Final: %{y:+d}<extra></extra>"))
+        fig.add_hline(y=0, line=dict(color=GRAY, width=1))
+        if len(strip) > 20:
+            fig.update_xaxes(showticklabels=False)
+        show(fig, 230, key=f"strip_{season}", select=True, yaxis_title="Clippers margin")
+        st.caption("Halftime (●) to final (◆). Red = a blown early lead.")
     halves = data.game_halves[(data.game_halves["game_id"] == gid)
                               & data.game_halves["split"].astype(str).isin(["H1", "H2"])]
     att = D.game_attribution(data.game_halves, gid)
@@ -891,7 +924,8 @@ def page_replay() -> None:
     lvs = R.levers(factors, lines, sbox, game_def, season_def, game_units) if len(factors) else []
 
     # ---- the result
-    picture(G.scoreboard("LAC", opp, team_q, opp_q, row["final_margin"] > 0), max_width="980px")
+    picture(G.scoreboard("LAC", opp, team_q, opp_q, row["final_margin"] > 0, team_logo=D.logo_url(settings.team_id),
+                         opp_logo=D.logo_url(g_all.loc[gid, "opponent_id"])), max_width="980px")
     with st.container(border=True):
         tag = S.LEAD_TAG.get(row["lead_class"], "")
         if tag:
@@ -1001,16 +1035,25 @@ def page_replay() -> None:
         st.markdown(f'<div class="takeaway">Compared with their average game this season '
                     f'({signed(factors.attrs["normal_margin"])} a game), here\'s where this one was better or worse.'
                     "</div>", unsafe_allow_html=True)
-        fz = factors[factors["factor"] != "residual"].sort_values("points")
-        fig = go.Figure(go.Bar(
-            y=fz["name"], x=fz["points"], orientation="h",
-            marker_color=[GOOD if v > 0 else BAD for v in fz["points"]],
-            text=[f"{signed(v)} pts" for v in fz["points"]], textposition="outside", cliponaxis=False,
-            hovertemplate="%{y}: %{x:+.1f} points vs a normal night<extra></extra>"))
-        lim = float(fz["points"].abs().max()) * 1.4 + 1
-        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1))
-        fig.update_xaxes(range=[-lim, lim], title="Points vs their average game  (← worse · better →)")
-        show(fig, 90 + 40 * len(fz), showlegend=False)
+        fz = factors[factors["factor"] != "residual"].sort_values("points", ascending=False)
+        rest = float(factors.loc[factors["factor"] == "residual", "points"].sum())
+        normal, final = factors.attrs["normal_margin"], factors.attrs["margin"]
+        fig = go.Figure(go.Waterfall(
+            orientation="h", measure=["absolute"] + ["relative"] * len(fz) + ["relative", "total"],
+            y=["A normal night"] + list(fz["name"]) + ["Can't tell", "This game"],
+            x=[normal] + list(fz["points"]) + [rest, 0],
+            text=[signed(normal)] + [f"{signed(v)}" for v in fz["points"]] + [signed(rest), signed(final, 0)],
+            textposition="outside", cliponaxis=False, connector=dict(line=dict(color=LIGHT, width=1)),
+            increasing=dict(marker=dict(color=GOOD)), decreasing=dict(marker=dict(color=BAD)),
+            totals=dict(marker=dict(color=FOCUS)), hovertemplate="%{y}: %{x:+.1f}<extra></extra>"))
+        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1, dash="dot"))
+        fig.update_yaxes(autorange="reversed")
+        steps = [normal] + list(normal + fz["points"].cumsum())
+        lo, hi = min(steps + [final, 0]), max(steps + [final, 0])
+        fig.update_xaxes(title="Clippers margin, step by step (points)", range=[lo - 6, hi + 6])
+        show(fig, 120 + 44 * (len(fz) + 3), showlegend=False)
+        st.caption("Starts from their average game, adds what each part of this game was worth, and lands on the "
+                   "final margin.")
         if not won and lvs:
             st.markdown("**The fixes, biggest first**")
             answer_cards([W.Verdict(lv.title, f"{lv.points:.0f} pts", "; ".join(lv.suggestions) or "—",
@@ -1019,22 +1062,15 @@ def page_replay() -> None:
     # ---- who played
     st.header("Who played well", divider="gray", anchor="players")
     if len(lines):
-        ln = lines.sort_values("game_score")
-        ys = [f"{n.split(' ', 1)[-1]}{' (S)' if s_ else ''}" for n, s_ in zip(ln["player_name"], ln["starter"])]
-        fig = go.Figure(go.Bar(
-            y=ys, x=ln["game_score"], orientation="h",
-            marker_color=[GOOD if v >= 10 else BAD if v < 3 else MUTED_BAR for v in ln["game_score"]],
-            hovertemplate="%{y}: Game Score %{x:.1f}<extra></extra>"))
-        fig.add_trace(go.Scatter(  # labels to the right of each bar (or of zero), so they never hit the names
-            y=ys, x=[max(v, 0) for v in ln["game_score"]], mode="text", textposition="middle right",
-            text=[f"  {r_.game_score:.1f} · {int(r_.pts)} pts · {int(r_.reb)} reb · {int(r_.ast)} ast · "
-                  f"{int(r_.tov)} TO · {signed(r_.plus_minus, 0)}" for r_ in ln.itertuples()],
-            hoverinfo="skip", cliponaxis=False))
-        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1))
-        fig.update_xaxes(title="Game Score (a one-number box-score summary; 10+ is a good night)",
-                         range=[min(0, float(ln["game_score"].min())) - 1, float(ln["game_score"].max()) * 2.1])
-        show(fig, 90 + 30 * len(ln), showlegend=False)
-        st.caption("(S) = starter. Blue = 10+ (a good night), red = under 3. The last number is plus-minus.")
+        st.markdown('<div class="takeaway">Every Clipper who played, best night first. The bar is his Game Score '
+                    '(a one-number box-score summary); the tick marks 10, a good night.</div>', unsafe_allow_html=True)
+        answer_cards([W.Verdict(
+            f"{r_.player_name}{' · starter' if r_.starter else ''}", f"{int(r_.pts)} pts",
+            f"{int(r_.reb)} reb · {int(r_.ast)} ast · {int(r_.tov)} TO · {int(r_.fgm)}/{int(r_.fga)} FG in "
+            f"{r_.minutes:.0f} min · {signed(r_.plus_minus, 0)} on the floor. Game Score {r_.game_score:.1f}.",
+            "good" if r_.game_score >= 10 else "bad" if r_.game_score < 3 else "info", "players",
+            ("share", max(r_.game_score, 0) / 25, 10 / 25), D.headshot_url(r_.player_id))
+            for r_ in lines.itertuples()], link=False, big_size="1.5rem")
 
     # ---- who guarded whom
     mu = R.matchups_for_game(data.matchups, gid, "LAC", opp_lines) if len(data.matchups) else pd.DataFrame()
@@ -1042,37 +1078,56 @@ def page_replay() -> None:
     if mu.empty:
         st.info("Player tracking for this game isn't published yet (it usually appears a few hours after the game).")
     else:
-        st.markdown(f'<div class="takeaway">{opp}\'s top scorers, and how they scored against each Clippers '
+        st.markdown(f'<div class="takeaway">{opp}\'s top scorers, and what they scored against each Clippers '
                     "defender.</div>", unsafe_allow_html=True)
-        mu = mu.iloc[::-1]
-        fig = go.Figure(go.Bar(
-            y=[f"{s_.split(' ', 1)[-1]} ← {d_.split(' ', 1)[-1]}" for s_, d_ in zip(mu["scorer"], mu["defender"])],
-            x=mu["pts"], orientation="h",
-            marker_color=[BAD if p_ >= 10 else MUTED_BAR for p_ in mu["pts"]],
-            text=[f"{int(p_)} pts on {int(m_)}/{int(a_)} · {pp:.0f} possessions" for p_, m_, a_, pp in
-                  zip(mu["pts"], mu["fgm"], mu["fga"], mu["poss"])],
-            textposition="outside", cliponaxis=False,
-            hovertemplate="%{y}: %{x} points<extra></extra>"))
-        fig.update_xaxes(title="Points scored while that Clipper guarded him", range=[0, float(mu["pts"].max()) * 2])
-        show(fig, 90 + 30 * len(mu), showlegend=False)
-        st.caption("Reads 'scorer ← defender'. Red = 10+ points on one defender. Tracking credits each possession to "
-                   "the main defender; fast breaks and scrambles aren't counted.")
+        cards = []
+        for (scorer, total), grp in mu.groupby(["scorer", "scorer_pts"], sort=False):
+            pid = opp_lines.loc[opp_lines["player_name"] == scorer, "player_id"]
+            worst = grp.sort_values("pts", ascending=False).iloc[0]
+            other = int(total - grp["pts"].sum())
+            cards.append(W.Verdict(
+                scorer, f"{int(total)} pts",
+                "<br>".join(f"Guarded by <b>{d.split(' ', 1)[-1]}</b>: {int(p_)} pts on {int(m_)}/{int(a_)} "
+                            f"({pp:.0f} possessions)"
+                            for d, p_, m_, a_, pp in zip(grp["defender"], grp["pts"], grp["fgm"], grp["fga"],
+                                                         grp["poss"]))
+                + (f"<br>The other {other}: against other defenders, in transition or at the line." if other > 0
+                   else ""),
+                "bad" if worst["pts"] >= 10 else "info", "matchups",
+                image=D.headshot_url(pid.iloc[0]) if len(pid) else None))
+        answer_cards(cards, link=False, big_size="1.6rem")
+        st.caption("Points scored while each Clipper was his main defender (player tracking). Fast breaks and "
+                   "scrambles with no clear defender aren't counted.")
 
     # ---- five-man units
     if len(game_units):
         st.header("Which lineups worked", divider="gray", anchor="units")
-        gu = game_units[game_units["seconds"] >= 120].sort_values("plus_minus")
-        fig = go.Figure(go.Bar(
-            y=[", ".join(n.split(" ", 1)[-1] for n in u_) for u_ in gu["unit"]], x=gu["plus_minus"], orientation="h",
-            marker_color=[GOOD if v > 0 else BAD if v < 0 else MUTED_BAR for v in gu["plus_minus"]],
-            text=[f"{signed(v, 0)} in {mm:.0f} min" for v, mm in zip(gu["plus_minus"], gu["minutes"])],
-            textposition="outside", cliponaxis=False,
-            hovertemplate="%{y}: %{x:+d}<extra></extra>"))
-        lim = float(gu["plus_minus"].abs().max() or 1) * 1.6
-        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1))
-        fig.update_xaxes(range=[-lim, lim], title="Points scored minus allowed with that five on the floor")
-        show(fig, 90 + 32 * len(gu), showlegend=False)
-        st.caption("Five-man units with 2+ minutes together, rebuilt from every substitution in the play-by-play.")
+        ids_by_name = {v: k for k, v in names.items()}
+        gu = game_units[game_units["seconds"] >= 120].sort_values("plus_minus", ascending=False)
+        show_units = pd.concat([gu.head(3), gu.tail(3)]).drop_duplicates(subset=["team"])
+        rows_html = []
+        for u in show_units.itertuples():
+            faces = "".join(f'<img src="{D.headshot_url(ids_by_name[n])}" alt="{n}" title="{n}">' for n in u.unit
+                            if n in ids_by_name)
+            color = GOOD if u.plus_minus > 0 else BAD if u.plus_minus < 0 else GRAY
+            rows_html.append(
+                f'<div class="lineup"><div class="faces">{faces}</div>'
+                f'<div class="who">{", ".join(n.split(" ", 1)[-1] for n in u.unit)}</div>'
+                f'<div class="min">{u.minutes:.0f} min</div>'
+                f'<div class="pm" style="color:{color}">{signed(u.plus_minus, 0)}</div></div>')
+        st.markdown('<div class="takeaway">The best and worst five-man units (2+ minutes together): points scored '
+                    "minus allowed while they shared the floor.</div>" + "".join(rows_html), unsafe_allow_html=True)
+        with st.expander("Every unit, as a chart"):
+            gu2 = gu.sort_values("plus_minus")
+            fig = go.Figure(go.Bar(
+                y=[", ".join(n.split(" ", 1)[-1] for n in u_) for u_ in gu2["unit"]], x=gu2["plus_minus"],
+                orientation="h", marker_color=[GOOD if v > 0 else BAD if v < 0 else MUTED_BAR for v in gu2["plus_minus"]],
+                text=[f"{signed(v, 0)} in {mm:.0f} min" for v, mm in zip(gu2["plus_minus"], gu2["minutes"])],
+                textposition="outside", cliponaxis=False, hovertemplate="%{y}: %{x:+d}<extra></extra>"))
+            lim = float(gu2["plus_minus"].abs().max() or 1) * 1.6
+            fig.add_vline(x=0, line=dict(color=INK_MARK, width=1))
+            fig.update_xaxes(range=[-lim, lim], title="Points scored minus allowed with that five on the floor")
+            show(fig, 90 + 32 * len(gu2), showlegend=False)
 
     # ---- the details
     with st.expander("What changed after halftime in this game"):

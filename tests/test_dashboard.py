@@ -123,9 +123,9 @@ def test_replay_opens_the_game_passed_from_the_answer_page(data):
     at.session_state["jump_game"] = worst["game_id"]
     at.run()
     assert not at.exception
-    pick = at.button_group(key=f"pick_{data.seasons[0]}").value
+    pick = at.selectbox(key=f"pick_{data.seasons[0]}").value
     month, day, _, opp = worst["label"].split()
-    assert pick.startswith(f"{month} {day} {opp} ·"), pick
+    assert pick.startswith(f"{month} {day} ·") and f" {opp} ·" in pick, pick
 
 
 def test_next_game_page_runs():
