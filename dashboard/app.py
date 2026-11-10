@@ -37,7 +37,9 @@ BG = "#141413"  # matches .streamlit/config.toml backgroundColor
 PLOTLY_CONFIG = {"displayModeBar": False}
 TONE_BADGE = {"yes": ("red", "The answer"), "partly": ("orange", "Part of it"), "no": ("gray", "Not really")}
 
-st.set_page_config(page_title="Clippers Courtside", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Clippers Courtside", page_icon=D.logo_url(get_settings().team_id), layout="wide",
+                   initial_sidebar_state="collapsed")
+st.logo(D.logo_url(get_settings().team_id), size="large")
 st.markdown("""
 <style>
 .kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .65; margin-bottom: .2rem}
@@ -67,6 +69,7 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .v-img {width: 74px; height: 54px; object-fit: cover; object-position: top; border-radius: 10px;
          background: #2c2c29; margin-bottom: .35rem}
 .vcard:has(.v-img) .v-big {font-size: 1.6rem}
+[data-testid="stHeaderLogo"] {height: 2.4rem; max-height: 2.4rem}
 .vcards.intro {grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))}
 #games-list {scroll-margin-top: 4rem}
 [data-testid="stLayoutWrapper"]:has(> .st-key-gamebar) {position: sticky; top: 3.6rem; z-index: 60}
@@ -1611,7 +1614,7 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
 
 PAGE_ANSWER = st.Page(page_answer, title="Blown leads", icon=":material/lightbulb:", url_path="answer")
 PAGE_WHATNOW = st.Page(page_whatnow, title="What now?", icon=":material/checklist:", url_path="what-now")
-PAGE_REPLAY = st.Page(page_replay, title="Games", icon=":material/sports_basketball:", url_path="games",
+PAGE_REPLAY = st.Page(page_replay, title="Games", url_path="games",
                       default=True)
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")

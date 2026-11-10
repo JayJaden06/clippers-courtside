@@ -284,9 +284,9 @@ def opp_ft_by_half(game_halves: pd.DataFrame) -> pd.DataFrame:
     return t
 
 
-def logo_url(team_id: int) -> str:
-    """The team's logo on the NBA's image CDN."""
-    return f"https://cdn.nba.com/logos/nba/{int(team_id)}/global/L/logo.svg"
+def logo_url(team_id: int, dark: bool = True) -> str:
+    """The team's logo on the NBA's image CDN; ``dark`` is the version made for dark backgrounds."""
+    return f"https://cdn.nba.com/logos/nba/{int(team_id)}/global/{'D' if dark else 'L'}/logo.svg"
 
 
 def headshot_url(player_id: int) -> str:
