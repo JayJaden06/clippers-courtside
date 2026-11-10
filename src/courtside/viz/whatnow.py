@@ -745,10 +745,12 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
                                                    f"{_ft_in(LONG_IN)}+")))
     shooters = [c for c in cands if "threes" in c.helps and not c.small_sample]
     if shooters:
-        out.append(Verdict("Biggest fix: the returning shooters",
-                           " · ".join(f"{c.fg3_pct:.0%}" for c in shooters),
-                           f"Three-point shooting after halftime for {_names([_last(c.name) for c in shooters])} "
-                           f"(last full season). The Clippers shoot {sd.team_fg3_h2:.0%} now.", "good", "returning",
+        best = max(shooters, key=lambda c: c.fg3_pct)
+        others = [c for c in shooters if c is not best]
+        out.append(Verdict("Biggest fix: the returning shooters", f"{best.fg3_pct:.0%}",
+                           f"{_last(best.name)}'s three-point shooting after halftime (last full season)"
+                           + (f"; {_names([f'{_last(c.name)} {c.fg3_pct:.0%}' for c in others])}" if others else "")
+                           + f". The Clippers shoot {sd.team_fg3_h2:.0%} now.", "good", "returning",
                            ("pair", sd.team_fg3_h2, max(c.fg3_pct for c in shooters), "LAC now",
                             _last(max(shooters, key=lambda c: c.fg3_pct).name)[:9])))
     if gl is not None and gl.worse:
@@ -770,17 +772,22 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
         more = rot[rot["earned"]]
         less = rot[rot["struggling"]]
         if len(more):
+            m = more.sort_values("h2_on_off", ascending=False)
             out.append(Verdict("More minutes: " + " & ".join(_last(x) for x in more["player_name"]),
-                               " · ".join(f"{v:+.0f}" for v in more["h2_on_off"]),
-                               "More points per 100 trips down the floor when they play after halftime than when "
-                               "they sit. Small samples.",
+                               f"{m['h2_on_off'].iloc[0]:+.0f}",
+                               f"More points per 100 trips with {_last(m['player_name'].iloc[0])} on after halftime "
+                               "than off" + "".join(f"; {_last(x)} {v:+.0f}" for x, v in
+                                                     zip(m["player_name"].iloc[1:], m["h2_on_off"].iloc[1:]))
+                               + ". Small samples.",
                                "good", "minutes", ("diverge", tuple(more["h2_on_off"]),
                                                    tuple(_last(x)[:8] for x in more["player_name"]))))
         if len(less):
+            l_ = less.sort_values("h2_pm_pg")
             out.append(Verdict("Fewer late minutes: " + ", ".join(_last(x) for x in less["player_name"]),
-                               " · ".join(f"{v:+.0f}" for v in less["h2_pm_pg"]),
-                               "Points a game the Clippers lose while each of them is on the floor after halftime, "
-                               "in that order.",
+                               f"{l_['h2_pm_pg'].iloc[0]:+.1f}",
+                               f"Points a game with {_last(l_['player_name'].iloc[0])} on the floor after halftime"
+                               + "".join(f"; {_last(x)} {v:+.0f}" for x, v in
+                                         zip(l_["player_name"].iloc[1:], l_["h2_pm_pg"].iloc[1:])) + ".",
                                "bad", "minutes", ("diverge", tuple(less["h2_pm_pg"]),
                                                   tuple(_last(x)[:8] for x in less["player_name"]))))
     return out
