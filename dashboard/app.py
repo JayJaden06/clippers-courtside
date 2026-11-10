@@ -77,6 +77,30 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .lineup .who {flex: 1; font-size: .92rem; opacity: .85}
 .lineup .pm {font-size: 1.35rem; font-weight: 800; min-width: 4.5rem; text-align: right}
 .lineup .min {font-size: .82rem; opacity: .6; min-width: 3.5rem}
+[class*="st-key-gcard_"] {padding: .55rem .6rem !important; gap: .25rem}
+.st-key-gcard_sel {border-color: #d95926 !important; background: #1f1a17}
+.gc {padding-bottom: .9rem}
+.gc-date {font-size: .78rem; opacity: .7}
+.gc-opp {font-weight: 750; font-size: 1.02rem}
+.gc-status {font-weight: 700; font-size: .9rem}
+.ledger-sum {font-size: 1.25rem; margin: .2rem 0 .8rem 0}
+.ledger {background: #1b1b19; border: 1px solid #2c2c29; border-radius: 14px; padding: .8rem 1rem}
+.ledger .lhead {font-weight: 750; margin-bottom: .45rem}
+.ledger-row {display: grid; grid-template-columns: 1.6fr 1fr auto; gap: .7rem; align-items: center;
+             padding: .38rem 0; border-top: 1px solid #262624}
+.ledger .lname {font-size: .95rem}
+.ledger .lbar {height: 10px; background: #2a2a27; border-radius: 6px; overflow: hidden}
+.ledger .lbar span {display: block; height: 100%; border-radius: 6px}
+.ledger .lval {font-weight: 800; font-size: 1.1rem; min-width: 3.4rem; text-align: right}
+.ledger .lempty {opacity: .6; font-size: .9rem}
+.kval {font-weight: 800; font-size: 1.05rem; color: #3987e5; margin-top: .3rem}
+.kval span {font-weight: 500; font-size: .82rem; color: inherit; opacity: .75}
+.kwhy {font-size: .9rem; opacity: .85; line-height: 1.4}
+.lean {display: flex; gap: .55rem; align-items: center; margin: .2rem 0}
+.lean img {width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top;
+           background: #2c2c29}
+.lean span {font-size: .8rem; opacity: .7}
+.odds-note {text-align: center; font-size: 1.1rem; margin: -.2rem 0 .8rem 0}
 .takeaway {font-size: 1.18rem; margin: .2rem 0 .8rem 0}
 .page-sub {opacity: .75; font-size: 1.05rem; margin-top: -.6rem; margin-bottom: .8rem}
 </style>
@@ -832,9 +856,26 @@ def _step_game(key: str, labels: list[str], step: int) -> None:
     st.session_state[key] = labels[max(0, min(len(labels) - 1, i + step))]
 
 
+def _set_game(key: str, label: str) -> None:
+    st.session_state[key] = label
+
+
+def _upcoming(season: str) -> tuple[pd.DataFrame, list, pd.DataFrame, float | None]:
+    """Games left this season, their previews, the team table, and the season's second-half shooting cost."""
+    if season != season_now or data.schedule.empty or data.league_periods.empty:
+        return pd.DataFrame(), [], pd.DataFrame(), None
+    teams = P.blended(P.team_table(data.league_periods, season_now), P.team_table(data.league_periods, season_prev))
+    att = data.attribution.get(season_now)
+    shooting = float(att.set_index("factor").loc["shooting", "per_game"]) if att is not None else None
+    tid = settings.team_id
+    up = data.schedule[((data.schedule["home_id"] == tid) | (data.schedule["away_id"] == tid))
+                       & (data.schedule["status"] < 3)].sort_values("tipoff_utc").reset_index(drop=True)
+    return up, [P.preview(g, teams, tid, shooting) for _, g in up.iterrows()], teams, shooting
+
+
 def page_replay() -> None:
-    page_top("Game report", "Every game, explained: who played well, what decided it, who guarded whom, and what "
-             "needed to happen. Updates after each game.")
+    page_top("Games", "Every game this season: the report for games played, the game plan for games coming up. "
+             "Updates after each game.")
     leads = data.game_leads.set_index("game_id")
     g_all = data.games.set_index("game_id")
     season = st.session_state.get("game_season", data.seasons[0])
@@ -843,14 +884,26 @@ def page_replay() -> None:
     options = D.game_options(data.game_leads, season).iloc[::-1].reset_index(drop=True)  # oldest first
     strip = leads.loc[options["game_id"]].reset_index()
     gi = g_all.reindex(strip["game_id"])
-    labels = [f"{pd.Timestamp(d):%b} {pd.Timestamp(d).day} · {'vs' if h else '@'} {o} · {r} {int(tp)}-{int(op)}"
-              for d, h, o, r, tp, op in zip(gi["game_date"], gi["is_home"], gi["opponent_abbreviation"],
-                                            gi["result"], gi["team_pts"], gi["opp_pts"])]
+    entries = [{"kind": "past", "gid": g, "date": pd.Timestamp(d), "home": bool(h), "opp": o, "opp_id": int(oid),
+                "status": f"{r} {int(tp)}-{int(op)}", "won": r == "W",
+                "label": f"{pd.Timestamp(d):%b} {pd.Timestamp(d).day} · {'vs' if h else '@'} {o} · {r} {int(tp)}-{int(op)}"}
+               for g, d, h, o, oid, r, tp, op in zip(strip["game_id"], gi["game_date"], gi["is_home"],
+                                                     gi["opponent_abbreviation"], gi["opponent_id"], gi["result"],
+                                                     gi["team_pts"], gi["opp_pts"])]
+    up, previews, teams, shooting = _upcoming(season)
+    for j, (pv, (_, g)) in enumerate(zip(previews, up.iterrows())):
+        t = g["tipoff_utc"].tz_convert("America/Los_Angeles")
+        entries.append({"kind": "future", "idx": j, "date": t, "home": pv.home, "opp": pv.opponent,
+                        "opp_id": int(g["away_id"] if pv.home else g["home_id"]), "status": f"{pv.chance:.0%} to win",
+                        "won": None, "label": f"{t:%b} {t.day} · {'vs' if pv.home else '@'} {pv.opponent} · "
+                                              f"{'next game, ' if j == 0 else ''}{pv.chance:.0%} to win"})
+    labels = [e["label"] for e in entries]
+    n_past = len(strip)
     xs = pd.to_datetime(strip["game_date"]).dt.strftime("%b %d").str.replace(" 0", " ") + " " + strip[
         "opponent_abbreviation"]
-    by_x = dict(zip(xs, labels))
+    by_x = dict(zip(xs, labels[:n_past]))
     pick_key = f"pick_{season}"
-    st.session_state.setdefault(pick_key, labels[-1])  # the most recent game
+    st.session_state.setdefault(pick_key, labels[n_past - 1] if n_past else labels[0])  # the latest result
     jump = st.session_state.pop("jump_game", None)
     if jump in set(strip["game_id"]):
         st.session_state[pick_key] = labels[list(strip["game_id"]).index(jump)]
@@ -858,7 +911,7 @@ def page_replay() -> None:
     if x in by_x:
         st.session_state[pick_key] = by_x[x]
     if st.session_state[pick_key] not in labels:
-        st.session_state[pick_key] = labels[-1]
+        st.session_state[pick_key] = labels[n_past - 1] if n_past else labels[0]
 
     # ---- the game picker: pinned to the top of the page while scrolling
     with st.container(key="gamebar"):
@@ -870,8 +923,31 @@ def page_replay() -> None:
         pick = c_pick.selectbox("Game", labels, key=pick_key)
         c_next.button("▶", key="next_game", on_click=_step_game, args=(pick_key, labels, 1), help="Next game",
                       width="stretch")
-        gid = strip["game_id"].iloc[labels.index(pick)]
-        c_logo.image(D.logo_url(g_all.loc[gid, "opponent_id"]), width=46)
+        idx = labels.index(pick)
+        entry = entries[idx]
+        c_logo.image(D.logo_url(entry["opp_id"]), width=46)
+
+    # ---- the schedule around this game: played games and the ones coming up
+    lo = max(0, min(idx - 3, len(entries) - 7))
+    window = entries[lo:lo + 7]
+    cols = st.columns(len(window), gap="small")
+    for k, (col, e) in enumerate(zip(cols, window), start=lo):
+        sel = k == idx
+        with col.container(border=True, key=f"gcard_sel" if sel else f"gcard_{k}"):
+            st.image(D.logo_url(e["opp_id"]), width=40)
+            color = GOOD if e["won"] else BAD if e["won"] is False else INK_MARK
+            st.markdown(f'<div class="gc"><div class="gc-date">{e["date"]:%a %b} {e["date"].day}</div>'
+                        f'<div class="gc-opp">{"vs" if e["home"] else "@"} {e["opp"]}</div>'
+                        f'<div class="gc-status" style="color:{color}">{e["status"]}</div></div>',
+                        unsafe_allow_html=True)
+            st.button("Showing" if sel else ("Report" if e["kind"] == "past" else "Game plan"), key=f"open_{k}",
+                      on_click=_set_game, args=(pick_key, e["label"]), disabled=sel, width="stretch")
+
+    if entry["kind"] == "future":
+        _game_plan(up.iloc[entry["idx"]], previews[entry["idx"]], teams, shooting)
+        return
+
+    gid = entry["gid"]
     row = leads.loc[gid]
     where = "Home, Intuit Dome" if bool(g_all.loc[gid, "is_home"]) else "Away"
     st.markdown(f'<div class="kicker">{pd.Timestamp(row["game_date"]):%A, %B} {pd.Timestamp(row["game_date"]).day} · '
@@ -895,10 +971,10 @@ def page_replay() -> None:
             fig.update_xaxes(showticklabels=False)
         show(fig, 230, key=f"strip_{season}", select=True, yaxis_title="Clippers margin")
         st.caption("Halftime (●) to final (◆). Red = a blown early lead.")
+
     halves = data.game_halves[(data.game_halves["game_id"] == gid)
                               & data.game_halves["split"].astype(str).isin(["H1", "H2"])]
     att = D.game_attribution(data.game_halves, gid)
-
     mq = D.game_margin(data.margins, gid).groupby("period")[["team_score", "opp_score"]].max()
     team_q = mq["team_score"].diff().fillna(mq["team_score"]).astype(int).tolist()
     opp_q = mq["opp_score"].diff().fillna(mq["opp_score"]).astype(int).tolist()
@@ -1035,25 +1111,31 @@ def page_replay() -> None:
         st.markdown(f'<div class="takeaway">Compared with their average game this season '
                     f'({signed(factors.attrs["normal_margin"])} a game), here\'s where this one was better or worse.'
                     "</div>", unsafe_allow_html=True)
-        fz = factors[factors["factor"] != "residual"].sort_values("points", ascending=False)
-        rest = float(factors.loc[factors["factor"] == "residual", "points"].sum())
+        fz = factors[factors["factor"] != "residual"]
+        better = fz[fz["points"] >= 0.5].sort_values("points", ascending=False)
+        worse = fz[fz["points"] <= -0.5].sort_values("points")
+        top = float(fz["points"].abs().max() or 1)
+
+        def ledger(rows: pd.DataFrame, color: str, title: str, empty: str) -> str:
+            items = "".join(
+                f'<div class="ledger-row"><div class="lname">{n}</div><div class="lbar"><span style="width:'
+                f'{100 * abs(v) / top:.0f}%;background:{color}"></span></div>'
+                f'<div class="lval" style="color:{color}">{signed(v)}</div></div>'
+                for n, v in zip(rows["name"], rows["points"]))
+            return (f'<div class="ledger"><div class="lhead" style="color:{color}">{title}</div>'
+                    + (items or f'<div class="lempty">{empty}</div>') + "</div>")
+
         normal, final = factors.attrs["normal_margin"], factors.attrs["margin"]
-        fig = go.Figure(go.Waterfall(
-            orientation="h", measure=["absolute"] + ["relative"] * len(fz) + ["relative", "total"],
-            y=["A normal night"] + list(fz["name"]) + ["Can't tell", "This game"],
-            x=[normal] + list(fz["points"]) + [rest, 0],
-            text=[signed(normal)] + [f"{signed(v)}" for v in fz["points"]] + [signed(rest), signed(final, 0)],
-            textposition="outside", cliponaxis=False, connector=dict(line=dict(color=LIGHT, width=1)),
-            increasing=dict(marker=dict(color=GOOD)), decreasing=dict(marker=dict(color=BAD)),
-            totals=dict(marker=dict(color=FOCUS)), hovertemplate="%{y}: %{x:+.1f}<extra></extra>"))
-        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1, dash="dot"))
-        fig.update_yaxes(autorange="reversed")
-        steps = [normal] + list(normal + fz["points"].cumsum())
-        lo, hi = min(steps + [final, 0]), max(steps + [final, 0])
-        fig.update_xaxes(title="Clippers margin, step by step (points)", range=[lo - 6, hi + 6])
-        show(fig, 120 + 44 * (len(fz) + 3), showlegend=False)
-        st.caption("Starts from their average game, adds what each part of this game was worth, and lands on the "
-                   "final margin.")
+        st.markdown(f'<div class="ledger-sum">A normal night: <b>{signed(normal)}</b> &nbsp;→&nbsp; this game: '
+                    f'<b style="color:{GOOD if final > 0 else BAD}">{signed(final, 0)}</b></div>',
+                    unsafe_allow_html=True)
+        left_, right_ = st.columns(2, gap="large")
+        left_.markdown(ledger(better, GOOD, "▲ Better than a normal night", "Nothing stood out."),
+                       unsafe_allow_html=True)
+        right_.markdown(ledger(worse, BAD, "▼ Worse than a normal night", "Nothing stood out."),
+                        unsafe_allow_html=True)
+        st.caption("Points each part of the game was worth compared with their average game this season. Better and "
+                   "worse add up to the difference between the two margins (plus a little the bookkeeping can't place).")
         if not won and lvs:
             st.markdown("**The fixes, biggest first**")
             answer_cards([W.Verdict(lv.title, f"{lv.points:.0f} pts", "; ".join(lv.suggestions) or "—",
@@ -1315,60 +1397,30 @@ TAPE = [  # (label, column, higher is better)
 ]
 
 
-def page_next() -> None:
-    page_top("Upcoming games", "Every game left on the schedule with the odds from season stats. Click a game for "
-             "its game plan: what needs to happen to win, against that opponent.")
-    if data.schedule.empty or data.league_periods.empty:
-        st.info("No schedule yet. Run `leadcollapse pull` then `leadcollapse build`.")
-        return
-    teams = P.blended(P.team_table(data.league_periods, season_now), P.team_table(data.league_periods, season_prev))
-    att = data.attribution.get(season_now)
-    shooting = float(att.set_index("factor").loc["shooting", "per_game"]) if att is not None else None
-    tid = settings.team_id
-    upcoming = data.schedule[((data.schedule["home_id"] == tid) | (data.schedule["away_id"] == tid))
-                             & (data.schedule["status"] < 3)].sort_values("tipoff_utc").reset_index(drop=True)
-    if upcoming.empty:
-        st.info("No games left on the schedule.")
-        return
-    previews = [P.preview(g, teams, tid, shooting) for _, g in upcoming.iterrows()]
-    local = upcoming["tipoff_utc"].dt.tz_convert("America/Los_Angeles")
-    table = pd.DataFrame({
-        "": [D.logo_url(g["away_id"] if g["home_id"] == tid else g["home_id"]) for _, g in upcoming.iterrows()],
-        "Date": [f"{t:%a %b} {t.day}" for t in local],
-        "Time (PT)": [f"{t:%I:%M %p}".lstrip("0") for t in local],
-        "Where": ["Home" if pv.home else ("Neutral" if pv.neutral else "Away") for pv in previews],
-        "Opponent": [("vs " if pv.home else "@ ") + pv.opponent_name for pv in previews],
-        "Win chance": [round(100 * pv.chance) for pv in previews],
-        "Expected margin": [signed(pv.margin) for pv in previews],
-    })
-    st.markdown("**The schedule ahead** · click a game")
-    event = st.dataframe(
-        table, hide_index=True, width="stretch", height=min(38 + 35 * len(table), 400), key="upcoming",
-        on_select="rerun", selection_mode="single-row",
-        column_config={
-            "": st.column_config.ImageColumn("", width="small"),
-            "Win chance": st.column_config.ProgressColumn("Win chance", min_value=0, max_value=100, format="%d%%"),
-        })
-    rows = event.selection.rows if event and event.selection else []
-    i = rows[0] if rows else 0
-    game, pv = upcoming.iloc[i], previews[i]
+def _faces(lean: list[tuple[str, int, str]]) -> str:
+    """Small round headshots with name and the stat behind each pick."""
+    return "".join(
+        f'<div class="lean"><img src="{D.headshot_url(pid)}" alt=""><div><b>{name.split(" ", 1)[-1]}</b>'
+        f'<br><span>{stat}</span></div></div>' for name, pid, stat in lean)
 
-    # ---- the matchup
-    tip = local.iloc[i]
+
+def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None) -> None:
+    """An upcoming game: the odds, a checklist of keys that updates them, matchups, and the tale of the tape."""
+    tid = settings.team_id
+    tip = game["tipoff_utc"].tz_convert("America/Los_Angeles")
+    opp_id = int(game["away_id"] if pv.home else game["home_id"])
     st.markdown(f'<div class="kicker">{tip:%a %b} {tip.day} · {tip:%I:%M %p}'.replace(" 0", " ") + " PT · "
                 f'{pv.arena} · {"home" if pv.home else "away"}</div>'
                 f'<div class="hero">Clippers {"vs" if pv.home else "at"} {pv.opponent_name}</div>',
                 unsafe_allow_html=True)
-    opp_id = int(game["away_id"] if pv.home else game["home_id"])
-    picture(G.odds_bar("LAC", pv.opponent, pv.chance, pv.margin, team_logo=D.logo_url(tid),
-                       opp_logo=D.logo_url(opp_id)), max_width="900px")
-
     lac, opp = pv.lac, pv.opp
     players = GP.player_table(data.player_box, season_now, "LAC")
     misc = data.team_misc[data.team_misc["season"] == season_now] if len(data.team_misc) else pd.DataFrame(
         columns=["team_id", "opp_pts_paint"])
     keys = GP.game_plan(pv, teams, misc, players, shooting)
-    ceiling_pts, ceiling = GP.plan_ceiling(pv, keys)
+
+    # ---- the odds, live with the keys picked below
+    odds = st.empty()
     h2h = P.head_to_head(data.games, season_now, pv.opponent)
     tiles = [
         W.Verdict("Clippers this season", signed(lac["net"]),
@@ -1377,49 +1429,42 @@ def page_next() -> None:
         W.Verdict(f"{pv.opponent} this season", signed(opp["net"]), f"{P._ord(opp['net_rank'])} of 30.",
                   "bad" if opp["net"] > lac["net"] else "good", "plan", ("rank", int(opp["net_rank"]), 30),
                   D.logo_url(opp_id)),
-        W.Verdict("With the game plan", f"{ceiling:.0%}",
-                  f"Win chance if the top {min(3, len(keys))} keys below all happen (worth {ceiling_pts:.1f} points; "
-                  "an optimistic ceiling, since the keys overlap).", "good", "plan",
-                  ("pair", pv.chance, ceiling, "today", "with plan")) if keys else None,
     ]
     if len(h2h):
         wins = int((h2h["result"] == "W").sum())
         tiles.append(W.Verdict("Earlier this season", f"{wins}-{len(h2h) - wins}",
                                "; ".join(f"{r.result} {int(r.team_pts)}-{int(r.opp_pts)}" for r in h2h.itertuples()),
                                "info", "plan"))
-    answer_cards([t_ for t_ in tiles if t_ is not None], link=False)
 
-    # ---- the game plan
-    section(f"How to beat {pv.opponent_name}", "plan",
-            "The keys to this game from both teams' season numbers, biggest first. Each shows what it's worth and "
-            "who to lean on.")
+    section(f"How to beat the {pv.opponent_name.split(' ')[-1]}", "plan",
+            "The keys to this game from both teams' season numbers. Switch them on and off: the odds above "
+            "update.")
+    chosen = []
     if keys:
-        steps = keys[:5]
-        fig = go.Figure(go.Waterfall(
-            orientation="h", measure=["absolute"] + ["relative"] * len(steps) + ["total"],
-            y=["Expected margin today"] + [k.title for k in steps] + ["With all of these"],
-            x=[pv.margin] + [k.points for k in steps] + [0],
-            text=[f"{signed(pv.margin)} · {pv.chance:.0%} to win"]
-                 + [f"+{k.points:.1f} pts · {k.chance:.0%} on its own" for k in steps]
-                 + [f"{signed(pv.margin + sum(k.points for k in steps))}"],
-            textposition="outside", cliponaxis=False, connector=dict(line=dict(color=LIGHT, width=1)),
-            increasing=dict(marker=dict(color=GOOD)), decreasing=dict(marker=dict(color=BAD)),
-            totals=dict(marker=dict(color=FOCUS)),
-            hovertemplate="%{y}<extra></extra>"))
-        fig.add_vline(x=0, line=dict(color=INK_MARK, width=1, dash="dot"))
-        fig.update_yaxes(autorange="reversed")
-        hi = pv.margin + sum(k.points for k in steps)
-        fig.update_xaxes(title="Expected Clippers margin (points)  ·  right of the dotted line = favored",
-                         range=[min(pv.margin, 0) - 6, max(hi, 0) + 12])
-        show(fig, 120 + 46 * (len(steps) + 2), showlegend=False)
-        st.caption("Each step adds what that key is worth. The keys overlap a little, so the last bar is a best case.")
-        answer_cards([W.Verdict(
-            k.title, f"{k.chance:.0%}",
-            f"{k.why} Lean on: " + "; ".join(f"{n.split(' ', 1)[-1]} ({s_})" for n, _, s_ in k.lean_on) + ".",
-            "good", "plan", ("pair", pv.chance, k.chance, "today", "with it"),
-            D.headshot_url(k.lean_on[0][1]) if k.lean_on else None) for k in keys], link=False, big_size="1.6rem")
+        for j, k in enumerate(keys):
+            with st.container(border=True, key=f"key_{k.kind}"):
+                c1, c2, c3 = st.columns([1.15, 2.4, 1.45], vertical_alignment="center", gap="medium")
+                on = c1.toggle(k.title, value=False, key=f"plan_{game['game_id']}_{k.kind}")
+                c1.markdown(f'<div class="kval">+{k.points:.1f} pts a game<br><span>{k.chance:.0%} to win with '
+                            f"this alone</span></div>", unsafe_allow_html=True)
+                c2.markdown(f'<div class="kwhy">{k.why}</div>', unsafe_allow_html=True)
+                c3.markdown(_faces(k.lean_on), unsafe_allow_html=True)
+                if on:
+                    chosen.append(k)
+        st.caption("Keys overlap a little (a turnover avoided can also be a shot that misses), so several together "
+                   "are a best case.")
     else:
         st.write("Nothing in either team's numbers points to a specific key: it's about playing their usual game.")
+    pts = sum(k.points for k in chosen)
+    chance = P.win_chance(pv.margin + pts)
+    with odds.container():
+        picture(G.odds_bar("LAC", pv.opponent, chance, pv.margin + pts, team_logo=D.logo_url(tid),
+                           opp_logo=D.logo_url(opp_id)), max_width="900px")
+        st.markdown(f'<div class="odds-note">Today <b>{pv.chance:.0%}</b>'
+                    + (f' → with {len(chosen)} key{"s" if len(chosen) != 1 else ""} below <b>{chance:.0%}</b>'
+                       if chosen else " · switch on keys below to see what they're worth") + "</div>",
+                    unsafe_allow_html=True)
+        answer_cards(tiles, link=False)
 
     # ---- matchups
     defenders = W.defenders(data.matchups, data.hustle, data.bio, season_now, "LAC") if len(data.matchups) else None
@@ -1427,7 +1472,7 @@ def page_next() -> None:
                            defenders.table if defenders is not None else None)
     longs = P.long_rotation(data.player_season, data.bio, season_now, pv.opponent)
     if len(watch):
-        section(f"Matchups: who guards their scorers", "watch",
+        section("Matchups: who guards their scorers", "watch",
                 f"{pv.opponent}'s top scorers this season, and the Clipper best suited to guard each (closest in size, "
                 "fewest points allowed per possession from player tracking).")
         ids = data.player_season.set_index("player_name")["player_id"].to_dict()
@@ -1482,18 +1527,17 @@ def page_next() -> None:
 
 PAGE_ANSWER = st.Page(page_answer, title="Blown leads", icon=":material/lightbulb:", url_path="answer")
 PAGE_WHATNOW = st.Page(page_whatnow, title="What now?", icon=":material/checklist:", url_path="what-now")
-PAGE_REPLAY = st.Page(page_replay, title="Game report", icon=":material/sports_basketball:", url_path="game",
+PAGE_REPLAY = st.Page(page_replay, title="Games", icon=":material/sports_basketball:", url_path="games",
                       default=True)
-PAGE_NEXT = st.Page(page_next, title="Upcoming", icon=":material/event:", url_path="next")
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
-PAGES = {"replay": PAGE_REPLAY, "next": PAGE_NEXT, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,
+PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,
          "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
 nav = st.navigation(list(PAGES.values()), position="top")
 # Tests run a specific page by setting this in session state (AppTest can't change the URL).
 forced = st.session_state.get("_dashboard_page")
 if forced in PAGES:
     {"answer": page_answer, "whatnow": page_whatnow, "replay": page_replay, "players": page_players,
-     "league": page_league, "next": page_next}[forced]()
+     "league": page_league}[forced]()
 else:
     nav.run()
