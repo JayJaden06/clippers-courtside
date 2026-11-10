@@ -43,7 +43,7 @@ def test_missed_shots_waffle_counts():
     root = _svg(G.missed_shots(0.26, 0.31, 0.28))
     fills = [r.get("fill") for r in root.iter("{http://www.w3.org/2000/svg}rect")]
     assert len(fills) == 200
-    assert fills[:100].count(G.DARK.gray) == 26 and fills[100:].count(G.DARK.bad) == 31
+    assert fills[:100].count(G.PAGE.gray) == 26 and fills[100:].count(G.PAGE.bad) == 31
 
 
 def test_turnover_strip_one_square_per_turnover():

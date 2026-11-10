@@ -29,13 +29,13 @@ from courtside.viz import whatnow as W
 # One meaning per color, validated on the dark surface (dataviz validator: blue/orange pass every
 # colorblind check; every mark is 3:1+ against the page):
 #   blue = better / good · orange = worse / bad, the second half, and the focus · gray = context.
-H1C, H2C = "#a3a29a", "#d95926"  # 1st half (context) / 2nd half (the story)
+H1C, H2C = "#86847e", "#d95926"  # 1st half (context, 3.4:1 on the page) / 2nd half (the story)
 GOOD, BAD, GRAY = "#3987e5", "#d95926", "#898781"
 FOCUS = "#d95926"
-INK_MARK = "#e8e6df"
-LIGHT = "#6f6e69"  # 3.6:1 on the page (was 2.0:1)
-MUTED_BAR = "#73716b"  # 3.8:1 on the page (was 2.8:1)
-BG = "#141413"  # matches .streamlit/config.toml backgroundColor
+INK_MARK = "#3b3f4c"
+LIGHT = "#86847e"  # 3.4:1 on the light page
+MUTED_BAR = "#7f7d77"  # 3.8:1 on the light page
+BG = "#f6f5f1"  # matches .streamlit/config.toml backgroundColor
 PLOTLY_CONFIG = {"displayModeBar": False}
 TONE_BADGE = {"yes": ("orange", "The answer"), "partly": ("violet", "Part of it"), "no": ("gray", "Not really")}
 
@@ -62,9 +62,11 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 /* the style-only blocks take no room (their styles still apply) */
 [data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] style) {display: none}
 .vcard {display: flex; flex-direction: column; gap: .15rem; text-decoration: none !important; color: #f0efec !important;
-        background: linear-gradient(160deg, #1d2742 0%, #1c1c1a 58%); border: 1px solid #2c2c29; border-radius: 14px;
+        background: linear-gradient(160deg, #1f3364 0%, #14213f 62%); box-shadow: 0 6px 18px rgba(19,33,63,.16); border: 1px solid #2c2c29; border-radius: 14px;
         padding: .9rem 1rem .85rem 1rem; transition: transform .12s, border-color .12s}
-a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
+a.vcard:hover {transform: translateY(-2px); border-color: #4a5a85}
+.vcard :is(div, span, p) {color: #f0efec}
+.nextup, .pcard, .scard .sc-top {color: #f0efec}
 .v-title {font-weight: 650; font-size: .9rem; line-height: 1.25; opacity: .8}
 .v-dot {display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-right: .4rem;
         vertical-align: .08rem}
@@ -78,11 +80,11 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .vcards.intro {grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))}
 #games-list {scroll-margin-top: 4rem}
 [data-testid="stLayoutWrapper"]:has(> .st-key-gamebar) {position: sticky; top: 3.6rem; z-index: 60}
-.st-key-gamebar {background: #141413; padding: .35rem 0 .55rem 0; border-bottom: 1px solid #2c2c29}
-.lineup {display: flex; align-items: center; gap: .9rem; padding: .55rem .2rem; border-bottom: 1px solid #262624}
+.st-key-gamebar {background: #f6f5f1; padding: .35rem 0 .55rem 0; border-bottom: 1px solid #dedbd2}
+.lineup {display: flex; align-items: center; gap: .9rem; padding: .55rem .2rem; border-bottom: 1px solid #e3e0d8}
 .lineup .faces {display: flex}
 .lineup .faces img {width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: top;
-                    background: #2c2c29; border: 2px solid #141413; margin-left: -10px}
+                    background: #e3e0d8; border: 2px solid #f6f5f1; margin-left: -10px}
 .lineup .faces img:first-child {margin-left: 0}
 .v-faces {display: flex; margin-bottom: .4rem}
 .v-faces img {width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: top;
@@ -92,30 +94,29 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .lineup .pm {font-size: 1.35rem; font-weight: 800; min-width: 4.5rem; text-align: right}
 .lineup .min {font-size: .82rem; opacity: .6; min-width: 3.5rem}
 [class*="st-key-gcard_"] {padding: .55rem .6rem !important; gap: .25rem}
-.st-key-gcard_sel {border-color: #d95926 !important; background: #1f1a17}
+.st-key-gcard_sel {border-color: #d95926 !important; background: #fbefe8}
 .gc {padding-bottom: .9rem}
 /* ---- matchup cards: Clippers navy and the opponent's color, split on a diagonal */
-.gm {position: relative; height: 62px; border-radius: 10px; overflow: hidden; margin: -.1rem 0 .5rem 0;
+.gm {position: relative; height: 62px; border-radius: 10px; overflow: hidden; margin: -.1rem 0 1rem 0;
      background: linear-gradient(115deg, #1d428a 0 48%, #f0efec 48% 50%, var(--opp) 50% 100%)}
 .gm img {position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; object-fit: contain;
          filter: drop-shadow(0 1px 3px rgba(0,0,0,.45))}
 .gm .lac {left: 11%} .gm .opp {right: 11%}
 /* ---- color bands, after the team site: a light band for each page's header, a navy band for its key cards */
-[class*="st-key-band_"] {position: relative; padding: 1.6rem 0 1.5rem 0; margin: 0; clip-path: inset(0 -100vmax)}
+/* bands fill the full width with border-image (paints outside the box without widening the page), and
+   fade into the page color at their edges so sections ease into each other */
+[class*="st-key-band_"] {position: relative; padding: 1.8rem 0 1.9rem 0; margin: 0}
 /* bands that follow each other touch (no strip of page color between them) */
 [data-testid="stLayoutWrapper"]:has(> [class*="st-key-band_"]) + [data-testid="stLayoutWrapper"]:has(> [class*="st-key-band_"]) {
   margin-top: -16px}
-[class*="st-key-band_light"] {background: #f3f1ec; box-shadow: 0 0 0 100vmax #f3f1ec; color: #13213f}
-[class*="st-key-band_navy"] {background: #13213f; box-shadow: 0 0 0 100vmax #13213f}
-[class*="st-key-band_light"] :is(h1, h2, h3, p, li, .kicker, .page-sub, .hero, .lede, label,
-                                 [data-testid="stMarkdownContainer"]) {color: #13213f}
-[class*="st-key-band_light"] .vcard :is(div, span, p) {color: #f0efec}
+[class*="st-key-band_light"] {border-image: linear-gradient(180deg, #ffffff 0%, #ffffff 72%, #f6f5f1 100%)
+                               fill 0 // 0 100vmax}
+[class*="st-key-band_navy"] {border-image: linear-gradient(180deg, #f6f5f1 0, #e6ebf5 56px, #e6ebf5 calc(100% - 56px),
+                                                       #f6f5f1 100%) fill 0 // 0 100vmax}
+h1, .hero {color: #13213f}
 [class*="st-key-band_light"] .kicker {opacity: .7}
 [class*="st-key-band_light"] .page-sub, [class*="st-key-band_light"] .lede {opacity: .85}
-[class*="st-key-band_light"] button {background: #ffffff; border-color: rgba(19,33,63,.3)}
-[class*="st-key-band_light"] button :is(p, span, div) {color: #13213f}
-[class*="st-key-band_light"] [data-testid="stExpander"] details {background: #ffffff; border-color: rgba(19,33,63,.2)}
-[class*="st-key-band_light"] [data-testid="stExpander"] :is(p, li, span, summary) {color: #13213f}
+
 /* ---- Next up: the next game as the page's banner, over a faint drawn court */
 .nextup {position: relative; overflow: hidden; border-radius: 18px; padding: 1.3rem 1.6rem 1.2rem 1.6rem;
          margin: .4rem 0 1.2rem 0; border: 1px solid #2c3550;
@@ -147,6 +148,42 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .pc-stats {display: flex; gap: .9rem; margin-top: .35rem}
 .pc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; display: block; line-height: 1}
 .pc-stats span {font-size: .72rem; opacity: .7; line-height: 1.15; display: block}
+/* ---- opposing scorers: photo on their team's color, defenders listed underneath */
+.scards {display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: .9rem; margin: .4rem 0 1rem 0}
+.scard {border-radius: 14px; overflow: hidden; background: #ffffff; border: 1px solid #e3e0d8;
+        box-shadow: 0 6px 18px rgba(19,33,63,.08); animation: rise .45s ease-out both}
+.sc-top {position: relative; height: 118px; background: linear-gradient(150deg, var(--tc) 0%, var(--td) 100%)}
+.sc-top img.face {position: absolute; bottom: 0; right: .6rem; height: 112px}
+.sc-top img.logo {position: absolute; top: .6rem; left: .7rem; width: 34px; height: 34px; object-fit: contain}
+.sc-name {position: absolute; left: .8rem; bottom: .55rem; font-weight: 800; font-size: 1.05rem; line-height: 1.1;
+          text-shadow: 0 1px 6px rgba(0,0,0,.45); max-width: 55%}
+.sc-pts {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2rem; padding: .5rem .9rem 0 .9rem}
+.sc-pts span {font-family: inherit; font-size: .95rem; font-weight: 600; opacity: .6; margin-left: .25rem}
+.sc-row {display: flex; align-items: center; gap: .55rem; padding: .35rem .9rem; border-top: 1px solid #f0ede6}
+.sc-row img {width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: top; background: #e3e0d8}
+.sc-row .who {flex: 1; font-size: .88rem}
+.sc-row .pts {font-weight: 800}
+.sc-foot {font-size: .78rem; opacity: .65; padding: .4rem .9rem .7rem .9rem}
+/* ---- returning players: the trading card, with what they'd bring as colored chips */
+.rcards {display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: .9rem; margin: .6rem 0 1rem 0}
+.rcards .pcard {flex: none}
+.rcards .pc-top {height: 140px}
+.rcards .pc-top img {height: 132px}
+.pc-status {font-size: .78rem; opacity: .75; margin-top: .15rem}
+.chips {display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem}
+.chip {font-size: .74rem; font-weight: 700; padding: .14rem .55rem; border-radius: 999px; color: #fff}
+/* ---- one player: a wide card with his numbers */
+.hero-card {display: grid; grid-template-columns: 220px 1fr; border-radius: 16px; overflow: hidden; margin: .4rem 0 1rem 0;
+            background: #ffffff; border: 1px solid #e3e0d8; box-shadow: 0 6px 18px rgba(19,33,63,.08)}
+.hc-photo {position: relative; background: linear-gradient(160deg, #1d428a 0%, #26335a 55%, #c8102e 150%); min-height: 170px}
+.hc-photo img {position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 160px}
+.hc-photo .pc-num {font-size: 2rem}
+.hc-body {padding: 1rem 1.3rem}
+.hc-name {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2rem; line-height: 1; color: #13213f}
+.hc-stats {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-top: .8rem}
+.hc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; display: block; line-height: 1}
+.hc-stats span {font-size: .8rem; opacity: .7; line-height: 1.2; display: block; margin-top: .2rem}
+.hc-up {color: #d95926} .hc-down {color: #3987e5}
 /* ---- small motion: cards rise in, mini-charts draw left to right, cards lift on hover */
 @keyframes rise {from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none}}
 @keyframes draw {from {clip-path: inset(0 100% 0 0)} to {clip-path: inset(0 0 0 0)}}
@@ -163,12 +200,12 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .gc-opp {font-weight: 750; font-size: 1.02rem}
 .gc-status {font-weight: 700; font-size: .9rem}
 .ledger-sum {font-size: 1.25rem; margin: .2rem 0 .8rem 0}
-.ledger {background: #1b1b19; border: 1px solid #2c2c29; border-radius: 14px; padding: .8rem 1rem}
+.ledger {background: #ffffff; border: 1px solid #e3e0d8; border-radius: 14px; padding: .8rem 1rem}
 .ledger .lhead {font-weight: 750; margin-bottom: .45rem}
 .ledger-row {display: grid; grid-template-columns: 1.6fr 1fr auto; gap: .7rem; align-items: center;
-             padding: .38rem 0; border-top: 1px solid #262624}
+             padding: .38rem 0; border-top: 1px solid #eeebe4}
 .ledger .lname {font-size: .95rem}
-.ledger .lbar {height: 10px; background: #2a2a27; border-radius: 6px; overflow: hidden}
+.ledger .lbar {height: 10px; background: #ebe8e1; border-radius: 6px; overflow: hidden}
 .ledger .lbar span {display: block; height: 100%; border-radius: 6px}
 .ledger .lval {font-weight: 800; font-size: 1.1rem; min-width: 3.4rem; text-align: right}
 .ledger .lempty {opacity: .6; font-size: .9rem}
@@ -932,7 +969,7 @@ def page_whatnow() -> None:
                                    text=[f"{v:.0%}" for v in ys], textposition="outside",
                                    hovertemplate="%{x}: %{y:.1%} from three after halftime<extra></extra>"))
             fig.update_yaxes(tickformat=".0%", range=[0, max(ys) * 1.3])
-            axis_faces(fig, [face(c.name) for c in shooters] + [D.logo_url(settings.team_id)], 40, axis="x")
+            axis_faces(fig, [face(c.name) for c in shooters] + [D.logo_url(settings.team_id, dark=False)], 40, axis="x")
             st.markdown("**Three-point shooting after halftime**")
             show(fig, 300, showlegend=False)
     with right:
@@ -951,20 +988,25 @@ def page_whatnow() -> None:
             axis_faces(fig, [face(c.name) for c in bigs] + [face(x) for x in top["player_name"]], 40, axis="x")
             st.markdown("**Rebounds per 36 minutes after halftime**")
             show(fig, 300, showlegend=False)
-    help_color = {"shooting": "green", "threes": "green", "ball security": "blue", "rebounding": "violet"}
-    cols = st.columns(len(cands) or 1)
-    for col, c in zip(cols, cands):
-        with col.container(border=True, height="stretch"):
-            pic = face(c.name)
-            st.markdown((f'<div class="v-faces"><img src="{pic}" alt=""></div>' if pic else "")
-                        + f'<div class="big-q">{c.name}</div>', unsafe_allow_html=True)
-            st.caption(("Out so far" if c.this_season_minutes == 0
-                        else f"Playing: {c.this_season_minutes:.0f} min so far")
-                       + (f" · {c.mpg:.0f} min a game ({c.sample.split(',')[0]})" if c.mpg == c.mpg else ""))
-            for h in c.helps:
-                st.badge(h.capitalize(), color=help_color.get(h, "gray"))
-            if c.small_sample:
-                st.badge("Small sample", color="gray")
+    chip_color = {"shooting": "#2e8b57", "threes": "#1d7dd1", "ball security": "#6b4fbb", "rebounding": "#c8102e"}
+    roster = data.roster.set_index("player_name") if len(data.roster) else pd.DataFrame(columns=["number", "position"])
+    rcards = []
+    for c in cands:
+        info = roster.loc[c.name] if c.name in roster.index else None
+        num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
+        status = ("Out so far" if c.this_season_minutes == 0 else f"Back: {c.this_season_minutes:.0f} min so far")
+        chips = "".join(f'<span class="chip" style="background:{chip_color.get(h, "#7f7d77")}">{h.capitalize()}</span>'
+                        for h in c.helps) + ('<span class="chip" style="background:#7f7d77">Small sample</span>'
+                                             if c.small_sample else "")
+        rcards.append(
+            f'<div class="pcard"><div class="pc-top"><span class="pc-num">{num}</span>'
+            f'<span class="pc-pos">{info["position"] if info is not None else ""}</span>'
+            f'<img src="{face(c.name) or ""}" alt="" loading="lazy"></div><div class="pc-body">'
+            f'<div class="pc-name">{c.name}</div><div class="pc-status">{status}'
+            + (f" · {c.mpg:.0f} min a game in {c.sample.split(',')[0]}" if c.mpg == c.mpg else "")
+            + f'</div><div class="chips">{chips}</div></div></div>')
+    st.markdown(f'<div class="rcards" style="--cols:{min(max(len(rcards), 1), 6)}">{"".join(rcards)}</div>',
+                unsafe_allow_html=True)
     with st.expander("Details"):
         st.markdown(f"- **Who's here:** everyone on today's roster who has missed {W.MISSED_SHARE:.0%} or more of "
                     f"the games since joining the team and played {W.PRIOR_MPG:.0f}+ minutes a game in a recent "
@@ -1301,7 +1343,7 @@ def page_replay() -> None:
                       width="stretch")
         idx = labels.index(pick)
         entry = entries[idx]
-        c_logo.image(D.logo_url(entry["opp_id"]), width=46)
+        c_logo.image(D.logo_url(entry["opp_id"], dark=False), width=46)
 
     # ---- the schedule around this game: played games and the ones coming up
     lo = max(0, min(idx - 3, len(entries) - 7))
@@ -1541,22 +1583,28 @@ def page_replay() -> None:
     else:
         st.markdown(f'<div class="takeaway">{opp}\'s top scorers, and what they scored against each Clippers '
                     "defender.</div>", unsafe_allow_html=True)
+        opp_id = int(g_all.loc[gid, "opponent_id"])
+        tc = D.team_color(opp_id)
         cards = []
         for (scorer, total), grp in mu.groupby(["scorer", "scorer_pts"], sort=False):
             pid = opp_lines.loc[opp_lines["player_name"] == scorer, "player_id"]
-            worst = grp.sort_values("pts", ascending=False).iloc[0]
             other = int(total - grp["pts"].sum())
-            cards.append(W.Verdict(
-                scorer, f"{int(total)} pts",
-                "<br>".join(f"Guarded by <b>{d.split(' ', 1)[-1]}</b>: {int(p_)} pts on {int(m_)}/{int(a_)} "
-                            f"({pp:.0f} possessions)"
-                            for d, p_, m_, a_, pp in zip(grp["defender"], grp["pts"], grp["fgm"], grp["fga"],
-                                                         grp["poss"]))
-                + (f"<br>The other {other}: against other defenders, in transition or at the line." if other > 0
-                   else ""),
-                "bad" if worst["pts"] >= 10 else "info", "matchups",
-                image=D.headshot_url(pid.iloc[0]) if len(pid) else None))
-        answer_cards(cards, link=False, big_size="1.6rem")
+            rows = "".join(
+                f'<div class="sc-row"><img src="{face(d) or ""}" alt=""><div class="who">Guarded by '
+                f'<b>{d.split(" ", 1)[-1]}</b><br><span style="opacity:.65">{int(m_)}/{int(a_)} shooting, '
+                f'{pp:.0f} possessions</span></div><div class="pts" style="color:{BAD if p_ >= 10 else INK_MARK}">'
+                f'{int(p_)}</div></div>'
+                for d, p_, m_, a_, pp in zip(grp["defender"], grp["pts"], grp["fgm"], grp["fga"], grp["poss"]))
+            cards.append(
+                f'<div class="scard"><div class="sc-top" style="--tc:{tc};--td:{D.shade(tc)}">'
+                f'<img class="logo" src="{D.logo_url(opp_id, dark=not D.is_light(tc))}" alt="">'
+                + (f'<img class="face" src="{D.headshot_url(int(pid.iloc[0]))}" alt="">' if len(pid) else "")
+                + f'<div class="sc-name">{scorer}</div></div><div class="sc-pts">{int(total)}<span>pts</span></div>'
+                + rows
+                + (f'<div class="sc-foot">The other {other}: other defenders, transition or the line.</div>'
+                   if other > 0 else '<div class="sc-foot"></div>') + "</div>")
+        st.markdown(f'<div class="scards" style="--cols:{min(len(cards), 3)}">{"".join(cards)}</div>',
+                    unsafe_allow_html=True)
         st.caption("Points scored while each Clipper was his main defender (player tracking). Fast breaks and "
                    "scrambles with no clear defender aren't counted.")
 
@@ -1651,36 +1699,45 @@ def page_players() -> None:
             player_cards(ph, season_p)
         h2 = ph[ph["split"] == "H2"].sort_values("tov_share")
         section("Who's losing the ball after halftime?", "who",
-                "Gray = how much of the offense goes through him. Orange = how many of the turnovers he makes.")
-        fig = go.Figure()
-        top = len(h2) - 1  # the last row is drawn at the top
-        fig.add_trace(go.Bar(y=h2["player_name"], x=h2["play_share"], orientation="h", name="Share of team plays",
-                             marker_color=LIGHT, hovertemplate="%{y}: %{x:.0%} of plays<extra></extra>",
-                             text=[f"{v:.0%}" + (" of the plays" if i == top else "")
-                                   for i, v in enumerate(h2["play_share"])],
-                             textposition="outside", cliponaxis=False))
-        fig.add_trace(go.Bar(y=h2["player_name"], x=h2["tov_share"], orientation="h", name="Share of team turnovers",
-                             marker_color=FOCUS,
-                             text=[f"{v:.0%}" + (" of the turnovers" if i == top else "")
-                                   for i, v in enumerate(h2["tov_share"])],
-                             textposition="outside", cliponaxis=False,
-                             customdata=h2["tov"],
-                             hovertemplate="%{y}: %{x:.0%} of turnovers (%{customdata:.0f})<extra></extra>"))
-        fig.update_layout(barmode="group", bargap=0.25)
-        # room on the right for the top row's "of the turnovers" label
-        fig.update_xaxes(tickformat=".0%", range=[0, float(h2[["play_share", "tov_share"]].max().max()) * 1.32])
-        fig.update_yaxes(tickvals=list(h2["player_name"]),
-                         ticktext=[f"<b>{n}</b>" if n == focus else n for n in h2["player_name"]])
+                "The further above the line, the more he gives it away for how much he has it.")
         names = sorted(ph["player_name"].unique())
         st.session_state.setdefault("player_pick", focus if focus in names else names[0])
         if st.session_state["player_pick"] not in names:
             st.session_state["player_pick"] = names[0]
-        axis_faces(fig, [face(x) for x in h2["player_name"]], 46)
-        event = show(fig, 80 + 46 * len(h2), key=f"who_{season_p}", select=True)
-        name = clicked(event, "y", f"who_click_{season_p}")
+        xmax, ymax = float(h2["play_share"].max()) * 1.15, float(h2["tov_share"].max()) * 1.15
+        lim = min(xmax, ymax)
+        named = set(h2.nlargest(4, "tov_share")["player_name"]) | set(h2.nlargest(2, "play_share")["player_name"])
+        fig = go.Figure()
+        # above the diagonal = more of the turnovers than of the plays
+        fig.add_shape(type="path", path=f"M 0 0 L {lim} {lim} L {lim} {ymax} L 0 {ymax} Z",
+                      fillcolor="rgba(217,89,38,0.08)",
+                      line_width=0, layer="below")
+        fig.add_shape(type="line", x0=0, y0=0, x1=lim, y1=lim, line=dict(color=INK_MARK, width=1.5, dash="dot"))
+        fig.add_annotation(x=lim * 0.97, y=lim * 0.97, text="his fair share", showarrow=False, xanchor="right",
+                           yanchor="bottom", font=dict(size=12, color=INK_MARK), textangle=-38)
+        fig.add_annotation(x=xmax * 0.03, y=ymax * 0.96, text="<b>More than his share of turnovers</b>",
+                           showarrow=False, xanchor="left", font=dict(size=13, color=BAD))
+        fig.add_trace(go.Scatter(
+            x=h2["play_share"], y=h2["tov_share"], mode="markers+text", customdata=h2["player_name"],
+            text=[n_.split(" ", 1)[-1] if n_ in named else "" for n_ in h2["player_name"]],
+            textposition="bottom center",
+            textfont=dict(size=12, color=INK_MARK), marker=dict(size=40, opacity=0), showlegend=False,
+            hovertemplate="<b>%{customdata}</b><br>%{x:.0%} of the plays after halftime<br>%{y:.0%} of the "
+                          "turnovers<extra></extra>"))
+        for x_, y_, n_ in zip(h2["play_share"], h2["tov_share"], h2["player_name"]):
+            if face(n_):
+                fig.add_layout_image(source=face(n_), xref="x", yref="y", x=x_, y=y_, xanchor="center",
+                                     yanchor="middle", sizex=xmax * 0.07, sizey=ymax * 0.11, sizing="contain",
+                                     layer="above")
+        fig.update_xaxes(range=[0, xmax], tickformat=".0%", title="Share of the team's plays after halftime")
+        fig.update_yaxes(range=[0, ymax], tickformat=".0%", title="Share of the team's turnovers after halftime")
+        event = show(fig, 520, key=f"who_{season_p}", select=True)
+        name = clicked(event, "customdata", f"who_click_{season_p}")
         if name in names:
             st.session_state["player_pick"] = name
-        st.caption("Orange longer than gray = more than his share of turnovers. Click a player to see his games.")
+        st.caption("Each face is a player, placed by how much of the offense he runs (across) and how many of the "
+                   "turnovers he makes (up). Above the dotted line = more than his share. Click a face to see his "
+                   "games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
                 "Each row is one player after halftime: count the balls to his orange one, and that's how many plays "
@@ -1713,16 +1770,23 @@ def page_players() -> None:
         section("One player, game by game", "one")
         player = st.selectbox("Player", names, key="player_pick")
         t = ph[ph["player_name"] == player].set_index("split")
-        c = st.columns(4)
-        c[0].metric("Turnover rate, 1st half", f"{t.loc['H1', 'tov_pct']:.1%}", border=True,
-                    help="Share of his plays (shots, free-throw trips, turnovers) that end in a turnover.")
-        c[1].metric("Turnover rate, 2nd half", f"{t.loc['H2', 'tov_pct']:.1%}", border=True,
-                    delta=f"{100 * (t.loc['H2', 'tov_pct'] - t.loc['H1', 'tov_pct']):+.1f} pts",
-                    delta_color="inverse")
-        c[2].metric("Share of team turnovers after half", f"{t.loc['H2', 'tov_share']:.0%}", border=True,
-                    help=f"He handles {t.loc['H2', 'play_share']:.0%} of the team's plays after halftime.")
-        c[3].metric("Turnovers that were steals", f"{t.loc['H2', 'live_share']:.0%}", border=True,
-                    help="Live-ball turnovers after halftime: play continues, so they often lead to fast breaks.")
+        pid_ = int(t["player_id"].iloc[0])
+        info = data.roster.set_index("player_id").loc[pid_] if len(data.roster) and pid_ in set(
+            data.roster["player_id"]) and season_p == season_now else None
+        num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
+        d = 100 * (t.loc["H2", "tov_pct"] - t.loc["H1", "tov_pct"])
+        st.markdown(
+            f'<div class="hero-card"><div class="hc-photo"><span class="pc-num">{num}</span>'
+            f'<img src="{D.headshot_url(pid_)}" alt=""></div><div class="hc-body">'
+            f'<div class="kicker">{info["position"] + " · " if info is not None else ""}after halftime, {season_p}</div>'
+            f'<div class="hc-name">{player}</div><div class="hc-stats">'
+            f'<div><b>{t.loc["H1", "tov_pct"]:.0%}</b><span>of his plays end in a turnover before halftime</span></div>'
+            f'<div><b class="{"hc-up" if d > 0 else "hc-down"}">{t.loc["H2", "tov_pct"]:.0%}</b><span>after halftime '
+            f'({"+" if d > 0 else "−"}{abs(d):.1f} pts)</span></div>'
+            f'<div><b>{t.loc["H2", "tov_share"]:.0%}</b><span>of the team\'s turnovers after halftime, on '
+            f'{t.loc["H2", "play_share"]:.0%} of its plays</span></div>'
+            f'<div><b>{t.loc["H2", "live_share"]:.0%}</b><span>of them steals (live balls that lead to fast breaks)'
+            f'</span></div></div></div></div>', unsafe_allow_html=True)
         g = D.player_games(data.player_stats, data.game_leads, season_p, player)
         gx = pd.to_datetime(g["game_date"]).dt.strftime("%b %d").str.replace(" 0", " ") + " " + g[
             "opponent_abbreviation"]
@@ -1793,7 +1857,7 @@ def page_league() -> None:
                       "(%{customdata[2]} of 30)<br>First halves: %{customdata[3]} (league %{customdata[4]})"
                       "<extra></extra>"))
     for name, r_ in q.iterrows():
-        fig.add_layout_image(source=D.logo_url(int(r_["team_id"])), xref="x", yref="y", x=r_["x"], y=r_["y"],
+        fig.add_layout_image(source=D.logo_url(int(r_["team_id"]), dark=False), xref="x", yref="y", x=r_["x"], y=r_["y"],
                              xanchor="center", yanchor="middle", sizex=xr * 0.11, sizey=yr * 0.11,
                              sizing="contain", layer="above")
     fig.update_xaxes(range=[-xr, xr], showticklabels=False, showgrid=False,
@@ -1813,7 +1877,7 @@ def page_league() -> None:
                   help=f"League average change: {fmt(row['league_mean'])}.")
         with st.expander("Every team, ranked"):
             ranked = q.sort_values("rank").reset_index()
-            st.dataframe(pd.DataFrame({"logo": [D.logo_url(int(t)) for t in ranked["team_id"]],
+            st.dataframe(pd.DataFrame({"logo": [D.logo_url(int(t), dark=False) for t in ranked["team_id"]],
                                        "Team": ranked["team_name"], "Rank": ranked["rank"],
                                        "Change": [fmt(v) for v in ranked["value"]]}),
                          hide_index=True, width="stretch",
@@ -1918,8 +1982,8 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
     pts = sum(k.points for k in chosen)
     chance = P.win_chance(pv.margin + pts)
     with odds.container():
-        picture(G.odds_bar("LAC", pv.opponent, chance, pv.margin + pts, team_logo=D.logo_url(tid),
-                           opp_logo=D.logo_url(opp_id)), max_width="900px")
+        picture(G.odds_bar("LAC", pv.opponent, chance, pv.margin + pts, team_logo=D.logo_url(tid, dark=False),
+                           opp_logo=D.logo_url(opp_id, dark=False)), max_width="900px")
         st.markdown(f'<div class="odds-note">Today <b>{pv.chance:.0%}</b>'
                     + (f' → with {len(chosen)} key{"s" if len(chosen) != 1 else ""} below <b>{chance:.0%}</b>'
                        if chosen else " · switch on keys below to see what they're worth") + "</div>",

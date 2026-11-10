@@ -67,7 +67,7 @@ stats.nba.com ──► courtside pull ──► data/raw/  (every response cach
 - **Rules set before the results:** a factor *drives* the drop at 40%+ of it, *contributes* at 15–40%, and is *minor* below that. A league rank of 26–30 is "among the worst." Uncertainty comes from a bootstrap that resamples whole games.
 - **Garland's share:** his second-half turnovers above his own baseline, using whichever baseline gives the theory the most credit (his first-half rate this season, or his second-half rate last season), each valued at what a lost possession costs.
 - **Win chances:** net rating blended with last season's early on (`(games × this + 10 × last) / (games + 10)`), turned into an expected margin with 2 points of home court, and a normal spread of 12.5 points. It knows nothing about injuries or rest; simple models like this pick about two in three NBA games. Details: [`analysis/preview.py`](src/courtside/analysis/preview.py).
-- **Colors** were checked with a palette validator for colorblind safety and 3:1 contrast on the dark background: blue = better, orange = worse and the second half, gray = context.
+- **Colors** were checked with a palette validator for colorblind safety and 3:1 contrast on the light background: blue = better, orange = worse and the second half, gray = context.
 
 ## Run it yourself
 
