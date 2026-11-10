@@ -16,7 +16,7 @@ Once that worked, I didn't want a one-off report that goes stale. So the project
 | Page | What it answers |
 |---|---|
 | **Games** | Every game this season. A played game opens its report: the scoreboard, a replay of the score margin with the biggest runs shaded, the best and worst Clippers, which lineups won and lost, and what decided it compared with a normal night. An upcoming game opens its game plan: the win chance and the keys to that matchup, each with how many points it's worth. |
-| **Blown leads** | The answer, ranked: which parts of the game cost them points after halftime, the popular theories checked one by one, what changed since last season, and "what if" switches to see how much each fix would be worth. |
+| **Blown leads** | The answer, ranked: which parts of the game cost them points after halftime, a shot map of where the shots stop falling, the popular theories checked one by one, what changed since last season, and "what if" switches to see how much each fix would be worth. |
 | **Players** | Who loses the ball after halftime, player by player, with each player's games. |
 | **Vs. the league** | Whether every team fades after halftime (most don't), with all 30 teams on one chart. |
 | **What now?** | What the numbers point to: minutes, Garland's role, defense and size, and the players returning from injury, with what would change each piece of advice. |
@@ -108,7 +108,6 @@ tests/                         unit tests on recorded fixtures, plus headless pa
 
 ## What I'd do next
 
-- **Shot maps by half:** every Clippers shot on a court, before and after halftime, to show where the shots stop falling.
 - **Real injury status:** read the NBA's official injury report so the returning-players list knows *why* someone sat.
 - **Grade the odds:** track each game's predicted win chance against the result and show how well calibrated it is.
 - **Lineup-level odds:** use who's actually available tonight instead of team-wide ratings.
