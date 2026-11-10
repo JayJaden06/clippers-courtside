@@ -31,7 +31,10 @@ class Ink:
     empty: str = "#33322f"
 
 
-DARK = Ink()
+DARK = Ink()  # for drawings that sit inside dark cards (the card mini-charts) and the scoreboard
+# For drawings on the light page: a maple floor, navy ink. Blue and orange are the same validated pair.
+PAGE = Ink(ink="#1b2333", muted="#5f6372", floor="#efe4cf", courtline="#b39a72", paint="#d9e2f2",
+           gray="#7f7d77", empty="#e3e0d8")
 
 
 def _signed(v: float, digits: int = 1) -> str:
@@ -81,7 +84,7 @@ def _court(c: Ink, left_tint: str | None = None, right_tint: str | None = None, 
 
 # ------------------------------------------------------------------ the two halves
 
-def court_halves(h1: float, h2: float, c: Ink = DARK) -> str:
+def court_halves(h1: float, h2: float, c: Ink = PAGE) -> str:
     """The court split at half court: the average score margin in first halves and in second halves."""
     tint = lambda v: c.good if v > 0 else c.bad if v < 0 else None  # noqa: E731
     body = [f'<g transform="translate(20,20)">{_court(c, tint(h1), tint(h2))}</g>']
@@ -101,7 +104,7 @@ def court_halves(h1: float, h2: float, c: Ink = DARK) -> str:
 
 # ------------------------------------------------------------------ The Wall
 
-def wall_court(ft_before: float, ft_after: float, c: Ink = DARK) -> str:
+def wall_court(ft_before: float, ft_after: float, c: Ink = PAGE) -> str:
     """Intuit Dome's court with The Wall behind the left basket and opponents' FT% by half."""
     rows = []
     for i in range(12):  # 12 bands of heads stand in for 51 rows
@@ -133,7 +136,7 @@ def _head(cx: float, cy: float, r: float, color: str, photo: str | None) -> str:
     uid = "h" + hashlib.md5(f"{photo}{cx}{cy}".encode()).hexdigest()[:8]
     w = 2 * r * 1.6
     return (f'<clipPath id="{uid}"><circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}"/></clipPath>'
-            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="#2c2c29"/>'
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="#d9d6ce"/>'
             f'<image href="{photo}" x="{cx - w / 2:.1f}" y="{cy - r * 1.05:.1f}" width="{w:.1f}" '
             f'height="{w / 1.368:.1f}" clip-path="url(#{uid})"/>'
             f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="none" stroke="{color}" stroke-width="3"/>')
@@ -161,7 +164,7 @@ def _person(cx: float, ground: float, height_in: float, weight_lb: float, color:
 
 def height_matchup(name: str, height_in: float, weight_lb: float, every_tall: float, every_short: float,
                    prior_every_tall: float, prior_every_short: float, tall_in: float = 78,
-                   c: Ink = DARK, photo: str | None = None) -> str:
+                   c: Ink = PAGE, photo: str | None = None) -> str:
     """The player next to a bigger and a shorter defender, with how often he turns it over against each."""
     ground = 300
     body = []
@@ -185,7 +188,7 @@ def height_matchup(name: str, height_in: float, weight_lb: float, every_tall: fl
 
 
 def size_matchup(name: str, height_in: float, weight_lb: float, opp_height_in: float, opp_weight_lb: float,
-                 fg_allowed: float, team_fg: float, c: Ink = DARK, photo: str | None = None) -> str:
+                 fg_allowed: float, team_fg: float, c: Ink = PAGE, photo: str | None = None) -> str:
     """The player next to the average player he guards, drawn wider by weight."""
     ground = 290
     gap = opp_weight_lb - weight_lb
@@ -231,7 +234,7 @@ def _half_court(c: Ink) -> str:
 
 
 def shot_map(before: list[tuple[int, int, bool]], after: list[tuple[int, int, bool]],
-             zones: list[tuple[str, float, float, int, int]], c: Ink = DARK) -> str:
+             zones: list[tuple[str, float, float, int, int]], c: Ink = PAGE) -> str:
     """Every shot before and after halftime on two half courts: made = filled dot, missed = small ring.
 
     ``before``/``after`` are (loc_x, loc_y, made); ``zones`` are (zone, pct_before, pct_after, n_before,
@@ -286,7 +289,7 @@ def _waffle(x0: float, y0: float, n: int, color: str, c: Ink, cell: int = 22, ga
     return "".join(out)
 
 
-def missed_shots(before: float, after: float, last_season: float, c: Ink = DARK) -> str:
+def missed_shots(before: float, after: float, last_season: float, c: Ink = PAGE) -> str:
     """Two 10x10 grids: of every 100 shots the opponents miss, how many they rebound themselves."""
     nb, na = round(before * 100), round(after * 100)
     body = [_text(130, 30, "BEFORE HALFTIME", 18, c.muted, 700, spacing=2),
@@ -302,7 +305,7 @@ def missed_shots(before: float, after: float, last_season: float, c: Ink = DARK)
 
 # ------------------------------------------------------------------ how the turnovers happened
 
-def turnover_strip(own: int, second: int, no_steal: int, c: Ink = DARK) -> str:
+def turnover_strip(own: int, second: int, no_steal: int, c: Ink = PAGE) -> str:
     """One square per turnover, grouped: stolen by his own defender, by a second defender, or no steal."""
     groups = ((own, c.gray, "Stolen by his defender"), (second, c.focus, "Stolen by a 2nd defender"),
               (no_steal, c.empty, "No steal"))
@@ -333,7 +336,7 @@ def turnover_strip(own: int, second: int, no_steal: int, c: Ink = DARK) -> str:
 
 # ------------------------------------------------------------------ win odds
 
-def odds_bar(team: str, opp: str, chance: float, margin: float, c: Ink = DARK, team_logo: str | None = None,
+def odds_bar(team: str, opp: str, chance: float, margin: float, c: Ink = PAGE, team_logo: str | None = None,
              opp_logo: str | None = None) -> str:
     """A tug-of-war bar: the Clippers' share of the win chance against the opponent's (with logos if given)."""
     w, x0, bar_w = 900, 40, 820
@@ -475,7 +478,7 @@ def _ball(cx: float, cy: float, r: float, fill: str, line: str) -> str:
             f'stroke="{line}" stroke-width="1.2" fill="none"/>')
 
 
-def ball_ladder(rows: list[tuple[str, float, float]], c: Ink = DARK, max_balls: int = 25) -> str:
+def ball_ladder(rows: list[tuple[str, float, float]], c: Ink = PAGE, max_balls: int = 25) -> str:
     """One row per player: N basketballs, one orange, for '1 turnover every N plays' after halftime.
 
     ``rows``: (name, plays per turnover before halftime, plays per turnover after halftime).
