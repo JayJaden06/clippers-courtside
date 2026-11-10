@@ -292,8 +292,9 @@ def logo_url(team_id: int, dark: bool = True) -> str:
     return f"https://cdn.nba.com/logos/nba/{int(team_id)}/global/{'D' if dark else 'L'}/logo.svg"
 
 
-def headshot_url(player_id: int, small: bool = False) -> str:
-    """The player's headshot on the NBA's image CDN; ``small`` is the 260x190 version for charts and tables."""
+def headshot_url(player_id: int, small: bool = True) -> str:
+    """The player's headshot on the NBA's image CDN: 260x190 (every photo on the site shows at 74px or less),
+    or the 1040x760 original with ``small=False``."""
     return f"https://cdn.nba.com/headshots/nba/latest/{'260x190' if small else '1040x760'}/{int(player_id)}.png"
 
 
