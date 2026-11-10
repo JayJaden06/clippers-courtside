@@ -340,13 +340,14 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
 
 # ------------------------------------------------------------------ the scoreboard
 
-def scoreboard(team: str, opp: str, team_q: list[int], opp_q: list[int], won: bool, c: Ink = DARK) -> str:
+def scoreboard(team: str, opp: str, team_q: list[int], opp_q: list[int], won: bool, c: Ink = DARK,
+               team_logo: str | None = None, opp_logo: str | None = None) -> str:
     """An arena-style scoreboard: points in each quarter (and overtime), the second half, and the final."""
     periods = [f"Q{i}" if i <= 4 else ("OT" if i == 5 else f"{i - 4}OT") for i in range(1, len(team_q) + 1)]
     cols = periods + ["2ND HALF", "FINAL"]
     t2, o2 = sum(team_q[2:4]), sum(opp_q[2:4])
     rows = [(team, team_q + [t2, sum(team_q)]), (opp, opp_q + [o2, sum(opp_q)])]
-    x0, cw = 130, 82
+    x0, cw = 170, 82
     width = x0 + cw * len(cols) + 16
     body = [f'<rect x="0" y="0" width="{width}" height="196" rx="14" fill="#0e0e0d" stroke="{c.courtline}" '
             'stroke-width="2"/>']
@@ -354,7 +355,10 @@ def scoreboard(team: str, opp: str, team_q: list[int], opp_q: list[int], won: bo
         body.append(_text(x0 + cw * j + cw / 2, 40, col, 15, c.muted, 700, spacing=1.5))
     for i, (name, vals) in enumerate(rows):
         y = 92 + i * 62
-        body.append(_text(26, y, name, 30, c.ink, 800, anchor="start", spacing=2))
+        logo = team_logo if i == 0 else opp_logo
+        if logo:
+            body.append(f'<image href="{escape(logo)}" x="20" y="{y - 34}" width="44" height="44"/>')
+        body.append(_text(74 if logo else 26, y, name, 30, c.ink, 800, anchor="start", spacing=2))
         for j, v in enumerate(vals):
             other = rows[1 - i][1][j]
             col = cols[j]

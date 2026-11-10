@@ -178,11 +178,11 @@ def game_story(leads_row: pd.Series, halves: pd.DataFrame, attribution: pd.DataF
     lead = f"They led by as many as {mx}" if mx > 0 else "They never led"
     at_half = "tied at halftime" if hm == 0 else f"{'up' if hm > 0 else 'down'} {abs(hm)} at halftime"
     pts2, opp2 = int(h.loc["H2", "pts"]), int(h.loc["H2", "opp_pts"])
-    second = (f"outscored {opp2}-{pts2}" if pts2 < opp2 else f"won the second half {pts2}-{opp2}" if pts2 > opp2
-              else f"even in the second half at {pts2}-{opp2}")
+    second = (f"were outscored {opp2}-{pts2}" if pts2 < opp2 else f"won the second half {pts2}-{opp2}" if pts2 > opp2
+              else f"played the second half even at {pts2}-{opp2}")
     ot = int(leads_row["overtime_periods"])
     result = "won" if leads_row["result"] == "W" else "lost"
-    out = (f"{lead} against {opp} and were {at_half}. After the break they were {second}, and {result} by "
+    out = (f"{lead} against {opp} and were {at_half}. After the break they {second}, and {result} by "
            f"{abs(final)}{' in overtime' if ot else ''}.")
     a = attribution[attribution["factor"] != "residual"].set_index("factor")["points"]
     change = float(attribution["margin_change"].iloc[0])
