@@ -262,7 +262,7 @@ def page_answer() -> None:
         garland_main = "H3" in res and res["H3"]["key"]["share_of_swing"] >= DRIVES
         st.markdown(
             f'<div class="lede">{hl["wins"]}-{hl["losses"]}, and {hl["blown"]} of {hl["leads"]} early leads blown. '
-            "Is it Darius Garland's turnovers? "
+            f"Is it {focus}'s turnovers? "
             + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
             + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
         picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]), max_width="760px")
@@ -337,7 +337,7 @@ def page_answer() -> None:
     section("2. The popular theories, checked", "theories")
     left, right = st.columns([1, 1.25], gap="large")
     with left:
-        st.subheader("Is it Garland?")
+        st.subheader(f"Is it {focus_last}?")
         if "H3" in res:
             k3 = res["H3"]["key"]
             share = k3["share_of_swing"]
@@ -348,7 +348,7 @@ def page_answer() -> None:
                               fillcolor=f"rgba(230,103,103,{shade})", layer="below")
                 fig.add_annotation(x=(x0 + x1) / 2, y=0.72, text=label, showarrow=False, font=dict(size=12))
             fig.add_trace(go.Bar(x=[min(share, 1)], y=[0], orientation="h", width=0.34, marker_color=FOCUS,
-                                 hovertemplate=f"Garland's extra turnovers explain {share:.0%} of the "
+                                 hovertemplate=f"{focus_last}'s extra turnovers explain {share:.0%} of the "
                                                f"second-half drop<extra></extra>"))
             fig.add_annotation(x=min(share, 1), y=-0.62, text=f"<b>{share:.0%}</b>", showarrow=False,
                                font=dict(size=20))
@@ -398,10 +398,11 @@ def page_answer() -> None:
             st.markdown(
                 "- Teams switch baskets at halftime, so visitors face The Wall for only one half. The box score "
                 "doesn't record which end a team shot at, so this checks whether opponents miss more after "
-                "halftime at home at all. They don't.\n"
+                "halftime at home at all. "
+                + ("They do, by more than chance would explain." if wall.big == "Maybe" else "They don't.") + "\n"
                 "- Includes late free throws from intentional fouls.\n"
-                "- The home-court study looks at every arena since 2013-14 and finds the same thing: visitors' "
-                "free-throw shooting at Intuit Dome isn't consistently worse than at other arenas.")
+                "- The home-court study looks at every arena since 2013-14: visitors' free-throw shooting at "
+                "Intuit Dome isn't consistently worse than at other arenas.")
 
     # ---------------------------------------------------------- 3. since last season
     section_n = 3
@@ -453,7 +454,7 @@ def page_answer() -> None:
                      if st.toggle(f"{r.name} back to last season ({signed(r.prev_per_game)} instead of "
                                   f"{signed(r.per_game)} per game)", key=f"fix_{r.factor}")}
             g_pts = res["H3"]["key"]["excess_pts"] / max(hl["games"], 1) if "H3" in res else 0.0
-            fix_g = st.toggle(f"Garland's turnovers back to his last-season rate (about {signed(g_pts)} per game)",
+            fix_g = st.toggle(f"{focus_last}'s turnovers back to his last-season rate (about {signed(g_pts)} per game)",
                               key="fix_garland", disabled="turnovers" in fixed,
                               help="Already included if you fix all turnovers.")
         new_h2 = S.what_if(hl["h2_per_game"], reasons, fixed, g_pts, fix_g)

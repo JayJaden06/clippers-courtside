@@ -609,8 +609,9 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
         bits = [f"{c.name} ({c.fg3_pct:.0%} from three after halftime, {c.sample.split(',')[0]}"
                 + (f", {c.mpg:.0f} min a game" if c.mpg == c.mpg else "") + ")" for c in shooters]
         out.append(f"<b>The returning shooters are the biggest fix on paper.</b> {_names(bits)}. This team shoots "
-                   f"{sd.team_h2:.1%} after halftime against a league average of {sd.league_h2:.1%}. Expect them "
-                   "to be eased in on a minutes limit at first.")
+                   f"{sd.team_h2:.1%} after halftime against a league average of {sd.league_h2:.1%}."
+                   + (" Expect anyone coming back from injury to be eased in on a minutes limit at first."
+                      if any(c.this_season_minutes == 0 for c in shooters) else ""))
     now = rot.set_index("player_name") if rot is not None and len(rot) else None
     back = [c for c in shooters if c.this_season_minutes > 0]
     if back:
