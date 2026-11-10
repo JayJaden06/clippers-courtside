@@ -13,7 +13,7 @@ from pathlib import Path
 import pandas as pd
 
 from courtside.transform.halves import summarize
-from courtside.analysis.hypotheses import DRIVES, CONTRIBUTES, HypothesisResult, Inputs, attribution, ordinal
+from courtside.analysis.hypotheses import REQUIRED, DRIVES, CONTRIBUTES, HypothesisResult, Inputs, attribution, ordinal
 from courtside.viz import charts
 
 FIRST_LOOK = [
@@ -302,6 +302,15 @@ def write_report(results: list[HypothesisResult], inp: Inputs, meta: dict, margi
                  reports_dir: Path) -> Path:
     last = pd.to_datetime(inp.game_leads.loc[inp.game_leads["season"] == inp.season, "game_date"]).max()
     meta = {**meta, "last_game": last.strftime("%Y-%m-%d")}
+    missing = [k for k in REQUIRED if k not in {r.id for r in results}]
+    if missing:  # early in a season: a short note until every check can run
+        path = reports_dir / "findings.md"
+        path.write_text(
+            f"# Why the Clippers lose leads after halftime ({inp.season})\n\n*{inp.n_games} game(s), data through "
+            f"{meta['last_game']}.*\n\nToo early for the full report: {', '.join(missing)} can't be checked "
+            "yet. It fills in by itself once there's enough data (usually after the first few games).\n",
+            encoding="utf-8")
+        return path
     source = (f"Source: stats.nba.com via nba_api. {inp.season} through {meta['last_game']}. "
               "github.com/JayJaden06/clippers-courtside")
     draw_figures(inp, results, margins, reports_dir / "figures", meta["lead_threshold"], source)

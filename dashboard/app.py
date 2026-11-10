@@ -1863,25 +1863,6 @@ def page_players() -> None:
         st.markdown(f'<div class="slop">{"".join(rows_)}</div>', unsafe_allow_html=True)
         st.caption("Plays = shots, free-throw trips and turnovers. Sloppier or safer = a change of 2+ percentage "
                    "points in how often his plays end in a turnover. Players with 40+ minutes in each half.")
-        w = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2")
-        tov = ph.pivot(index="player_name", columns="split", values="tov").reindex(w.index)
-        fig = go.Figure()
-        for name in w.index:
-            fig.add_trace(go.Scatter(x=[w.loc[name, "H1"], w.loc[name, "H2"]], y=[name, name], mode="lines",
-                                     line=dict(color=LIGHT, width=3), hoverinfo="skip", showlegend=False))
-        for split, color, label in (("H1", H1C, "1st half"), ("H2", H2C, "2nd half")):
-            fig.add_trace(go.Scatter(
-                x=w[split], y=w.index, mode="markers", name=label, customdata=tov[split],
-                marker=dict(color=color, size=13, line=dict(color=BG, width=1.5)),
-                hovertemplate="%{y}<br>%{x:.1%} of plays end in a turnover<br>%{customdata:.0f} turnovers"
-                              "<extra>" + label + "</extra>"))
-        fig.update_xaxes(tickformat=".0%", title="Turnover rate (share of a player's plays that end in a turnover)")
-        fig.update_yaxes(tickvals=list(w.index), ticktext=[f"<b>{n}</b>" if n == focus else n for n in w.index])
-        with st.expander("Details: the same numbers as a before/after chart"):
-            st.markdown("Players with 40+ minutes in each half. Hover for the counts: a big jump on very few plays can "
-                        "be a couple of bad possessions.")
-            axis_faces(fig, [face(x) for x in w.index], 40)
-            show(fig, 80 + 40 * len(w))
 
         section("One player, game by game", "one")
         player = st.selectbox("Player", names, key="player_pick")

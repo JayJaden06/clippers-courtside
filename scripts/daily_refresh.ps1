@@ -67,9 +67,11 @@ try {
 
     Invoke-Step "courtside all" $courtside @("all") | Out-Null
 
-    # New Clippers games or tracking, or other teams' results (league table, schedule) for the next-game odds.
+    # New Clippers games or tracking, other teams' results (league table, schedule) for the next-game odds,
+    # or roster moves (trades and signings happen on days without games too).
     $news = git status --porcelain -- data/processed/games.parquet data/processed/matchups.parquet `
-        data/processed/league_periods.parquet data/processed/schedule.parquet
+        data/processed/league_periods.parquet data/processed/schedule.parquet `
+        data/processed/roster.parquet data/processed/shots.parquet data/processed/player_history_halves.parquet
     if (-not $news) {
         Write-Log "No new games, tracking or league results; discarding the rerun's date-only changes."
         Restore-Data

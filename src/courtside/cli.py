@@ -15,7 +15,8 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from courtside.analysis import hypotheses
-from courtside.config import get_settings
+from courtside.config import get_settings, settle_season
+from courtside.nba_client import CacheMissError
 from courtside.ingest import boxscores, games, league, lineups, playbyplay, players, schedule, shots, tracking
 from courtside.nba_client import NBAClient
 from courtside.transform import fouls, halves, leads, league_context, onoff, stints, turnovers
@@ -58,6 +59,9 @@ def pull(season: SeasonOpt = None) -> None:
     settings = get_settings()
     client = NBAClient(settings)
     df = games.load_games(client, settings, season, refresh_current=True)
+    if not season and settle_season(settings, set(df["season"])):
+        console.print(f"the new season has no games yet: staying on {settings.current_season}")
+        df = games.load_games(client, settings, refresh_current=True)
     for s, n in df.groupby("season").size().items():
         console.print(f"[bold]{s}[/]: {n} completed games")
     console.print(f"game logs: {client.stats}")
@@ -71,8 +75,11 @@ def pull(season: SeasonOpt = None) -> None:
     players.player_history(client, _history_people(roster, settings), _history_seasons(settings),
                            settings.season_type)
     _, _, skipped = tracking.load_tracking(client, df)
-    if skipped:
-        console.print(f"tracking not published yet for {len(skipped)} game(s); the next pull will retry them")
+    waiting = [g for g in skipped if not g.startswith("gave-up:")]
+    if waiting:
+        console.print(f"tracking not published yet for {len(waiting)} game(s); the next pull will retry them")
+    if len(waiting) < len(skipped):
+        console.print(f"tracking never published for {len(skipped) - len(waiting)} older game(s); no longer retried")
     for s in sorted(df["season"].unique()):
         # Season-to-date dashboards change after every game in the current season.
         refresh = s == settings.current_season
@@ -95,7 +102,14 @@ def build(season: SeasonOpt = None) -> None:
     """Build processed tables from the cache (no network)."""
     settings = get_settings()
     client = NBAClient(settings, offline=True)
-    df = games.load_games(client, settings, season)
+    try:
+        df = games.load_games(client, settings, season)
+    except CacheMissError:  # the calendar's new season was never pulled: pull stayed on the last one
+        df = None
+    if df is None or (not season and settle_season(settings, set(df["season"]))):
+        if df is None:
+            settle_season(settings, set())
+        df = games.load_games(client, settings, season)
     games.write_games(df, settings)
     console.print(f"games: {len(df)} rows")
 
@@ -256,6 +270,9 @@ def _analysis_meta(settings, inp: hypotheses.Inputs) -> dict:
 
 
 def _load_inputs(settings) -> hypotheses.Inputs:
+    built = settings.processed_dir / "games.parquet"
+    if built.exists():
+        settle_season(settings, set(pd.read_parquet(built, columns=["season"])["season"]))
     return hypotheses.load_inputs(
         settings.processed_dir, settings.current_season, settings.comparison_season, settings.focus_player
     )
