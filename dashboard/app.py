@@ -567,22 +567,6 @@ def page_whatnow() -> None:
         st.markdown("\n".join(f"- {line}" for line in W.summary_lines(sf, bl, cands, sd, focus, rot, dfn, gl, pr)),
                     unsafe_allow_html=True)
 
-    # ------------------------------------------------------------ starting five
-    if sf is not None:
-        rest = sf.rest_h2_pm / n
-        section("Does the starting five need to change?", "starters",
-                f"No. The starters hold even after halftime; the other lineups lose "
-                f"<b>{abs(rest):.1f} points a game</b>." if sf.not_the_problem and rest < 0 else
-                f"Starters: {signed(sf.h2_pm / n)} a game after halftime; everyone else {signed(rest)}.",
-                ("Keep it", "blue") if sf.not_the_problem else ("Maybe change it", "orange"))
-        with st.expander("Details"):
-            st.markdown(f"- Starters: {', '.join(sf.names)}; {sf.games_together} starts together.\n"
-                        f"- They've played {sf.h2_min:.0f} second-half minutes together; other lineups "
-                        f"{sf.rest_h2_min:.0f}.\n"
-                        f"- Per 100 trips down the floor: starters {signed(sf.h2_net)} after halftime "
-                        f"({signed(sf.h1_net)} before it), everyone else {signed(sf.rest_h2_net)}.\n"
-                        "- Lineup numbers swing a lot on a few possessions; treat this as a direction.")
-
     # ------------------------------------------------------------ minutes
     if rot is not None and len(rot):
         r = rot[rot["h2_min_on"] > 0].sort_values("h2_mpg").copy()
@@ -795,43 +779,6 @@ def page_whatnow() -> None:
                        f"{gl.opp_2nd_h2:.1f} opponent second-chance points a game after halftime "
                        f"({gl.opp_2nd_h1:.1f} before it).")
 
-    # ------------------------------------------------------------ chemistry
-    p = chem.pairs.sort_values("pm")
-    best = p.iloc[-1] if len(p) else None
-    section("Chemistry: which duos work?", "chemistry",
-            f"<b>{chem.continuity:.0%}</b> of minutes go to players who were here last season."
-            + (f" Best duo after halftime: <b>{best['a'].split(' ', 1)[-1]} + {best['b'].split(' ', 1)[-1]}</b>."
-               if best is not None else ""))
-    left, right = st.columns([1, 2.2], gap="large")
-    with left:
-        st.markdown("**How much of the team is new**")
-        answer_cards([W.Verdict("Minutes from players who were here last season", f"{chem.continuity:.0%}",
-                                f"New this season: {', '.join(n.split(' ', 1)[-1] for n in chem.new[:5]) or 'nobody'}.",
-                                "info", "chemistry", ("share", chem.continuity, None))], link=False)
-    with right:
-        if len(p):
-            show_p = pd.concat([p.head(5), p.tail(5)]).drop_duplicates(subset=["a_id", "b_id"]).sort_values("pm")
-            labels = [f"{a.split(' ', 1)[-1]} + {b.split(' ', 1)[-1]}{' ✦' if new else ''}"
-                      for a, b, new in zip(show_p["a"], show_p["b"], show_p["new_pair"])]
-            fig = go.Figure(go.Bar(
-                y=labels, x=show_p["pm"], orientation="h",
-                marker_color=[GOOD if v > 0 else BAD if v < 0 else MUTED_BAR for v in show_p["pm"]],
-                text=[f"{signed(v, 0)} in {m:.0f} min" for v, m in zip(show_p["pm"], show_p["min"])],
-                textposition="outside",
-                hovertemplate="%{y}: Clippers %{x:+.0f} after halftime with both on<extra></extra>"))
-            lim = float(show_p["pm"].abs().max()) * 1.6
-            fig.add_vline(x=0, line=dict(color=GRAY, width=1))
-            fig.update_xaxes(range=[-lim, lim], title="Clippers' score with both on the floor after halftime")
-            st.markdown("**The best and worst duos after halftime**")
-            show(fig, 90 + 32 * len(show_p), showlegend=False)
-            st.caption("✦ = never played together last season. Duos with 25+ second-half minutes together.")
-    with st.expander("Details"):
-        st.markdown(f"- **New this season:** {', '.join(chem.new) or 'nobody'}\n"
-                    f"- **Back from last season:** {', '.join(chem.returning)}\n"
-                    f"- {int(p['new_pair'].sum())} of {len(p)} regular duos never played together last season.\n"
-                    "- Chemistry itself can't be measured. Duos overlap, so one player's bad nights show up in all "
-                    "of his duos.")
-
     # ------------------------------------------------------------ returning players
     shooters = [c for c in cands if c.fg3a >= W.THREE_MIN_ATT]
     section("Will the returning players help?", "returning",
@@ -899,28 +846,84 @@ def page_whatnow() -> None:
                            "Turnover rate": st.column_config.NumberColumn(format="percent"),
                            "Rebounds/36": st.column_config.NumberColumn(format="%.1f")})
 
-    # ------------------------------------------------------------ who stopped shooting
-    section("Who stopped shooting after halftime?", "shooting",
-            f"<b>{sd.n_worse} of {sd.n_players}</b> regulars shoot worse after halftime.")
-    t = sd.table.sort_values("change")
-    fig = go.Figure()
-    for _, r_ in t.iterrows():
-        fig.add_trace(go.Scatter(x=[r_["efg_h1"], r_["efg_h2"]], y=[r_["player_name"]] * 2, mode="lines",
-                                 line=dict(color=BAD if r_["change"] < 0 else LIGHT, width=3), hoverinfo="skip",
-                                 showlegend=False))
-    for col, color, name in (("efg_h1", H1C, "Before halftime"), ("efg_h2", H2C, "After halftime")):
-        fig.add_trace(go.Scatter(
-            x=t[col], y=t["player_name"], mode="markers", name=name,
-            marker=dict(color=color, size=13, line=dict(color=BG, width=1.5)), customdata=t[f"fga_{col[-2:]}"],
-            hovertemplate="%{y}: %{x:.1%} on %{customdata:.0f} shots<extra>" + name + "</extra>"))
-    fig.add_vline(x=league_h2, line=dict(color=INK_MARK, width=1, dash="dash"), annotation_text="league average",
-                  annotation_position="top")
-    fig.update_xaxes(tickformat=".0%", title="Shooting accuracy (eFG%, which counts threes as worth more)")
-    axis_faces(fig, [face(x) for x in t["player_name"]], 40)
-    show(fig, 90 + 40 * len(t))
-    with st.expander("Details"):
-        st.markdown("The biggest drops come from players who were unusually hot before halftime, so some of this "
-                    "should even out. Players with 40+ minutes in each half.")
+    st.header("More evidence", divider="gray", anchor="more")
+    st.markdown('<div class="takeaway">The starting five, chemistry, and who stopped shooting: the cards at the top already give the answer for each.</div>', unsafe_allow_html=True)
+    with st.expander("Open the starting five, chemistry and shooting", icon=":material/expand_more:"):
+        # ------------------------------------------------------------ starting five
+        if sf is not None:
+            rest = sf.rest_h2_pm / n
+            section("Does the starting five need to change?", "starters",
+                    f"No. The starters hold even after halftime; the other lineups lose "
+                    f"<b>{abs(rest):.1f} points a game</b>." if sf.not_the_problem and rest < 0 else
+                    f"Starters: {signed(sf.h2_pm / n)} a game after halftime; everyone else {signed(rest)}.",
+                    ("Keep it", "blue") if sf.not_the_problem else ("Maybe change it", "orange"))
+            with st.expander("Details"):
+                st.markdown(f"- Starters: {', '.join(sf.names)}; {sf.games_together} starts together.\n"
+                            f"- They've played {sf.h2_min:.0f} second-half minutes together; other lineups "
+                            f"{sf.rest_h2_min:.0f}.\n"
+                            f"- Per 100 trips down the floor: starters {signed(sf.h2_net)} after halftime "
+                            f"({signed(sf.h1_net)} before it), everyone else {signed(sf.rest_h2_net)}.\n"
+                            "- Lineup numbers swing a lot on a few possessions; treat this as a direction.")
+
+        # ------------------------------------------------------------ chemistry
+        p = chem.pairs.sort_values("pm")
+        best = p.iloc[-1] if len(p) else None
+        section("Chemistry: which duos work?", "chemistry",
+                f"<b>{chem.continuity:.0%}</b> of minutes go to players who were here last season."
+                + (f" Best duo after halftime: <b>{best['a'].split(' ', 1)[-1]} + {best['b'].split(' ', 1)[-1]}</b>."
+                   if best is not None else ""))
+        left, right = st.columns([1, 2.2], gap="large")
+        with left:
+            st.markdown("**How much of the team is new**")
+            answer_cards([W.Verdict("Minutes from players who were here last season", f"{chem.continuity:.0%}",
+                                    f"New this season: {', '.join(n.split(' ', 1)[-1] for n in chem.new[:5]) or 'nobody'}.",
+                                    "info", "chemistry", ("share", chem.continuity, None))], link=False)
+        with right:
+            if len(p):
+                show_p = pd.concat([p.head(5), p.tail(5)]).drop_duplicates(subset=["a_id", "b_id"]).sort_values("pm")
+                labels = [f"{a.split(' ', 1)[-1]} + {b.split(' ', 1)[-1]}{' ✦' if new else ''}"
+                          for a, b, new in zip(show_p["a"], show_p["b"], show_p["new_pair"])]
+                fig = go.Figure(go.Bar(
+                    y=labels, x=show_p["pm"], orientation="h",
+                    marker_color=[GOOD if v > 0 else BAD if v < 0 else MUTED_BAR for v in show_p["pm"]],
+                    text=[f"{signed(v, 0)} in {m:.0f} min" for v, m in zip(show_p["pm"], show_p["min"])],
+                    textposition="outside",
+                    hovertemplate="%{y}: Clippers %{x:+.0f} after halftime with both on<extra></extra>"))
+                lim = float(show_p["pm"].abs().max()) * 1.6
+                fig.add_vline(x=0, line=dict(color=GRAY, width=1))
+                fig.update_xaxes(range=[-lim, lim], title="Clippers' score with both on the floor after halftime")
+                st.markdown("**The best and worst duos after halftime**")
+                show(fig, 90 + 32 * len(show_p), showlegend=False)
+                st.caption("✦ = never played together last season. Duos with 25+ second-half minutes together.")
+        with st.expander("Details"):
+            st.markdown(f"- **New this season:** {', '.join(chem.new) or 'nobody'}\n"
+                        f"- **Back from last season:** {', '.join(chem.returning)}\n"
+                        f"- {int(p['new_pair'].sum())} of {len(p)} regular duos never played together last season.\n"
+                        "- Chemistry itself can't be measured. Duos overlap, so one player's bad nights show up in all "
+                        "of his duos.")
+
+        # ------------------------------------------------------------ who stopped shooting
+        section("Who stopped shooting after halftime?", "shooting",
+                f"<b>{sd.n_worse} of {sd.n_players}</b> regulars shoot worse after halftime.")
+        t = sd.table.sort_values("change")
+        fig = go.Figure()
+        for _, r_ in t.iterrows():
+            fig.add_trace(go.Scatter(x=[r_["efg_h1"], r_["efg_h2"]], y=[r_["player_name"]] * 2, mode="lines",
+                                     line=dict(color=BAD if r_["change"] < 0 else LIGHT, width=3), hoverinfo="skip",
+                                     showlegend=False))
+        for col, color, name in (("efg_h1", H1C, "Before halftime"), ("efg_h2", H2C, "After halftime")):
+            fig.add_trace(go.Scatter(
+                x=t[col], y=t["player_name"], mode="markers", name=name,
+                marker=dict(color=color, size=13, line=dict(color=BG, width=1.5)), customdata=t[f"fga_{col[-2:]}"],
+                hovertemplate="%{y}: %{x:.1%} on %{customdata:.0f} shots<extra>" + name + "</extra>"))
+        fig.add_vline(x=league_h2, line=dict(color=INK_MARK, width=1, dash="dash"), annotation_text="league average",
+                      annotation_position="top")
+        fig.update_xaxes(tickformat=".0%", title="Shooting accuracy (eFG%, which counts threes as worth more)")
+        axis_faces(fig, [face(x) for x in t["player_name"]], 40)
+        show(fig, 90 + 40 * len(t))
+        with st.expander("Details"):
+            st.markdown("The biggest drops come from players who were unusually hot before halftime, so some of this "
+                        "should even out. Players with 40+ minutes in each half.")
 
     # ------------------------------------------------------------ what would change this
     with st.expander("What would change this advice", icon=":material/update:"):
