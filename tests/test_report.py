@@ -8,11 +8,11 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from leadcollapse.analysis import hypotheses as H
-from leadcollapse.analysis import report as R
+from courtside.analysis import hypotheses as H
+from courtside.analysis import report as R
 
 PROCESSED = Path(__file__).resolve().parents[1] / "data" / "processed"
-needs_data = pytest.mark.skipif(not (PROCESSED / "game_halves.parquet").exists(), reason="run leadcollapse build")
+needs_data = pytest.mark.skipif(not (PROCESSED / "game_halves.parquet").exists(), reason="run courtside build")
 
 META = {"analyzed_on": "2026-11-08", "lead_threshold": 8}
 

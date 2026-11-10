@@ -9,11 +9,11 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from leadcollapse.viz import story as S
+from courtside.viz import story as S
 
 ROOT = Path(__file__).resolve().parents[1]
 ANALYSIS = ROOT / "reports" / "analysis.json"
-pytestmark = pytest.mark.skipif(not ANALYSIS.exists(), reason="run leadcollapse analyze")
+pytestmark = pytest.mark.skipif(not ANALYSIS.exists(), reason="run courtside analyze")
 
 
 @pytest.fixture(scope="module")
@@ -80,7 +80,7 @@ def test_game_story_when_they_never_led_and_improved():
 
 @pytest.fixture(scope="module")
 def answer_inputs():
-    from leadcollapse.viz import dashboard_data as D
+    from courtside.viz import dashboard_data as D
 
     d = D.load(ROOT / "data" / "processed", ANALYSIS)
     meta = d.analysis["meta"]

@@ -15,9 +15,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leadcollapse.ingest.boxscores import parse_box
-from leadcollapse.ingest.playbyplay import parse_pbp
-from leadcollapse.transform import turnovers as T
+from courtside.ingest.boxscores import parse_box
+from courtside.ingest.playbyplay import parse_pbp
+from courtside.transform import turnovers as T
 
 FIXTURES = Path(__file__).parent / "fixtures"
 LAC, MIA = 1610612746, 1610612748

@@ -49,7 +49,7 @@ function Restore-Data {
     git clean -fdq -- data/processed reports 2>&1 | Out-Null
 }
 
-$leadcollapse = Join-Path $repo ".venv\Scripts\leadcollapse.exe"
+$courtside = Join-Path $repo ".venv\Scripts\courtside.exe"
 $python = Join-Path $repo ".venv\Scripts\python.exe"
 
 try {
@@ -65,7 +65,7 @@ try {
     }
     if (-not $DryRun) { Invoke-Step "git pull" "git" @("pull", "--ff-only") | Out-Null }
 
-    Invoke-Step "leadcollapse all" $leadcollapse @("all") | Out-Null
+    Invoke-Step "courtside all" $courtside @("all") | Out-Null
 
     # New Clippers games or tracking, or other teams' results (league table, schedule) for the next-game odds.
     $news = git status --porcelain -- data/processed/games.parquet data/processed/matchups.parquet `

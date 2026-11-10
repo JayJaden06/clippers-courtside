@@ -22,7 +22,7 @@ import logging
 import pandas as pd
 from nba_api.stats.endpoints import BoxScoreHustleV2, BoxScoreMatchupsV3, LeagueDashPlayerBioStats
 
-from leadcollapse.nba_client import CacheMissError, NBAClient
+from courtside.nba_client import CacheMissError, NBAClient
 
 log = logging.getLogger(__name__)
 

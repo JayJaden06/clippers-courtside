@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "leadcollapse"
+name = "courtside"
 version = "0.1.0"
-description = "Why do the Clippers lose second-half leads? A play-by-play and lineup analysis, 2026-27 vs 2025-26."
+description = "Clippers Courtside: every Clippers game explained, the next game's odds and game plan, and why they blow second-half leads."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Jaden Fong" }]
@@ -24,14 +24,14 @@ dependencies = [
 ]
 
 [project.scripts]
-leadcollapse = "leadcollapse.cli:app"
+courtside = "courtside.cli:app"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 dashboard = ["streamlit>=1.67"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/leadcollapse"]
+packages = ["src/courtside"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

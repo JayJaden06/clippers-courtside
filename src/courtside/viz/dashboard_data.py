@@ -13,10 +13,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from leadcollapse.analysis.decompose import FACTOR_LABELS, FACTORS, decompose_frame
-from leadcollapse.transform.halves import summarize
-from leadcollapse.transform.league_context import METRICS
-from leadcollapse.transform.turnovers import summarize_players
+from courtside.analysis.decompose import FACTOR_LABELS, FACTORS, decompose_frame
+from courtside.transform.halves import summarize
+from courtside.transform.league_context import METRICS
+from courtside.transform.turnovers import summarize_players
 
 LEAD_CLASS_LABELS = {
     "blown_lead": "Blown lead",
@@ -264,7 +264,7 @@ def full_stat_sheet(ranks: pd.DataFrame, season: str) -> pd.DataFrame:
             return f"{x:.2f}"
         return f"{x:.1f}"
 
-    from leadcollapse.analysis.hypotheses import ordinal
+    from courtside.analysis.hypotheses import ordinal
     return pd.DataFrame([{
         "Stat": METRIC_LABELS[m], "1st half": fmt(m, v.loc[m, "H1"]), "2nd half": fmt(m, v.loc[m, "H2"]),
         "League rank, 1st half": ordinal(int(r.loc[m, "H1"])), "League rank, 2nd half": ordinal(int(r.loc[m, "H2"])),

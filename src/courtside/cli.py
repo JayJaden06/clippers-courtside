@@ -1,4 +1,4 @@
-"""Command-line entry point: ``leadcollapse pull`` then ``leadcollapse build``.
+"""Command-line entry point: ``courtside pull`` then ``courtside build``.
 
 ``pull`` is the only command that talks to stats.nba.com. Every later step
 uses an offline client, so it can only read what ``pull`` already cached.
@@ -14,13 +14,14 @@ import typer
 from rich.console import Console
 from rich.logging import RichHandler
 
-from leadcollapse.analysis import hypotheses
-from leadcollapse.config import get_settings
-from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players, schedule, tracking
-from leadcollapse.nba_client import NBAClient
-from leadcollapse.transform import fouls, halves, leads, league_context, onoff, stints, turnovers
+from courtside.analysis import hypotheses
+from courtside.config import get_settings
+from courtside.ingest import boxscores, games, league, lineups, playbyplay, players, schedule, tracking
+from courtside.nba_client import NBAClient
+from courtside.transform import fouls, halves, leads, league_context, onoff, stints, turnovers
 
-app = typer.Typer(help="Why do the Clippers lose second-half leads?", no_args_is_help=True)
+app = typer.Typer(help="Clippers Courtside: game reports, game plans and the second-half lead analysis.",
+                  no_args_is_help=True)
 console = Console()
 
 SeasonOpt = Annotated[
@@ -39,7 +40,7 @@ def main(verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Log ever
 
 
 def _history_seasons(settings) -> list[str]:
-    from leadcollapse.config import previous_season
+    from courtside.config import previous_season
 
     return [settings.comparison_season, previous_season(settings.comparison_season)]
 
@@ -261,7 +262,7 @@ def report() -> None:
     """Draw the figures and write reports/findings.md (no network)."""
     import json
 
-    from leadcollapse.analysis import report as report_mod
+    from courtside.analysis import report as report_mod
 
     settings = get_settings()
     inp = _load_inputs(settings)
@@ -297,7 +298,7 @@ def dashboard(port: Annotated[int, typer.Option(help="Port for the local Streaml
     import sys
     from importlib.util import find_spec
 
-    from leadcollapse.config import PROJECT_ROOT
+    from courtside.config import PROJECT_ROOT
 
     if find_spec("streamlit") is None:
         console.print(r'[red]Streamlit is not installed.[/] Run: pip install -e ".\[dashboard]"')

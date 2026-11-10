@@ -1,6 +1,6 @@
-"""Clippers lead-collapse dashboard.
+"""Clippers Courtside dashboard.
 
-Run with ``leadcollapse dashboard`` (or ``streamlit run dashboard/app.py``).
+Run with ``courtside dashboard`` (or ``streamlit run dashboard/app.py``).
 Reads ``data/processed/`` and ``reports/analysis.json`` only: no API calls.
 Written for two audiences at once: plain-English headlines and explanations
 up front, the basketball numbers one hover or expander away.
@@ -15,16 +15,16 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from leadcollapse.analysis import gamereport as R
-from leadcollapse.analysis import gameplan as GP
-from leadcollapse.analysis import preview as P
-from leadcollapse.ingest import schedule as sched
-from leadcollapse.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
-from leadcollapse.config import get_settings
-from leadcollapse.viz import dashboard_data as D
-from leadcollapse.viz import graphics as G
-from leadcollapse.viz import story as S
-from leadcollapse.viz import whatnow as W
+from courtside.analysis import gamereport as R
+from courtside.analysis import gameplan as GP
+from courtside.analysis import preview as P
+from courtside.ingest import schedule as sched
+from courtside.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
+from courtside.config import get_settings
+from courtside.viz import dashboard_data as D
+from courtside.viz import graphics as G
+from courtside.viz import story as S
+from courtside.viz import whatnow as W
 
 # Dark-surface steps of the report palette (validated for the dark chart surface).
 H1C, H2C = "#3987e5", "#d95926"  # 1st half / 2nd half
@@ -37,7 +37,7 @@ BG = "#141413"  # matches .streamlit/config.toml backgroundColor
 PLOTLY_CONFIG = {"displayModeBar": False}
 TONE_BADGE = {"yes": ("red", "The answer"), "partly": ("orange", "Part of it"), "no": ("gray", "Not really")}
 
-st.set_page_config(page_title="Why the Clippers blow leads", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Clippers Courtside", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""
 <style>
 .kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .65; margin-bottom: .2rem}
@@ -128,7 +128,7 @@ def show(fig: go.Figure, height: int, key: str | None = None, select: bool = Fal
 
 
 def picture(svg: str, max_width: str | None = None) -> None:
-    """Render one of the SVG graphics from leadcollapse.viz.graphics."""
+    """Render one of the SVG graphics from courtside.viz.graphics."""
     style = f' style="max-width:{max_width};margin-left:auto;margin-right:auto"' if max_width else ""
     st.markdown(svg.replace('<div class="gfx">', f'<div class="gfx"{style}>', 1), unsafe_allow_html=True)
 
@@ -158,7 +158,7 @@ def signed(v: float, digits: int = 1) -> str:
 try:
     data = load()
 except FileNotFoundError as e:
-    st.error(f"Processed data not found ({e.filename}). Run `leadcollapse build` and `leadcollapse analyze` first.")
+    st.error(f"Processed data not found ({e.filename}). Run `courtside build` and `courtside analyze` first.")
     st.stop()
 
 meta = data.analysis.get("meta", {})
@@ -845,8 +845,8 @@ def page_whatnow() -> None:
                      f"{gl.prior_opp_oreb_h2 + W.GLASS_WORSE:.1%} of their misses after halftime. It's "
                      f"{gl.opp_oreb_h2:.1%} today.")
         st.markdown("\n".join(f"- {w}" for w in watch))
-        st.caption("Everything on this page reruns with `leadcollapse all` after each game. The rules behind each "
-                   "verdict are listed at the top of src/leadcollapse/viz/whatnow.py.")
+        st.caption("Everything on this page reruns with `courtside all` after each game. The rules behind each "
+                   "verdict are listed at the top of src/courtside/viz/whatnow.py.")
 
 
 def _step_game(key: str, labels: list[str], step: int) -> None:
@@ -1518,7 +1518,7 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
             f"- **Win chance** treats the final margin as landing within about {P.MARGIN_SD:.1f} points of that, the "
             "usual spread of an NBA game.\n"
             "- **Keys** only appear when the numbers point to them; each rule (and how its points are counted) is "
-            "written at the top of src/leadcollapse/analysis/gameplan.py.\n"
+            "written at the top of src/courtside/analysis/gameplan.py.\n"
             "- It doesn't know about injuries, rest or travel, and isn't betting advice. Models this simple pick "
             "roughly two in three NBA games correctly.")
         st.dataframe(teams[["team_name", "gp", "net", "prior_net", "blend_net", "pace"]].sort_values(

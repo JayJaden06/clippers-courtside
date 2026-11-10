@@ -17,7 +17,7 @@ import pandas as pd
 import pytest
 from pydantic import ValidationError
 
-from leadcollapse.ingest.boxscores import (
+from courtside.ingest.boxscores import (
     H2,
     OT,
     QUARTERS,
@@ -26,7 +26,7 @@ from leadcollapse.ingest.boxscores import (
     parse_box,
     splits_for,
 )
-from leadcollapse.models import TraditionalStats, parse_minutes
+from courtside.models import TraditionalStats, parse_minutes
 
 FIXTURE = Path(__file__).parent / "fixtures" / "boxscore_0022600186_lac_mia_ot.json"
 LAC = 1610612746

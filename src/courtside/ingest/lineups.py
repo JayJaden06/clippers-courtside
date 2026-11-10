@@ -19,7 +19,7 @@ from __future__ import annotations
 import pandas as pd
 from nba_api.stats.endpoints import LeagueDashLineups, TeamPlayerOnOffDetails
 
-from leadcollapse.nba_client import NBAClient
+from courtside.nba_client import NBAClient
 
 PERIODS = (1, 2, 3, 4)
 

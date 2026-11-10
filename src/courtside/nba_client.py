@@ -34,7 +34,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from leadcollapse.config import Settings, get_settings
+from courtside.config import Settings, get_settings
 
 log = logging.getLogger(__name__)
 
@@ -215,7 +215,7 @@ class NBAClient:
             return cached
 
         if self.offline:
-            raise CacheMissError(f"{name} {params} is not cached; run `leadcollapse pull` first")
+            raise CacheMissError(f"{name} {params} is not cached; run `courtside pull` first")
 
         log.info("fetching   %s %s", name, params)
         response = self._fetch(endpoint_cls, params)

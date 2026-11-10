@@ -5,7 +5,7 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 
-# Raw API cache (re-creatable with `leadcollapse pull`)
+# Raw API cache (re-creatable with `courtside pull`)
 data/raw/
 
 # Editors / OS

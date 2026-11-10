@@ -9,13 +9,13 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from leadcollapse.config import previous_season
-from leadcollapse.viz import whatnow as W
+from courtside.config import previous_season
+from courtside.viz import whatnow as W
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
 needs_data = pytest.mark.skipif(not (PROCESSED / "player_history_halves.parquet").exists(),
-                                reason="run leadcollapse build")
+                                reason="run courtside build")
 
 
 def test_previous_season():
@@ -146,7 +146,7 @@ def test_verdict_cards_on_synthetic_rules():
     assert cards[0].big == "+0.1 vs -5.0" and cards[0].anchor == "starters"
 
 
-@pytest.mark.skipif(not (PROCESSED / "matchups.parquet").exists(), reason="run leadcollapse build")
+@pytest.mark.skipif(not (PROCESSED / "matchups.parquet").exists(), reason="run courtside build")
 def test_tracking_rules_on_the_committed_data():
     r = lambda n: pd.read_parquet(PROCESSED / f"{n}.parquet")  # noqa: E731
     pb, lu, oo, bio, m, hu, t, gh = (r(n) for n in ("player_box", "lineup_halves", "onoff_halves", "player_bio",

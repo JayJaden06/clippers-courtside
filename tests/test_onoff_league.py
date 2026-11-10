@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from leadcollapse.transform import league_context as L
-from leadcollapse.transform import onoff as O
+from courtside.transform import league_context as L
+from courtside.transform import onoff as O
 
 
 def onoff_rows(player: str, status: str, per_period: dict[int, tuple]) -> list[dict]:

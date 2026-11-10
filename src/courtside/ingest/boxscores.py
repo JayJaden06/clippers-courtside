@@ -23,8 +23,8 @@ from dataclasses import dataclass
 import pandas as pd
 from nba_api.stats.endpoints import BoxScoreAdvancedV3, BoxScoreMiscV3, BoxScoreTraditionalV3
 
-from leadcollapse.models import AdvancedStats, MiscStats, TraditionalStats
-from leadcollapse.nba_client import NBAClient
+from courtside.models import AdvancedStats, MiscStats, TraditionalStats
+from courtside.nba_client import NBAClient
 
 log = logging.getLogger(__name__)
 

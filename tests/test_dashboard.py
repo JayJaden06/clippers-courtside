@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from leadcollapse.viz import dashboard_data as D
+from courtside.viz import dashboard_data as D
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
-pytestmark = pytest.mark.skipif(not (PROCESSED / "game_halves.parquet").exists(), reason="run leadcollapse build")
+pytestmark = pytest.mark.skipif(not (PROCESSED / "game_halves.parquet").exists(), reason="run courtside build")
 
 
 @pytest.fixture(scope="module")
@@ -114,7 +114,7 @@ def test_league_page_every_stat():
 
 
 def test_replay_opens_the_game_passed_from_the_answer_page(data):
-    from leadcollapse.viz import story as S
+    from courtside.viz import story as S
 
     worst = S.worst_collapse(data.game_leads, data.seasons[0])
     testing = pytest.importorskip("streamlit.testing.v1")

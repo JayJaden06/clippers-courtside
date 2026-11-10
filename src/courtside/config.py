@@ -1,7 +1,7 @@
 """Project settings: team, seasons, thresholds and paths.
 
 Every value can be overridden with an environment variable prefixed with
-``LEADCOLLAPSE_`` (for example ``LEADCOLLAPSE_LEAD_THRESHOLD=12``), which keeps
+``COURTSIDE_`` (for example ``COURTSIDE_LEAD_THRESHOLD=12``), which keeps
 the sensitivity runs in the analysis from needing code changes.
 """
 
@@ -17,7 +17,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="LEADCOLLAPSE_", extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="COURTSIDE_", extra="ignore")
 
     # Team and seasons
     team_id: int = 1610612746  # LA Clippers

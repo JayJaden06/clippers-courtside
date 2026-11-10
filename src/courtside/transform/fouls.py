@@ -25,7 +25,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from leadcollapse.transform.periods import count_by_split
+from courtside.transform.periods import count_by_split
 
 REGULATION_LIMIT = 4
 OVERTIME_LIMIT = 3

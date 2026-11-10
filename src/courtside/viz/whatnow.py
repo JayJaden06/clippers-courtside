@@ -625,7 +625,7 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
 class Verdict:
     """One answer tile: a short headline, one big number, a small picture of it, one line of context.
 
-    ``viz`` (optional) describes the picture; see ``leadcollapse.viz.graphics.mini``:
+    ``viz`` (optional) describes the picture; see ``courtside.viz.graphics.mini``:
     ``("dots", k, n)``, ``("pair", before, after, label_before, label_after)``, ``("share", p, mark)``,
     ``("rank", r, n)`` or ``("diverge", (value, ...), (label, ...))``.
     """

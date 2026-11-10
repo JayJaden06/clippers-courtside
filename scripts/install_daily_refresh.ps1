@@ -13,7 +13,7 @@ If the PC is off or asleep at the set time, it runs as soon as you're back.
 #>
 param([string]$At = "7:00am", [switch]$Remove)
 
-$name = "Clippers lead-collapse daily refresh"
+$name = "Clippers Courtside daily refresh"
 
 if ($Remove) {
     Unregister-ScheduledTask -TaskName $name -Confirm:$false
