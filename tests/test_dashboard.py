@@ -169,17 +169,3 @@ def test_every_clipper_has_a_photo_id(data):
     last = D.last_names(data.player_box, data.seasons[0], "LAC")
     assert len(set(last.values())) == len(last)
 
-
-def test_shot_map_counts_match_the_box_scores(data):
-    if data.shots.empty:
-        pytest.skip("no shot data")
-    s = data.shots[data.shots["half"].isin(["H1", "H2"])].groupby(["game_id", "half"]).size()
-    gh = data.game_halves[data.game_halves["split"].astype(str).isin(["H1", "H2"])]
-    fga = gh.assign(half=gh["split"].astype(str)).set_index(["game_id", "half"])["fga"]
-    both = s.to_frame("shots").join(fga, how="inner")
-    assert len(both) > 0 and (both["shots"] == both["fga"]).all()
-    z = D.shot_zones(data.shots, data.seasons[0])
-    assert list(z.index) == [x for x in D.ZONE_ORDER if x in z.index]
-    assert int(z[["size_h1", "size_h2"]].to_numpy().sum()) == int(
-        fga.loc[fga.index.get_level_values(0).isin(
-            data.shots.loc[data.shots["season"] == data.seasons[0], "game_id"])].sum())

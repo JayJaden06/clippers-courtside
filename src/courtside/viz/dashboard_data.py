@@ -185,6 +185,17 @@ def game_turnovers(turnovers: pd.DataFrame, game_id: str) -> pd.DataFrame:
     }).reset_index(drop=True)
 
 
+ZONE_ORDER = ["At the rim", "Short range", "Mid-range", "Three"]
+
+
+def shot_zones(shots: pd.DataFrame, season: str) -> pd.DataFrame:
+    """Shooting by zone before and after halftime: made share and attempts, in ZONE_ORDER."""
+    s = shots[(shots["season"] == season) & shots["half"].isin(["H1", "H2"])]
+    t = s.groupby(["zone", "half"])["made"].agg(["mean", "size"]).unstack("half")
+    t.columns = [f"{a}_{b.lower()}" for a, b in t.columns]  # mean_h1, mean_h2, size_h1, size_h2
+    return t.reindex([z for z in ZONE_ORDER if z in t.index]).fillna(0)
+
+
 def _period_clock(period: int, seconds_left: float) -> str:
     """'Q3 7:05' (or 'OT1 0:42') from the period and seconds left on its clock."""
     name = f"Q{period}" if period <= 4 else f"OT{period - 4}"
@@ -287,17 +298,6 @@ def opp_ft_by_half(game_halves: pd.DataFrame) -> pd.DataFrame:
     t["ft_pct"] = t["ftm"] / t["fta"].where(t["fta"] > 0)
     t["se"] = (t["ft_pct"] * (1 - t["ft_pct"]) / t["fta"].where(t["fta"] > 0)) ** 0.5
     return t
-
-
-ZONE_ORDER = ["At the rim", "Short range", "Mid-range", "Three"]
-
-
-def shot_zones(shots: pd.DataFrame, season: str) -> pd.DataFrame:
-    """Shooting by zone before and after halftime: made share and attempts, in ZONE_ORDER."""
-    s = shots[(shots["season"] == season) & shots["half"].isin(["H1", "H2"])]
-    t = s.groupby(["zone", "half"])["made"].agg(["mean", "size"]).unstack("half")
-    t.columns = [f"{a}_{b.lower()}" for a, b in t.columns]  # mean_h1, mean_h2, size_h1, size_h2
-    return t.reindex([z for z in ZONE_ORDER if z in t.index]).fillna(0)
 
 
 def logo_url(team_id: int, dark: bool = True) -> str:
