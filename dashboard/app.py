@@ -26,16 +26,18 @@ from courtside.viz import graphics as G
 from courtside.viz import story as S
 from courtside.viz import whatnow as W
 
-# Dark-surface steps of the report palette (validated for the dark chart surface).
-H1C, H2C = "#3987e5", "#d95926"  # 1st half / 2nd half
-GOOD, BAD, GRAY = "#3987e5", "#e66767", "#898781"
+# One meaning per color, validated on the dark surface (dataviz validator: blue/orange pass every
+# colorblind check; every mark is 3:1+ against the page):
+#   blue = better / good · orange = worse / bad, the second half, and the focus · gray = context.
+H1C, H2C = "#a3a29a", "#d95926"  # 1st half (context) / 2nd half (the story)
+GOOD, BAD, GRAY = "#3987e5", "#d95926", "#898781"
 FOCUS = "#d95926"
 INK_MARK = "#e8e6df"
-LIGHT = "rgba(137,135,129,0.45)"
-MUTED_BAR = "#5f5e5a"
+LIGHT = "#6f6e69"  # 3.6:1 on the page (was 2.0:1)
+MUTED_BAR = "#73716b"  # 3.8:1 on the page (was 2.8:1)
 BG = "#141413"  # matches .streamlit/config.toml backgroundColor
 PLOTLY_CONFIG = {"displayModeBar": False}
-TONE_BADGE = {"yes": ("red", "The answer"), "partly": ("orange", "Part of it"), "no": ("gray", "Not really")}
+TONE_BADGE = {"yes": ("orange", "The answer"), "partly": ("violet", "Part of it"), "no": ("gray", "Not really")}
 
 st.set_page_config(page_title="Clippers Courtside", page_icon=D.logo_url(get_settings().team_id), layout="wide",
                    initial_sidebar_state="collapsed")
@@ -239,7 +241,7 @@ def glossary_button() -> None:
 
 
 # ================================================================ the answer
-STATUS_BADGE = {S.NEW: "red", S.SAME: "orange", S.SIMILAR: "gray", S.BETTER: "blue"}
+STATUS_BADGE = {S.NEW: "orange", S.SAME: "violet", S.SIMILAR: "gray", S.BETTER: "blue"}
 VERDICT_MARK = {"Worse than last season": "▼ Worse than last season", "Better than last season": "▲ Better than last season",
                 "About the same": "= About the same"}
 
@@ -297,7 +299,7 @@ def page_answer() -> None:
     # ---------------------------------------------------------- 1. ranked reasons (costs and helps)
     total_help = sum(r.per_game for r in helps)
     section("1. Why they blow leads, ranked", "reasons",
-            "Each part of the game, after halftime: <b>red = this season</b>, gray = last season. Left of zero "
+            "Each part of the game, after halftime: <b>orange = this season</b>, gray = last season. Left of zero "
             "costs them points; right of zero helps." if reasons else "")
     if reasons:
         ordered = hurts + sorted(helps, key=lambda r: -r.per_game)
@@ -345,7 +347,7 @@ def page_answer() -> None:
             for x0, x1, label, shade in ((0, CONTRIBUTES, "minor", 0.08), (CONTRIBUTES, DRIVES, "part of it", 0.18),
                                          (DRIVES, 1.0, "the main cause", 0.32)):
                 fig.add_shape(type="rect", x0=x0, x1=x1, y0=-0.5, y1=0.5, line_width=0,
-                              fillcolor=f"rgba(230,103,103,{shade})", layer="below")
+                              fillcolor=f"rgba(217,89,38,{shade})", layer="below")
                 fig.add_annotation(x=(x0 + x1) / 2, y=0.72, text=label, showarrow=False, font=dict(size=12))
             fig.add_trace(go.Bar(x=[min(share, 1)], y=[0], orientation="h", width=0.34, marker_color=FOCUS,
                                  hovertemplate=f"{focus_last}'s extra turnovers explain {share:.0%} of the "
@@ -599,7 +601,7 @@ def page_whatnow() -> None:
         axis_faces(fig, [face(x) for x in r["player_name"]], 34)
         show(fig, 110 + 34 * len(r))
         st.caption("Sorted by second-half minutes a game (most at the top). (R) = rookie. Blue = the team does much "
-                   "better with him on than off, even if the bar is small; red = the team falls well behind with him "
+                   "better with him on than off, even if the bar is small; orange = the team falls well behind with him "
                    "on. Open Details for the exact rules.")
         with st.expander("Details and the full minutes table"):
             st.markdown(f"- **Fewer late minutes** = the team is {abs(W.STRUGGLE_NET):.0f}+ points per 100 trips "
@@ -734,7 +736,7 @@ def page_whatnow() -> None:
             fig.update_xaxes(tickformat=".0%", range=[0, float(t["fg_pct"].max()) * 1.25])
             axis_faces(fig, [face(x) for x in t["player_name"]], 30)
             show(fig, 90 + 30 * len(t), showlegend=False)
-            st.caption(f"Red = opponents shoot {W.ATTACKED_FG:.0%}+ better on him than on the team. (R) = rookie.")
+            st.caption(f"Orange = opponents shoot {W.ATTACKED_FG:.0%}+ better on him than on the team. (R) = rookie.")
     with right:
         if dfn is not None and len(dfn.table):
             t = dfn.table.sort_values("wt_gap")
@@ -1156,7 +1158,7 @@ def page_replay() -> None:
         if len(strip) > 20:
             fig.update_xaxes(showticklabels=False)
         show(fig, 230, key=f"strip_{season}", select=True, yaxis_title="Clippers margin")
-        st.caption("Halftime (●) to final (◆). Red = a blown early lead.")
+        st.caption("Halftime (●) to final (◆). Orange = a blown early lead.")
 
     halves = data.game_halves[(data.game_halves["game_id"] == gid)
                               & data.game_halves["split"].astype(str).isin(["H1", "H2"])]
@@ -1191,7 +1193,7 @@ def page_replay() -> None:
     with st.container(border=True):
         tag = S.LEAD_TAG.get(row["lead_class"], "")
         if tag:
-            st.badge(tag, color="red" if row["lead_class"] == "blown_lead" else "blue")
+            st.badge(tag, color="orange" if row["lead_class"] == "blown_lead" else "blue")
         st.markdown(f'<div class="story">{S.game_story(row, halves, att)}</div>', unsafe_allow_html=True)
         if len(factors):
             st.markdown(f'<div class="takeaway"><b>{R.verdict(factors, lvs)}</b></div>', unsafe_allow_html=True)
@@ -1223,7 +1225,7 @@ def page_replay() -> None:
     show_tov = st.toggle("Show Clippers turnovers on the chart", value=True,
                          help=f"Orange diamonds are {focus}'s turnovers; gray circles are everyone else's.")
     fig = go.Figure()
-    for run, color in ((run_against, "rgba(230,103,103,0.16)"), (run_for, "rgba(57,135,229,0.16)")):
+    for run, color in ((run_against, "rgba(217,89,38,0.16)"), (run_for, "rgba(57,135,229,0.16)")):
         if run is not None:
             fig.add_vrect(x0=run.start / 60, x1=run.end / 60, fillcolor=color, line_width=0, layer="below",
                           annotation_text=("LAC " if not run.against else f"{opp} ") + run.label,
@@ -1459,7 +1461,7 @@ def page_players() -> None:
         st.caption("Orange longer than gray = more than his share of turnovers. Click a player to see his games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
-                "Each row is one player after halftime: count the balls to his red one, and that's how many plays "
+                "Each row is one player after halftime: count the balls to his orange one, and that's how many plays "
                 "he gets per turnover. Fewer balls = sloppier.")
         wl = ph.pivot(index="player_name", columns="split", values="tov_pct")
         every = lambda v: 1 / v if v and v > 0 else 99.0  # noqa: E731
@@ -1549,7 +1551,7 @@ def page_league() -> None:
                                  (-xr, -yr, "left", "bottom", "Slow starts, get worse"),
                                  (xr, -yr, "right", "bottom", "Slow starts, finish strong")):
         fig.add_annotation(x=x_, y=y_, xanchor=xa, yanchor=ya, text=f"<b>{text}</b>", **corner)
-    fig.add_shape(type="rect", x0=-xr, x1=0, y0=-yr, y1=yr, fillcolor="rgba(230,103,103,0.06)", line_width=0,
+    fig.add_shape(type="rect", x0=-xr, x1=0, y0=-yr, y1=yr, fillcolor="rgba(217,89,38,0.06)", line_width=0,
                   layer="below")
     fig.add_shape(type="rect", x0=0, x1=xr, y0=-yr, y1=yr, fillcolor="rgba(57,135,229,0.06)", line_width=0,
                   layer="below")
@@ -1593,7 +1595,7 @@ def page_league() -> None:
                          column_config={"logo": st.column_config.ImageColumn("", width="small")})
 
     section("Where the Clippers rank on everything", "ranks",
-            "Blue dot = their league rank in first halves, orange = second halves. Right = better.")
+            "Gray dot = their league rank in first halves, orange = second halves. Right = better.")
     stats = [x for x in cr.index if x != "Pace (possessions)"]
     fig = go.Figure()
     for name in stats:
@@ -1610,7 +1612,7 @@ def page_league() -> None:
                      title="League rank (1st = best)")
     fig.update_yaxes(autorange="reversed")
     show(fig, 90 + 38 * len(stats))
-    st.caption("Red line = they drop 3+ places after halftime; blue = they climb.")
+    st.caption("Orange line = they drop 3+ places after halftime; blue = they climb.")
     with st.expander("The ranks as a table"):
         st.dataframe(cr.map(ordinal), width="stretch", height=38 + 35 * len(cr))
 
@@ -1756,13 +1758,16 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
 
 PAGE_ANSWER = st.Page(page_answer, title="Blown leads", icon=":material/lightbulb:", url_path="answer")
 PAGE_WHATNOW = st.Page(page_whatnow, title="What now?", icon=":material/checklist:", url_path="what-now")
-PAGE_REPLAY = st.Page(page_replay, title="Games", url_path="games",
+PAGE_REPLAY = st.Page(page_replay, title="Games", url_path="home",
                       default=True)
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
-PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,
-         "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
-nav = st.navigation(list(PAGES.values()), position="top")
+# Story order: the tracker, the answer, the evidence (players, the league), then what to do about it.
+PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "players": PAGE_PLAYERS, "league": PAGE_LEAGUE,
+         "whatnow": PAGE_WHATNOW}
+# The default page lives at "/"; this hidden twin makes a shared /games link work too.
+PAGE_GAMES_LINK = st.Page(page_replay, title="Games", url_path="games", visibility="hidden")
+nav = st.navigation(list(PAGES.values()) + [PAGE_GAMES_LINK], position="top")
 # Tests run a specific page by setting this in session state (AppTest can't change the URL).
 forced = st.session_state.get("_dashboard_page")
 if forced in PAGES:
