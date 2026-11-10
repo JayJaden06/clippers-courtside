@@ -208,3 +208,34 @@ def missed_shots(before: float, after: float, last_season: float, c: Ink = DARK)
             _text(300, 376, f"Last season after halftime: {round(last_season * 100)} of 100", 19, c.muted)]
     return _svg(600, 390, "".join(body),
                 f"Of every 100 shots opponents miss, they grab back {nb} before halftime and {na} after.")
+
+
+# ------------------------------------------------------------------ how the turnovers happened
+
+def turnover_strip(own: int, second: int, no_steal: int, c: Ink = DARK) -> str:
+    """One square per turnover, grouped: stolen by his own defender, by a second defender, or no steal."""
+    groups = ((own, c.gray, "Stolen by his defender"), (second, c.focus, "Stolen by a 2nd defender"),
+              (no_steal, c.empty, "No steal"))
+    total = own + second + no_steal
+    per_row = 20
+    cell, gap = 26, 6
+    body, i = [], 0
+    for n, color, _ in groups:
+        for _ in range(n):
+            r, col = divmod(i, per_row)
+            stroke = f' stroke="{c.muted}" stroke-width="1.5"' if color == c.empty else ""
+            body.append(f'<rect x="{col * (cell + gap)}" y="{r * (cell + gap)}" width="{cell}" height="{cell}" '
+                        f'rx="5" fill="{color}"{stroke}/>')
+            i += 1
+    rows = -(-total // per_row)
+    y = rows * (cell + gap) + 34
+    for n, color, label in groups:
+        stroke = f' stroke="{c.muted}" stroke-width="1.5"' if color == c.empty else ""
+        body.append(f'<rect x="0" y="{y - 18}" width="22" height="22" rx="4" fill="{color}"{stroke}/>')
+        body.append(_text(34, y, f"{n}", 22, c.ink, 800, anchor="start"))
+        body.append(_text(70, y, label, 21, c.ink if color == c.focus else c.muted, 700 if color == c.focus else 400,
+                          anchor="start"))
+        y += 34
+    return _svg(per_row * (cell + gap), y - 10, "".join(body),
+                f"{total} turnovers: {own} stolen by his own defender, {second} by a second defender, "
+                f"{no_steal} with no steal.")
