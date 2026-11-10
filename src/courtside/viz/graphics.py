@@ -24,10 +24,10 @@ class Ink:
     floor: str = "#2b2620"
     courtline: str = "#7a6a52"
     paint: str = "#2a3a55"
-    good: str = "#3987e5"
-    bad: str = "#e66767"
+    good: str = "#3987e5"  # blue = better
+    bad: str = "#d95926"  # orange = worse (the same orange as the focus and the second half)
     focus: str = "#d95926"
-    gray: str = "#6f6e69"
+    gray: str = "#73716b"  # context, 3.8:1 on the page
     empty: str = "#33322f"
 
 
@@ -300,7 +300,7 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
     - ``("pair", a, b, label_a, label_b)``: two bars, before and after ("58% -> 52%");
     - ``("share", p, mark)``: a filled bar from 0 to 1, with a tick at ``mark`` (a threshold);
     - ``("rank", r, n)``: n dots from best (right) to worst (left), the r-th one highlighted;
-    - ``("diverge", values, labels)``: bars either side of zero, blue up / red down.
+    - ``("diverge", values, labels)``: bars either side of zero, blue up / orange down.
     """
     color = getattr(c, TONES.get(tone, "gray"))
     kind, *a = viz
@@ -404,7 +404,7 @@ def _ball(cx: float, cy: float, r: float, fill: str, line: str) -> str:
 
 
 def ball_ladder(rows: list[tuple[str, float, float]], c: Ink = DARK, max_balls: int = 25) -> str:
-    """One row per player: N basketballs, one red, for '1 turnover every N plays' after halftime.
+    """One row per player: N basketballs, one orange, for '1 turnover every N plays' after halftime.
 
     ``rows``: (name, plays per turnover before halftime, plays per turnover after halftime).
     """
