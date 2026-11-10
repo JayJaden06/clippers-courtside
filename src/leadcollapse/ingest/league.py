@@ -39,3 +39,15 @@ def load_league(client: NBAClient, season: str, season_type: str) -> pd.DataFram
             raise ValueError(f"{season} period {period}: expected 30 teams, got {len(df)}")
         frames.append(df.assign(season=season, period=period))
     return pd.concat(frames, ignore_index=True).rename(columns=str.lower)
+
+
+MISC_COLS = ["PTS_OFF_TOV", "PTS_2ND_CHANCE", "PTS_FB", "PTS_PAINT", "OPP_PTS_OFF_TOV", "OPP_PTS_2ND_CHANCE",
+             "OPP_PTS_FB", "OPP_PTS_PAINT"]
+
+
+def load_team_misc(client: NBAClient, season: str, season_type: str) -> pd.DataFrame:
+    """Per team, per game: paint, second-chance, fast-break and off-turnover points, scored and allowed."""
+    raw = client.get(LeagueDashTeamStats, season=season, season_type_all_star=season_type,
+                     measure_type_detailed_defense="Misc", per_mode_detailed="PerGame")
+    df = result_frame(raw, "LeagueDashTeamStats")
+    return df[["TEAM_ID", "TEAM_NAME", "GP", *MISC_COLS]].rename(columns=str.lower).assign(season=season)
