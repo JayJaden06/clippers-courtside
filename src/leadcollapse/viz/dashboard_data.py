@@ -75,6 +75,7 @@ class DashboardData:
     schedule: pd.DataFrame = field(default_factory=pd.DataFrame)
     league_periods: pd.DataFrame = field(default_factory=pd.DataFrame)
     player_season: pd.DataFrame = field(default_factory=pd.DataFrame)
+    team_misc: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     @property
     def seasons(self) -> list[str]:
@@ -117,6 +118,7 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         schedule=optional("schedule"),
         league_periods=optional("league_periods"),
         player_season=optional("player_season"),
+        team_misc=optional("team_misc"),
     )
 
 
@@ -280,3 +282,13 @@ def opp_ft_by_half(game_halves: pd.DataFrame) -> pd.DataFrame:
     t["ft_pct"] = t["ftm"] / t["fta"].where(t["fta"] > 0)
     t["se"] = (t["ft_pct"] * (1 - t["ft_pct"]) / t["fta"].where(t["fta"] > 0)) ** 0.5
     return t
+
+
+def logo_url(team_id: int) -> str:
+    """The team's logo on the NBA's image CDN."""
+    return f"https://cdn.nba.com/logos/nba/{int(team_id)}/global/L/logo.svg"
+
+
+def headshot_url(player_id: int) -> str:
+    """The player's headshot on the NBA's image CDN."""
+    return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{int(player_id)}.png"

@@ -635,6 +635,7 @@ class Verdict:
     tone: str  # "good", "bad", "warn" or "info"
     anchor: str  # section to jump to
     viz: tuple | None = None
+    image: str | None = None  # a photo or logo shown on the tile
 
 
 def _last(name: str) -> str:
