@@ -720,7 +720,7 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
             "Keep the starting five" if sf.not_the_problem else "Rethink the starting five",
             f"{sf.h2_pm / n:+.1f} vs {sf.rest_h2_pm / n:+.1f}",
             "Points a game after halftime: the five starters on the floor together vs every other lineup",
-            "good" if sf.not_the_problem else "bad", "starters",
+            "good" if sf.not_the_problem else "bad", "more",
             ("diverge", (sf.h2_pm / n, sf.rest_h2_pm / n), ("starters", "others"))))
     if bl is not None:
         out.append(Verdict(

@@ -88,10 +88,11 @@ def test_answer_page_runs_and_what_if_toggles_work():
 
 def test_what_now_page_runs():
     at = _app("whatnow")
+    # four main sections, then the rest in one "More evidence" dropdown
     assert [h.value for h in at.header] == [
-        "Does the starting five need to change?", "Who plays after halftime, and how it goes",
-        "Should Garland handle the ball less?", "Defense, rebounding and size", "Chemistry: which duos work?",
-        "Will the returning players help?", "Who stopped shooting after halftime?"]
+        "Who plays after halftime, and how it goes", "Should Garland handle the ball less?",
+        "Defense, rebounding and size", "Will the returning players help?", "More evidence",
+        "Does the starting five need to change?", "Chemistry: which duos work?", "Who stopped shooting after halftime?"]
     page_html = " ".join(m.value for m in at.markdown)
     assert page_html.count('class="vcard"') >= 5  # the answer cards
     assert "Is he being double-teamed into them?" in page_html

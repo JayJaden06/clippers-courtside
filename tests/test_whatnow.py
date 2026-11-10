@@ -143,7 +143,7 @@ def test_verdict_cards_on_synthetic_rules():
     sd = W.ShootingDrop(pd.DataFrame(), 0, 0, 0.55, 0.50, 0.53, 0.33)
     cards = W.verdicts(sf, None, [], sd, "Darius Garland", n_games=9)
     assert [c.title for c in cards] == ["Keep the starting five"]
-    assert cards[0].big == "+0.1 vs -5.0" and cards[0].anchor == "starters"
+    assert cards[0].big == "+0.1 vs -5.0" and cards[0].anchor == "more"
 
 
 @pytest.mark.skipif(not (PROCESSED / "matchups.parquet").exists(), reason="run courtside build")
