@@ -16,6 +16,8 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from leadcollapse.analysis import gamereport as R
+from leadcollapse.analysis import preview as P
+from leadcollapse.ingest import schedule as sched
 from leadcollapse.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
 from leadcollapse.config import get_settings
 from leadcollapse.viz import dashboard_data as D
@@ -1242,16 +1244,147 @@ def page_league() -> None:
         st.dataframe(cr.map(ordinal), width="stretch", height=38 + 35 * len(cr))
 
 
-PAGE_ANSWER = st.Page(page_answer, title="The answer", icon=":material/lightbulb:", url_path="answer", default=True)
+# ================================================================== next game
+
+TAPE = [  # (label, column, higher is better)
+    ("Overall (net rating)", "net", True), ("Scoring (per 100)", "ortg", True), ("Defense (allowed per 100)", "drtg", False),
+    ("Shooting accuracy", "efg", True), ("Opponents' shooting", "opp_efg", False),
+    ("Ball security", "tov_pct", False), ("Forcing turnovers", "opp_tov_pct", True),
+    ("Offensive rebounding", "oreb_pct", True), ("Defensive rebounding", "opp_oreb_pct", False),
+    ("Getting to the line", "ft_rate", True),
+]
+
+
+def page_next() -> None:
+    page_top("Next game", "The odds from season statistics alone, and what would move them. Updates every day.")
+    if data.schedule.empty or data.league_periods.empty:
+        st.info("No schedule yet. Run `leadcollapse pull` then `leadcollapse build`.")
+        return
+    game = sched.next_game(data.schedule, settings.team_id)
+    if game is None:
+        st.info("No games left on the schedule.")
+        return
+    teams = P.blended(P.team_table(data.league_periods, season_now), P.team_table(data.league_periods, season_prev))
+    att = data.attribution.get(season_now)
+    shooting = float(att.set_index("factor").loc["shooting", "per_game"]) if att is not None else None
+    pv = P.preview(game, teams, settings.team_id, shooting)
+    tip = pv.tipoff_utc.tz_convert("America/Los_Angeles")
+    where = "vs" if pv.home else "at"
+    st.markdown(f'<div class="kicker">{tip:%a %b} {tip.day} · {tip:%I:%M %p}'.replace(" 0", " ") + " PT · "
+                f'{pv.arena}</div><div class="hero">Clippers {where} {pv.opponent_name}</div>', unsafe_allow_html=True)
+    picture(G.odds_bar("LAC", pv.opponent, pv.chance, pv.margin), max_width="900px")
+
+    lac, opp = pv.lac, pv.opp
+    defenders = W.defenders(data.matchups, data.hustle, data.bio, season_now, "LAC") if len(data.matchups) else None
+    watch = P.who_to_watch(data.player_season, data.bio, season_now, pv.opponent,
+                           defenders.table if defenders is not None else None)
+    longs = P.long_rotation(data.player_season, data.bio, season_now, pv.opponent)
+    h2h = P.head_to_head(data.games, season_now, pv.opponent)
+    tiles = [
+        W.Verdict("Clippers this season", signed(lac["net"]),
+                  f"Points per 100 possessions, scored minus allowed: {P._ord(lac['net_rank'])} of 30. Blended with "
+                  f"last season ({signed(lac['prior_net'])}) for the odds.", "bad" if lac["net"] < 0 else "good",
+                  "tape", ("rank", int(lac["net_rank"]), 30)),
+        W.Verdict(f"{pv.opponent} this season", signed(opp["net"]),
+                  f"{P._ord(opp['net_rank'])} of 30. Last season {signed(opp['prior_net'])}.",
+                  "bad" if opp["net"] > lac["net"] else "good", "tape", ("rank", int(opp["net_rank"]), 30)),
+        W.Verdict("Where it's played", "Home" if pv.home else ("Neutral" if pv.neutral else "Road"),
+                  f"Worth about {P.HOME_POINTS:.0f} points to the home team.", "info", "tape"),
+    ]
+    if len(h2h):
+        wins = int((h2h["result"] == "W").sum())
+        tiles.append(W.Verdict("Earlier this season", f"{wins}-{len(h2h) - wins}",
+                               "; ".join(f"{'W' if r.result == 'W' else 'L'} {int(r.team_pts)}-{int(r.opp_pts)}"
+                                         for r in h2h.itertuples()), "info", "tape"))
+    answer_cards(tiles)
+
+    # ---- what moves the odds
+    section("What would move the odds", "levers",
+            f"Each bar: the Clippers' win chance if they fixed one thing for this game. Today: <b>{pv.chance:.0%}</b>.")
+    if pv.levers:
+        lv = pv.levers[::-1]
+        fig = go.Figure()
+        fig.add_trace(go.Bar(y=[x.title for x in lv], x=[x.chance for x in lv], orientation="h", marker_color=GOOD,
+                             text=[f"{x.chance:.0%}  (up from {pv.chance:.0%}; worth {x.points:.1f} points a game)"
+                                   for x in lv], textposition="outside", cliponaxis=False,
+                             customdata=[x.why for x in lv],
+                             hovertemplate="%{y}<br>%{customdata}<extra></extra>"))
+        fig.add_vline(x=pv.chance, line=dict(color=INK_MARK, width=2, dash="dash"),
+                      annotation_text=f"today {pv.chance:.0%}", annotation_position="top")
+        fig.update_xaxes(tickformat=".0%", range=[0, 1.15], title="Win chance")
+        show(fig, 110 + 56 * len(lv), showlegend=False)
+        with st.expander("Why each lever"):
+            for x in pv.levers:
+                st.markdown(f"- **{x.title}**: {x.why}")
+    else:
+        st.write("Nothing in the team's season numbers stands out as below average.")
+
+    # ---- who to watch
+    if len(watch):
+        section(f"Who to watch on {pv.opponent}", "watch",
+                "Their top scorers this season, and the Clipper best suited to guard each (from player tracking).")
+        answer_cards([W.Verdict(
+            r.player_name, f"{r.pts:.1f} ppg",
+            (f"{G._ft_in(r.height_in)}, {r.weight_lb:.0f} lb. " if pd.notna(r.height_in) and pd.notna(r.weight_lb)
+             else "") + f"{r.reb:.1f} reb, {r.ast:.1f} ast in {r.min:.0f} min. "
+            + (f"Guard him with: {r.guard_with.rstrip('.')}." if r.guard_with else ""), "warn", "watch")
+            for r in watch.itertuples()],
+            link=False)
+        if len(longs) >= P.LONG_ROTATION:
+            st.warning(f"{pv.opponent} plays {len(longs)} players between 6'6\" and 6'10\" in its top eight "
+                       f"({', '.join(longs)}). {focus_last} turns it over about twice as often against defenders "
+                       "that size, so getting him the ball on the move or off screens matters more tonight.",
+                       icon=":material/height:")
+        elif longs:
+            st.caption(f"{pv.opponent}'s 6'6\"-6'10\" rotation players: {', '.join(longs)}.")
+
+    # ---- tale of the tape
+    section("Tale of the tape", "tape", "League rank on each part of the game (1st = best). Further right is better.")
+    fig = go.Figure()
+    labels = [x[0] for x in TAPE]
+    for name, row_, color in (("LAC", lac, H1C), (pv.opponent, opp, FOCUS)):
+        fig.add_trace(go.Scatter(
+            x=[row_[f"{c}_rank"] for _, c, _ in TAPE], y=labels, mode="markers+text", name=name,
+            text=[P._ord(row_[f"{c}_rank"]) for _, c, _ in TAPE], textposition="top center",
+            marker=dict(color=color, size=14, line=dict(color=BG, width=1.5)),
+            hovertemplate="%{y}: %{text}<extra>" + name + "</extra>"))
+    for lab, c, _ in TAPE:
+        a_, b_ = lac[f"{c}_rank"], opp[f"{c}_rank"]
+        fig.add_shape(type="line", x0=a_, x1=b_, y0=lab, y1=lab, line=dict(color=LIGHT, width=3), layer="below")
+    fig.update_xaxes(range=[31, 0], tickvals=[30, 20, 10, 1], ticktext=["30th", "20th", "10th", "1st"],
+                     title="League rank this season")
+    fig.update_yaxes(autorange="reversed")
+    show(fig, 90 + 40 * len(TAPE))
+
+    with st.expander("How the odds are worked out"):
+        st.markdown(
+            f"- **Team strength** is points scored minus allowed per 100 possessions this season, blended with last "
+            f"season's while the sample is small: (games x this season + {P.PRIOR_GAMES} x last season) / "
+            f"(games + {P.PRIOR_GAMES}).\n"
+            f"- **Expected margin** = the difference in strength x expected possessions / 100, plus "
+            f"{P.HOME_POINTS:.0f} points for the home team.\n"
+            f"- **Win chance** treats the final margin as landing within about {P.MARGIN_SD:.1f} points of that, the "
+            "usual spread of an NBA game.\n"
+            "- It doesn't know about injuries, rest or travel, and isn't betting advice. Models this simple pick "
+            "roughly two in three NBA games correctly.")
+        st.dataframe(teams[["team_name", "gp", "net", "prior_net", "blend_net", "pace"]].sort_values(
+            "blend_net", ascending=False).round(1), hide_index=True, width="stretch")
+
+
+PAGE_ANSWER = st.Page(page_answer, title="Blown leads", icon=":material/lightbulb:", url_path="answer")
 PAGE_WHATNOW = st.Page(page_whatnow, title="What now?", icon=":material/checklist:", url_path="what-now")
-PAGE_REPLAY = st.Page(page_replay, title="Game report", icon=":material/sports_basketball:", url_path="game")
+PAGE_REPLAY = st.Page(page_replay, title="Game report", icon=":material/sports_basketball:", url_path="game",
+                      default=True)
+PAGE_NEXT = st.Page(page_next, title="Next game", icon=":material/event:", url_path="next")
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
-PAGES = {"answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW, "replay": PAGE_REPLAY, "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
+PAGES = {"replay": PAGE_REPLAY, "next": PAGE_NEXT, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,
+         "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
 nav = st.navigation(list(PAGES.values()), position="top")
 # Tests run a specific page by setting this in session state (AppTest can't change the URL).
 forced = st.session_state.get("_dashboard_page")
 if forced in PAGES:
-    {"answer": page_answer, "whatnow": page_whatnow, "replay": page_replay, "players": page_players, "league": page_league}[forced]()
+    {"answer": page_answer, "whatnow": page_whatnow, "replay": page_replay, "players": page_players,
+     "league": page_league, "next": page_next}[forced]()
 else:
     nav.run()

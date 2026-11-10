@@ -126,3 +126,9 @@ def test_replay_opens_the_game_passed_from_the_answer_page(data):
     pick = at.button_group(key=f"pick_{data.seasons[0]}").value
     month, day, _, opp = worst["label"].split()
     assert pick.startswith(f"{month} {day} {opp} ·"), pick
+
+
+def test_next_game_page_runs():
+    at = _app("next")
+    if (Path(__file__).resolve().parents[1] / "data" / "processed" / "schedule.parquet").exists():
+        assert "What would move the odds" in [h.value for h in at.header]
