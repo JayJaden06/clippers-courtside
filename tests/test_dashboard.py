@@ -128,7 +128,13 @@ def test_replay_opens_the_game_passed_from_the_answer_page(data):
     assert pick.startswith(f"{month} {day} ·") and f" {opp} ·" in pick, pick
 
 
-def test_next_game_page_runs():
-    at = _app("next")
-    if (Path(__file__).resolve().parents[1] / "data" / "processed" / "schedule.parquet").exists():
-        assert any(h.value.startswith("How to beat") for h in at.header)
+def test_games_page_opens_an_upcoming_game_plan(data):
+    at = _app("replay")
+    key = f"pick_{data.seasons[0]}"
+    nxt = [o for o in at.selectbox(key=key).options if "next game" in o]
+    if not nxt:
+        pytest.skip("no upcoming games in the schedule")
+    at.selectbox(key=key).set_value(nxt[0]).run()
+    assert not at.exception, at.exception[0].value if at.exception else None
+    assert any(h.value.startswith("How to beat") for h in at.header)
+    assert at.toggle  # the game-plan checklist
