@@ -318,6 +318,12 @@ def team_color(team_id: int) -> str:
     return TEAM_COLORS.get(int(team_id), "#898781")
 
 
+def is_light(hex_color: str) -> bool:
+    """True for pale colors (Nets white, Spurs silver, Bucks cream), which need the light-background logo."""
+    r, g, b = (int(hex_color.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.6
+
+
 def logo_url(team_id: int, dark: bool = True) -> str:
     """The team's logo on the NBA's image CDN; ``dark`` is the version made for dark backgrounds."""
     return f"https://cdn.nba.com/logos/nba/{int(team_id)}/global/{'D' if dark else 'L'}/logo.svg"
