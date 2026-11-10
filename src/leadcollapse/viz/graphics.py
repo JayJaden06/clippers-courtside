@@ -241,6 +241,32 @@ def turnover_strip(own: int, second: int, no_steal: int, c: Ink = DARK) -> str:
                 f"{no_steal} with no steal.")
 
 
+# ------------------------------------------------------------------ win odds
+
+def odds_bar(team: str, opp: str, chance: float, margin: float, c: Ink = DARK) -> str:
+    """A tug-of-war bar: the Clippers' share of the win chance against the opponent's."""
+    w, x0, bar_w = 900, 40, 820
+    split = x0 + bar_w * chance
+    fav = team if chance >= 0.5 else opp
+    body = [
+        f'<rect x="{x0}" y="70" width="{bar_w}" height="56" rx="12" fill="{c.gray}"/>',
+        f'<rect x="{x0}" y="70" width="{max(bar_w * chance, 24):.1f}" height="56" rx="12" fill="{c.good}"/>',
+        f'<rect x="{max(split - 12, x0):.1f}" y="70" width="12" height="56" fill="{c.good}"/>' if 0.03 < chance < 0.97
+        else "",
+        f'<line x1="{x0 + bar_w / 2}" y1="60" x2="{x0 + bar_w / 2}" y2="136" stroke="{c.ink}" stroke-width="2" '
+        'stroke-dasharray="5 5" opacity="0.6"/>',
+        _text(x0, 46, team, 30, c.ink, 800, anchor="start", spacing=2),
+        _text(x0 + bar_w, 46, opp, 30, c.ink, 800, anchor="end", spacing=2),
+        _text(x0 + 18, 109, f"{chance:.0%}", 32, "#0e0e0d" if chance > 0.12 else c.ink, 800, anchor="start"),
+        _text(x0 + bar_w - 18, 109, f"{1 - chance:.0%}", 32, "#0e0e0d" if chance < 0.88 else c.ink, 800,
+              anchor="end"),
+        _text(x0 + bar_w / 2, 166, f"Expected margin: {fav} by {abs(margin):.1f}" if abs(margin) >= 0.5
+              else "Expected margin: a toss-up", 22, c.muted),
+    ]
+    return _svg(w, 180, "".join(body),
+                f"Win chance: {team} {chance:.0%}, {opp} {1 - chance:.0%}. Expected margin {margin:+.1f}.")
+
+
 # ------------------------------------------------------------------ mini pictures for the stat tiles
 
 TONES = {"good": "good", "bad": "bad", "warn": "focus", "info": "gray"}
