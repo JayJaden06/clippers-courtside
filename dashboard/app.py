@@ -35,7 +35,7 @@ FOCUS = "#d95926"
 INK_MARK = "#3b3f4c"
 LIGHT = "#86847e"  # 3.4:1 on the light page
 MUTED_BAR = "#7f7d77"  # 3.8:1 on the light page
-BG = "#f6f5f1"  # matches .streamlit/config.toml backgroundColor
+BG = "#ffffff"  # the white panel every chart sits on (marker outlines match it)
 PLOTLY_CONFIG = {"displayModeBar": False}
 TONE_BADGE = {"yes": ("orange", "The answer"), "partly": ("violet", "Part of it"), "no": ("gray", "Not really")}
 
@@ -184,6 +184,13 @@ h1, .hero {color: #13213f}
 .hc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; display: block; line-height: 1}
 .hc-stats span {font-size: .8rem; opacity: .7; line-height: 1.2; display: block; margin-top: .2rem}
 .hc-up {color: #d95926} .hc-down {color: #3987e5}
+/* ---- white panels on the off-white page: every chart and drawing sits on its own card */
+/* the panel goes on the chart's wrapper, so the chart sizes itself to the inside of the panel */
+[data-testid="stElementContainer"]:has(.stPlotlyChart) {background: #ffffff; border-radius: 16px;
+  padding: .7rem .9rem .35rem .9rem; box-shadow: 0 4px 16px rgba(19,33,63,.07)}
+.gfx {background: #ffffff; border-radius: 16px; padding: 1rem 1.2rem; box-shadow: 0 4px 16px rgba(19,33,63,.07);
+      margin-bottom: .6rem}
+.gfx.bare {background: none; box-shadow: none; padding: 0}
 /* ---- small motion: cards rise in, mini-charts draw left to right, cards lift on hover */
 @keyframes rise {from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none}}
 @keyframes draw {from {clip-path: inset(0 100% 0 0)} to {clip-path: inset(0 0 0 0)}}
@@ -241,6 +248,7 @@ def load(stamp: tuple[float, int]) -> D.DashboardData:
 def show(fig: go.Figure, height: int, key: str | None = None, select: bool = False, **layout):
     """Render a plotly figure; with ``select=True`` clicks on points rerun the app and are returned."""
     settings_ = dict(height=height, margin=dict(l=8, r=8, t=36, b=8), hovermode="closest",
+                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",  # the white panel shows
                      legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, title=None, font=dict(size=13)),
                      hoverlabel=dict(align="left", font=dict(size=13)), font=dict(size=13),
                      barcornerradius=4, clickmode="event+select" if select else None)
@@ -461,7 +469,7 @@ def page_answer() -> None:
         fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.08)
         fig.update_yaxes(autorange="reversed")
         fig.update_xaxes(title="Points a game after halftime  (← costs them · helps them →)",
-                         range=[min(lo, 0) * 1.45 - 0.8, max(hi, 0) * 1.45 + 0.8], zeroline=False)
+                         range=[min(lo, 0) * 1.45 - 0.8, max(hi, 0) * 1.45 + 1.8], zeroline=False)
         show(fig, 110 + 62 * len(ordered))
         if helps and hl:
             st.caption(f"The ones right of zero hide part of the drop: without them, second halves would be "
@@ -1421,8 +1429,14 @@ def page_replay() -> None:
     lvs = R.levers(factors, lines, sbox, game_def, season_def, game_units) if len(factors) else []
 
     # ---- the result
-    picture(G.scoreboard("LAC", opp, team_q, opp_q, row["final_margin"] > 0, team_logo=D.logo_url(settings.team_id),
-                         opp_logo=D.logo_url(g_all.loc[gid, "opponent_id"])), max_width="980px")
+    opp_id_ = int(g_all.loc[gid, "opponent_id"])
+    # the scoreboard is its own white card, so it skips the panel padding and runs the full width
+    st.markdown(G.scoreboard("LAC", opp, team_q, opp_q, row["final_margin"] > 0,
+                             team_logo=D.logo_url(settings.team_id, dark=False),
+                             opp_logo=D.logo_url(opp_id_, dark=False), team_color="#1d428a",
+                             opp_color=D.team_color(opp_id_)).replace('<div class="gfx">',
+                                                                      '<div class="gfx" style="padding:0">', 1),
+                unsafe_allow_html=True)
     with st.container(border=True):
         tag = S.LEAD_TAG.get(row["lead_class"], "")
         if tag:
