@@ -433,40 +433,54 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
 
 # ------------------------------------------------------------------ the scoreboard
 
-def scoreboard(team: str, opp: str, team_q: list[int], opp_q: list[int], won: bool, c: Ink = DARK,
-               team_logo: str | None = None, opp_logo: str | None = None) -> str:
-    """An arena-style scoreboard: points in each quarter (and overtime), the second half, and the final."""
-    periods = [f"Q{i}" if i <= 4 else ("OT" if i == 5 else f"{i - 4}OT") for i in range(1, len(team_q) + 1)]
-    cols = periods + ["2ND HALF", "FINAL"]
-    t2, o2 = sum(team_q[2:4]), sum(opp_q[2:4])
-    rows = [(team, team_q + [t2, sum(team_q)]), (opp, opp_q + [o2, sum(opp_q)])]
-    x0, cw = 170, 82
-    width = x0 + cw * len(cols) + 16
-    body = [f'<rect x="0" y="0" width="{width}" height="196" rx="14" fill="#0e0e0d" stroke="{c.courtline}" '
-            'stroke-width="2"/>']
-    for j, col in enumerate(cols):
-        body.append(_text(x0 + cw * j + cw / 2, 40, col, 15, c.muted, 700, spacing=1.5))
-    for i, (name, vals) in enumerate(rows):
-        y = 92 + i * 62
-        logo = team_logo if i == 0 else opp_logo
-        if logo:
-            body.append(f'<image href="{escape(logo)}" x="20" y="{y - 34}" width="44" height="44"/>')
-        body.append(_text(74 if logo else 26, y, name, 30, c.ink, 800, anchor="start", spacing=2))
-        for j, v in enumerate(vals):
-            other = rows[1 - i][1][j]
-            col = cols[j]
-            won_col = v > other
-            fill = c.ink if won_col else c.muted
-            if i == 0 and col in ("2ND HALF", "FINAL"):
+def scoreboard(team: str, opp: str, team_q: list[int], opp_q: list[int], won: bool, c: Ink = PAGE,
+               team_logo: str | None = None, opp_logo: str | None = None, team_color: str = "#1d428a",
+               opp_color: str = "#7f7d77") -> str:
+    """A full-width line score: Q1, Q2, the first half, Q3, Q4, the second half, any overtime, and the final.
+
+    Each team's color runs down the left edge of its row; the half and final columns are shaded. The Clippers'
+    half totals and final are blue when they won that stretch and orange when they lost it.
+    """
+    tq, oq = list(team_q), list(opp_q)
+    cols = [("Q1", tq[0], oq[0], "q"), ("Q2", tq[1], oq[1], "q"),
+            ("1ST HALF", sum(tq[:2]), sum(oq[:2]), "half"),
+            ("Q3", tq[2], oq[2], "q"), ("Q4", tq[3], oq[3], "q"),
+            ("2ND HALF", sum(tq[2:4]), sum(oq[2:4]), "half")]
+    cols += [("OT" if k == 0 else f"{k + 1}OT", t, o, "q") for k, (t, o) in enumerate(zip(tq[4:], oq[4:]))]
+    cols.append(("FINAL", sum(tq), sum(oq), "final"))
+    widths = {"q": 104, "half": 150, "final": 170}
+    x0 = 330
+    width = x0 + sum(widths[k] for *_, k in cols) + 10
+    top, row_h = 70, 82
+    body = [f'<rect x="0" y="0" width="{width}" height="{top + 2 * row_h + 18}" rx="16" fill="#ffffff"/>']
+    x = x0
+    for label, t, o, kind in cols:
+        w = widths[kind]
+        if kind != "q":
+            body.append(f'<rect x="{x}" y="10" width="{w}" height="{top + 2 * row_h - 2}" rx="10" '
+                        f'fill="{"#e8ecf5" if kind == "final" else "#f3f0e9"}"/>')
+        body.append(_text(x + w / 2, 46, label, 15 if kind == "q" else 14, c.muted, 700, spacing=1.6))
+        for r, (v, other) in enumerate(((t, o), (o, t))):
+            y = top + r * row_h + row_h / 2 + 12
+            if r == 0 and kind != "q":
                 fill = c.good if v > other else c.bad if v < other else c.ink
-            body.append(_text(x0 + cw * j + cw / 2, y + 2, str(v), 36 if col == "FINAL" else 30, fill,
-                              800 if won_col or col in ("2ND HALF", "FINAL") else 500))
-    for sep in (x0 + cw * 2, x0 + cw * len(periods)):  # halftime, then the totals
-        body.append(f'<line x1="{sep}" y1="18" x2="{sep}" y2="178" stroke="{c.courtline}" stroke-width="2"/>')
-    body.append(_text(x0 + cw * 2, 190, "HALFTIME", 11, c.courtline, 700, spacing=1.5))
-    body.append(f'<line x1="20" y1="122" x2="{width - 20}" y2="122" stroke="{c.empty}" stroke-width="1.5"/>')
-    return _svg(width, 200, "".join(body),
-                f"Scoreboard: {team} {sum(team_q)}, {opp} {sum(opp_q)}. Second half {t2}-{o2}. "
+            else:
+                fill = c.ink if v > other or kind != "q" else c.muted
+            size = {"q": 32, "half": 36, "final": 46}[kind]
+            body.append(_text(x + w / 2, y, str(v), size, fill, 800 if v > other or kind != "q" else 500))
+        x += w
+    for r, (name, logo, color) in enumerate(((team, team_logo, team_color), (opp, opp_logo, opp_color))):
+        y = top + r * row_h
+        body.append(f'<rect x="0" y="{y + 8}" width="8" height="{row_h - 16}" rx="3" fill="{color}"/>')
+        if logo:
+            body.append(f'<image href="{escape(logo)}" x="30" y="{y + row_h / 2 - 26}" width="52" height="52"/>')
+        body.append(_text(100 if logo else 30, y + row_h / 2 + 13, name, 36, c.ink, 800, anchor="start",
+                          spacing=1.5))
+    body.append(f'<line x1="24" y1="{top + row_h}" x2="{width - 24}" y2="{top + row_h}" stroke="{c.empty}" '
+                'stroke-width="1.5"/>')
+    t1, o1, t2, o2 = sum(tq[:2]), sum(oq[:2]), sum(tq[2:4]), sum(oq[2:4])
+    return _svg(width, top + 2 * row_h + 18, "".join(body),
+                f"Scoreboard: {team} {sum(tq)}, {opp} {sum(oq)}. First half {t1}-{o1}, second half {t2}-{o2}. "
                 f"{'Won' if won else 'Lost'}.")
 
 
