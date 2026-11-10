@@ -55,7 +55,8 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 .jump a:hover {border-color: #3987e5; color: #3987e5}
 .tldr {border-left: 4px solid #d95926; padding: .2rem 0 .2rem 1rem; margin: .6rem 0 .4rem 0}
 .tldr li {margin-bottom: .35rem; font-size: 1.05rem}
-.vcards {display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .8rem; margin: .4rem 0 1rem 0}
+.vcards {display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: .8rem; margin: .4rem 0 1rem 0}
+[data-testid="stMainBlockContainer"] {padding-top: 4.2rem}
 .vcard {display: flex; flex-direction: column; gap: .15rem; text-decoration: none !important; color: inherit !important;
         background: linear-gradient(180deg, #22221f 0%, #1b1b19 100%); border: 1px solid #2c2c29; border-radius: 14px;
         padding: .9rem 1rem .85rem 1rem; transition: transform .12s, border-color .12s}
@@ -64,7 +65,7 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .v-dot {display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-right: .4rem;
         vertical-align: .08rem}
 .v-big {font-size: 1.95rem; font-weight: 800; line-height: 1.1; margin: .15rem 0 .1rem 0; letter-spacing: -.01em}
-.v-mini svg {width: 100%; max-width: 260px; height: 40px; display: block; margin: .15rem 0 .25rem 0}
+.v-mini svg {width: 100%; max-width: 280px; height: 46px; display: block; margin: .15rem 0 .25rem 0}
 .v-small {font-size: .84rem; opacity: .7; line-height: 1.32}
 .v-img {width: 74px; height: 54px; object-fit: cover; object-position: top; border-radius: 10px;
          background: #2c2c29; margin-bottom: .35rem}
@@ -166,12 +167,28 @@ def clicked(event, field: str, memo: str):
     return value
 
 
-def page_top(title: str, subtitle: str) -> None:
+def kicker() -> str:
+    """The small line above every page title: team, season, and how fresh the data is."""
+    last = pd.to_datetime(data.games.loc[data.games["season"] == season_now, "game_date"]).max()
+    return f'<div class="kicker">LA Clippers · {season_now} season · through {last:%b} {last.day}</div>'
+
+
+def page_top(title: str, subtitle: str, show_kicker: bool = True) -> None:
+    if show_kicker:
+        st.markdown(kicker(), unsafe_allow_html=True)
     left, right = st.columns([4, 1], vertical_alignment="bottom")
     left.title(title)
     with right:
         glossary_button()
     st.markdown(f'<div class="page-sub">{subtitle}</div>', unsafe_allow_html=True)
+
+
+def next_step(page, blurb: str) -> None:
+    """The way on to the next page of the story, at the bottom of a page."""
+    st.divider()
+    left, right = st.columns([3, 1], vertical_alignment="center")
+    left.markdown(f'<div class="takeaway">{blurb}</div>', unsafe_allow_html=True)
+    right.page_link(page, label=f"Next: {page.title} →", width="stretch")
 
 
 def signed(v: float, digits: int = 1) -> str:
@@ -484,6 +501,7 @@ def page_answer() -> None:
                "own first half. These values come from the league's own team stats, so every team is measured the "
                "same way; they can differ slightly from the box-score totals above. Data: stats.nba.com via the open-source nba_api package; not affiliated with the "
                "NBA or the Clippers. Full method: reports/findings.md.")
+    next_step(PAGE_PLAYERS, "Who is losing the ball after halftime, player by player.")
 
 # =================================================================== games
 
@@ -518,7 +536,9 @@ def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None
         + (f'<div class="v-mini">{G.mini(c.viz, c.tone)}</div>' if c.viz else "")
         + f'<div class="v-small">{c.small}</div>' + ("</a>" if link else "</div>")
         for c in cards)
-    st.markdown(f'<div class="vcards">{html}</div>', unsafe_allow_html=True)
+    n = len(cards)
+    cols = n if n <= 4 else min(4, -(-n // 2))
+    st.markdown(f'<div class="vcards" style="--cols:{cols}">{html}</div>', unsafe_allow_html=True)
 
 
 def section(title: str, anchor: str, takeaway: str = "", badge: tuple[str, str] | None = None) -> None:
@@ -1061,7 +1081,7 @@ def page_replay() -> None:
         intro()
         st.markdown('<div id="games-list"></div>', unsafe_allow_html=True)
     page_top("Games", "Every game this season: the report for games played, the game plan for games coming up. "
-             "Updates after each game.")
+             "Updates after each game.", show_kicker=bool(st.session_state.get("intro_hidden")))
     leads = data.game_leads.set_index("game_id")
     g_all = data.games.set_index("game_id")
     season = st.session_state.get("game_season", data.seasons[0])
@@ -1427,7 +1447,7 @@ def page_replay() -> None:
 
 def page_players() -> None:
     page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.")
-    season_p = st.selectbox("Season", data.seasons, index=0, key="player_season")
+    season_p = st.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="player_season")
     ph = D.player_halves(data.player_stats, season_p)
     if ph.empty:
         st.info("No players with enough minutes in both halves yet.")
@@ -1512,6 +1532,7 @@ def page_players() -> None:
         show(fig, 300, yaxis_title="Turnovers")
         with st.expander("Game-by-game table"):
             st.dataframe(g.drop(columns=["game_id"]), hide_index=True, width="stretch")
+    next_step(PAGE_LEAGUE, "Is this normal? How every team changes after halftime.")
 
 # ================================================================== league
 
@@ -1520,7 +1541,7 @@ def page_league() -> None:
     stat_names = {"net_rtg": "Overall (net rating)", "efg_pct": "Shooting accuracy",
                   "opp_efg_pct": "Opponents' shooting", "tov_pct": "Turnovers",
                   "opp_ft_rate": "Fouling (opponent free throws)", "opp_oreb_pct": "Second chances given up"}
-    season_l = st.selectbox("Season", data.seasons, index=0, key="league_season")
+    season_l = st.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="league_season")
     cr = D.clippers_ranks(data.ranks, season_l)
     answer_cards(S.league_cards(cr))
     section("How every team changes after halftime", "teams",
@@ -1613,6 +1634,7 @@ def page_league() -> None:
     st.caption("Red line = they drop 3+ places after halftime; blue = they climb.")
     with st.expander("The ranks as a table"):
         st.dataframe(cr.map(ordinal), width="stretch", height=38 + 35 * len(cr))
+    next_step(PAGE_WHATNOW, "So what has to change? What the numbers point to.")
 
 
 # ================================================================== next game
@@ -1760,8 +1782,9 @@ PAGE_REPLAY = st.Page(page_replay, title="Games", url_path="games",
                       default=True)
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
-PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,
-         "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
+# Story order: the tracker, the answer, the evidence (players, the league), then what to do about it.
+PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "players": PAGE_PLAYERS, "league": PAGE_LEAGUE,
+         "whatnow": PAGE_WHATNOW}
 nav = st.navigation(list(PAGES.values()), position="top")
 # Tests run a specific page by setting this in session state (AppTest can't change the URL).
 forced = st.session_state.get("_dashboard_page")
