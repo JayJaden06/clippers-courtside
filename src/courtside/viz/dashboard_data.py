@@ -314,6 +314,18 @@ TEAM_COLORS = {
 }
 
 
+def games_missing(schedule: pd.DataFrame, games: pd.DataFrame, team_id: int, now: pd.Timestamp,
+                  grace_hours: float = 14) -> pd.DataFrame:
+    """The team's regular-season games that tipped off over ``grace_hours`` ago but aren't in the data: the sign
+    that the morning refresh hasn't run. Uses tip-off times, so a stale schedule still gives it away."""
+    if schedule.empty:
+        return schedule
+    mine = schedule[((schedule["home_id"] == team_id) | (schedule["away_id"] == team_id))
+                    & schedule["game_id"].astype(str).str.startswith("002")]
+    cutoff = pd.Timestamp(now).tz_convert("UTC") - pd.Timedelta(hours=grace_hours)
+    return mine[(mine["tipoff_utc"] < cutoff) & ~mine["game_id"].isin(set(games["game_id"]))]
+
+
 def team_color(team_id: int) -> str:
     return TEAM_COLORS.get(int(team_id), "#898781")
 

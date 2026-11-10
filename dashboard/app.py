@@ -224,6 +224,21 @@ h1, .hero {color: #13213f}
 .slop-row .vals .b {color: #7f7d77; font-weight: 600}
 .slop-row .trk {grid-column: 2 / 4; margin: 0}
 .chip.sm {font-size: .7rem; padding: .08rem .45rem; margin-left: .4rem; vertical-align: .1rem}
+/* ---- On this page: section pills that stay under the menu and light up as you scroll */
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-toc_"]) {position: sticky; top: 60px; z-index: 55}
+[class*="st-key-toc_"]:has(nav.toc) {background: rgba(246,245,241,.95); backdrop-filter: blur(6px);
+                                     padding: .45rem 0 .5rem 0; border-bottom: 1px solid #e3e0d8}
+nav.toc {display: flex; flex-wrap: wrap; align-items: center; gap: .4rem}
+nav.toc .lbl {font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; opacity: .6; margin-right: .3rem}
+nav.toc a {text-decoration: none; font-size: .85rem; font-weight: 600; padding: .25rem .75rem; border-radius: 999px;
+           color: #13213f; background: #ffffff; border: 1px solid #e3e0d8; transition: all .15s}
+nav.toc a:hover {border-color: #1d428a}
+nav.toc a.on {background: #13213f; color: #ffffff; border-color: #13213f}
+.st-key-gamebar nav.toc {margin-top: .45rem}
+h2, h3 {scroll-margin-top: 150px}
+/* ---- the data is behind: a game finished but the morning refresh hasn't brought it in */
+.behind {margin: .6rem 0 0 0; padding: .55rem .9rem; border-radius: 10px; background: #fff3e8; color: #8a3a12;
+         border: 1px solid #f3c9a8; font-size: .9rem}
 /* ---- small motion: cards rise in, mini-charts draw left to right, cards lift on hover */
 @keyframes rise {from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none}}
 @keyframes draw {from {clip-path: inset(0 100% 0 0)} to {clip-path: inset(0 0 0 0)}}
@@ -513,10 +528,7 @@ def page_answer() -> None:
             st.switch_page(PAGE_WHATNOW)
         if b3.button("Compare with all 30 teams →", icon=":material/leaderboard:", width="stretch"):
             st.switch_page(PAGE_LEAGUE)
-    st.markdown('<div class="jump">'
-                '<a href="#reasons">1 · Ranked reasons</a>'
-                '<a href="#theories">Theories checked</a><a href="#changes">Since last season</a>'
-                '<a href="#whatif">What if?</a><a href="#stats">Every stat</a></div>', unsafe_allow_html=True)
+    nav_ = toc_slot("answer")
 
     # ---------------------------------------------------------- 1. ranked reasons (costs and helps)
     total_help = sum(r.per_game for r in helps)
@@ -567,6 +579,7 @@ def page_answer() -> None:
         ch = (z["mean_h2"] - z["mean_h1"]).sort_values()
         worst, steady = ch.index[0], ch.abs().idxmin()
         st.subheader("Where the shots stop falling", anchor="shots")
+        TOC.append((TOC_LABELS["shots"], "shots"))
         st.markdown(
             f'<div class="takeaway"><b>{SHOTS_SAID[worst]}</b> go from '
             f'{z.loc[worst, "mean_h1"]:.0%} before halftime to <b>{z.loc[worst, "mean_h2"]:.0%}</b> after'
@@ -668,7 +681,7 @@ def page_answer() -> None:
     # ---------------------------------------------------------- 3. since last season
     section_n = 3
     if not data.comparison.empty and season_prev in data.attribution:
-        st.header(f"{section_n}. What changed since last season", divider="gray", anchor="changes")
+        heading(f"{section_n}. What changed since last season", "changes")
         comp = data.comparison.set_index("season")
         cur, prev = comp.loc[season_now], comp.loc[season_prev]
         cur_leads = int(cur["blown_leads"] + cur["held_leads"])
@@ -706,7 +719,7 @@ def page_answer() -> None:
 
     # ---------------------------------------------------------- 5. what if
     if hl and reasons:
-        st.header(f"{section_n}. What if they fixed it?", divider="gray", anchor="whatif")
+        heading(f"{section_n}. What if they fixed it?", "whatif")
         st.write("Switch a problem back to last season's level and see what their second halves would look like.")
         fixable = [r for r in hurts if r.prev_per_game - r.per_game >= 0.1]
         left, right = st.columns([1, 1.2], gap="large")
@@ -737,7 +750,7 @@ def page_answer() -> None:
         section_n += 1
 
     # ---------------------------------------------------------- 6. every stat
-    st.header(f"{section_n}. Every stat, before and after halftime", divider="gray", anchor="stats")
+    heading(f"{section_n}. Every stat, before and after halftime", "stats")
     with st.expander("Open the full stat sheet", icon=":material/table:"):
         sheet = D.full_stat_sheet(data.ranks, season_now)
         st.dataframe(sheet, hide_index=True, width="stretch", height=38 + 35 * len(sheet))
@@ -745,6 +758,7 @@ def page_answer() -> None:
                "own first half. These values come from the league's own team stats, so every team is measured the "
                "same way; they can differ slightly from the box-score totals above. Data: stats.nba.com via the open-source nba_api package; not affiliated with the "
                "NBA or the Clippers. Full method: reports/findings.md.")
+    fill_toc(nav_)
     next_step(PAGE_PLAYERS, "Who is losing the ball after halftime, player by player.")
 
 # =================================================================== games
@@ -785,8 +799,84 @@ def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None
     st.markdown(f'<div class="vcards" style="--cols:{cols}">{html}</div>', unsafe_allow_html=True)
 
 
-def section(title: str, anchor: str, takeaway: str = "", badge: tuple[str, str] | None = None) -> None:
+TOC: list[tuple[str, str]] = []  # (short label, anchor) for this run's page, filled as sections are drawn
+TOC_LABELS = {
+    "reasons": "Ranked reasons", "shots": "Where shots stop falling", "theories": "Theories", "changes": "Since last season",
+    "whatif": "What if?", "stats": "Every stat", "minutes": "Minutes", "defense": "Defense & size",
+    "returning": "Returning players", "garland": "Ball handling", "more": "More evidence", "runs": "How it played out", "decided": "What decided it",
+    "players": "Who played well", "matchups": "Who guarded whom", "units": "Lineups", "who": "Losing the ball",
+    "sloppier": "Sloppier?", "one": "One player", "plan": "Game plan", "watch": "Their scorers",
+    "tape": "Tale of the tape", "teams": "All 30 teams", "ranks": "Every rank",
+}
+
+
+def heading(title: str, anchor: str, toc: bool = True) -> None:
+    """A section heading, listed in the page's On this page bar."""
     st.header(title, divider="gray", anchor=anchor)
+    if toc:
+        TOC.append((TOC_LABELS.get(anchor, title), anchor))
+
+
+def toc_slot(name: str):
+    """An empty slot near the top of a long page; ``fill_toc`` puts the section pills in it at the end."""
+    return st.container(key=f"toc_{name}")
+
+
+def fill_toc(slot) -> None:
+    """Section pills for every heading drawn on this page (3 or more), the one on screen highlighted."""
+    if len(TOC) < 3:
+        return
+    pills = "".join(f'<a href="#{a}" data-a="{a}">{label}</a>' for label, a in TOC)
+    slot.html(
+        f'<nav class="toc"><span class="lbl">On this page</span>{pills}</nav>'
+        """<script>
+        (function () {
+          // Streamlit redraws elements, so look everything up live on each scroll rather than holding on to it.
+          const mark = () => {
+            const links = [...document.querySelectorAll('nav.toc a')];
+            let current = null;
+            for (const l of links) {
+              const h = document.getElementById(l.dataset.a);
+              if (h && h.getBoundingClientRect().top < 190) current = l.dataset.a;
+            }
+            links.forEach(l => l.classList.toggle('on', l.dataset.a === current));
+          };
+          if (!window.__tocBound) {
+            let queued = false;
+            document.addEventListener('scroll', () => {
+              if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; mark(); }); }
+            }, true);
+            // pill clicks: land the heading just below the bar (Streamlit's own jump ignores scroll-margin)
+            document.addEventListener('click', (e) => {
+              const a = e.target.closest('nav.toc a');
+              if (!a) return;
+              const h = document.getElementById(a.dataset.a);
+              const box = document.querySelector('[data-testid="stMain"]');
+              if (!h || !box) return;
+              e.preventDefault(); e.stopPropagation();
+              box.scrollBy({top: h.getBoundingClientRect().top - 150, behavior: 'smooth'});
+            }, true);
+            window.__tocBound = true;
+          }
+          window.__tocMark = mark;
+          setTimeout(mark, 300);
+        })();
+        </script>""", unsafe_allow_javascript=True)
+
+
+def behind_notice() -> None:
+    """Say so when a finished game isn't in the data yet (the morning refresh hasn't run)."""
+    miss = D.games_missing(data.schedule, data.games, settings.team_id, pd.Timestamp.now(tz="UTC"))
+    if len(miss):
+        last = pd.to_datetime(data.games["game_date"]).max()
+        st.markdown(f'<div class="behind"><b>Catching up:</b> {len(miss)} finished game'
+                    f'{"s are" if len(miss) > 1 else " is"} not in yet. Everything here runs through '
+                    f'{last:%b} {last.day}; the site refreshes each morning.</div>', unsafe_allow_html=True)
+
+
+def section(title: str, anchor: str, takeaway: str = "", badge: tuple[str, str] | None = None,
+            toc: bool = True) -> None:
+    heading(title, anchor, toc)
     if badge:
         st.badge(badge[0], color=badge[1])
     if takeaway:
@@ -806,6 +896,7 @@ def page_whatnow() -> None:
     page_top("What needs to happen now",
              f"What the numbers point to after {n_games} games. Click any card to see the chart behind it. "
              "Evidence, not a coaching plan.")
+    nav_ = toc_slot("whatnow")
     res = {r["id"]: r for r in data.analysis.get("results", [])}
     lg = data.ranks[(data.ranks["season"] == season_now) & (data.ranks["split"] == "H2")
                     & (data.ranks["metric"] == "efg_pct")]["league_mean"]
@@ -1125,7 +1216,7 @@ def page_whatnow() -> None:
                            "Turnover rate": st.column_config.NumberColumn(format="percent"),
                            "Rebounds/36": st.column_config.NumberColumn(format="%.1f")})
 
-    st.header("More evidence", divider="gray", anchor="more")
+    heading("More evidence", "more")
     st.markdown('<div class="takeaway">The starting five, chemistry, and who stopped shooting: the cards at the top already give the answer for each.</div>', unsafe_allow_html=True)
     with st.expander("Open the starting five, chemistry and shooting", icon=":material/expand_more:"):
         # ------------------------------------------------------------ starting five
@@ -1135,7 +1226,7 @@ def page_whatnow() -> None:
                     f"No. The starters hold even after halftime; the other lineups lose "
                     f"<b>{abs(rest):.1f} points a game</b>." if sf.not_the_problem and rest < 0 else
                     f"Starters: {signed(sf.h2_pm / n)} a game after halftime; everyone else {signed(rest)}.",
-                    ("Keep it", "blue") if sf.not_the_problem else ("Maybe change it", "orange"))
+                    ("Keep it", "blue") if sf.not_the_problem else ("Maybe change it", "orange"), toc=False)
             with st.expander("Details"):
                 st.markdown(f"- Starters: {', '.join(sf.names)}; {sf.games_together} starts together.\n"
                             f"- They've played {sf.h2_min:.0f} second-half minutes together; other lineups "
@@ -1150,7 +1241,7 @@ def page_whatnow() -> None:
         section("Chemistry: which duos work?", "chemistry",
                 f"<b>{chem.continuity:.0%}</b> of minutes go to players who were here last season."
                 + (f" Best duo after halftime: <b>{best['a'].split(' ', 1)[-1]} + {best['b'].split(' ', 1)[-1]}</b>."
-                   if best is not None else ""))
+                   if best is not None else ""), toc=False)
         left, right = st.columns([1, 2.2], gap="large")
         with left:
             st.markdown("**How much of the team is new**")
@@ -1183,7 +1274,7 @@ def page_whatnow() -> None:
 
         # ------------------------------------------------------------ who stopped shooting
         section("Who stopped shooting after halftime?", "shooting",
-                f"<b>{sd.n_worse} of {sd.n_players}</b> regulars shoot worse after halftime.")
+                f"<b>{sd.n_worse} of {sd.n_players}</b> regulars shoot worse after halftime.", toc=False)
         t = sd.table.sort_values("change")
         fig = go.Figure()
         for _, r_ in t.iterrows():
@@ -1238,6 +1329,7 @@ def page_whatnow() -> None:
         st.markdown("\n".join(f"- {w}" for w in watch))
         st.caption("Everything on this page reruns with `courtside all` after each game. The rules behind each "
                    "verdict are listed at the top of src/courtside/viz/whatnow.py.")
+    fill_toc(nav_)
 
 
 def _step_game(key: str, labels: list[str], step: int) -> None:
@@ -1442,6 +1534,7 @@ def page_replay() -> None:
         idx = labels.index(pick)
         entry = entries[idx]
         c_logo.image(D.logo_url(entry["opp_id"], dark=False), width=46)
+        nav_ = st.container()  # the On this page pills, filled once the report or plan is drawn
 
     # ---- the schedule around this game: played games and the ones coming up
     lo = max(0, min(idx - 3, len(entries) - 7))
@@ -1464,6 +1557,7 @@ def page_replay() -> None:
 
     if entry["kind"] == "future":
         _game_plan(up.iloc[entry["idx"]], previews[entry["idx"]], teams, shooting)
+        fill_toc(nav_)
         return
 
     gid = entry["gid"]
@@ -1554,7 +1648,7 @@ def page_replay() -> None:
     answer_cards(tiles)
 
     # ---- the replay, with the runs shaded
-    st.header("How it played out", divider="gray", anchor="runs")
+    heading("How it played out", "runs")
     m = D.game_margin(data.margins, gid)
     end = max(48.0, float(m["minute"].max()))
     blown = row["lead_class"] == "blown_lead"
@@ -1632,7 +1726,7 @@ def page_replay() -> None:
     # ---- what decided it, and what needed to happen
     if len(factors):
         won = row["final_margin"] > 0
-        st.header("What decided it" if won else "What needed to happen", divider="gray", anchor="decided")
+        heading("What decided it" if won else "What needed to happen", "decided")
         st.markdown(f'<div class="takeaway">Compared with their average game this season '
                     f'({signed(factors.attrs["normal_margin"])} a game), here\'s where this one was better or worse.'
                     "</div>", unsafe_allow_html=True)
@@ -1667,7 +1761,7 @@ def page_replay() -> None:
                                     "bad", "decided") for lv in lvs], link=False, big_size="1.5rem")
 
     # ---- who played
-    st.header("Who played well", divider="gray", anchor="players")
+    heading("Who played well", "players")
     if len(lines):
         st.markdown('<div class="takeaway">Every Clipper who played, best night first. The bar is his Game Score '
                     '(a one-number box-score summary); the tick marks 10, a good night.</div>', unsafe_allow_html=True)
@@ -1681,7 +1775,7 @@ def page_replay() -> None:
 
     # ---- who guarded whom
     mu = R.matchups_for_game(data.matchups, gid, "LAC", opp_lines) if len(data.matchups) else pd.DataFrame()
-    st.header("Who guarded whom", divider="gray", anchor="matchups")
+    heading("Who guarded whom", "matchups")
     if mu.empty:
         st.info("Player tracking for this game isn't published yet (it usually appears a few hours after the game).")
     else:
@@ -1714,7 +1808,7 @@ def page_replay() -> None:
 
     # ---- five-man units
     if len(game_units):
-        st.header("Which lineups worked", divider="gray", anchor="units")
+        heading("Which lineups worked", "units")
         ids_by_name = {v: k for k, v in names.items()}
         gu = game_units[game_units["seconds"] >= 120].sort_values("plus_minus", ascending=False)
         show_units = pd.concat([gu.head(3), gu.tail(3)]).drop_duplicates(subset=["team"])
@@ -1767,6 +1861,7 @@ def page_replay() -> None:
     with st.expander("Every Clippers turnover in this game"):
         st.dataframe(with_photos(D.game_turnovers(data.turnovers, gid), "player"), hide_index=True, width="stretch",
                      column_config=PHOTO_COL)
+    fill_toc(nav_)
 
 # ================================================================= players
 
@@ -1792,6 +1887,7 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
 
 def page_players() -> None:
     page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.")
+    nav_ = toc_slot("players")
     band = st.container(key="band_navy_players")  # the season picker and the key cards share the navy band
     season_p = band.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="player_season")
     ph = D.player_halves(data.player_stats, season_p)
@@ -1897,6 +1993,7 @@ def page_players() -> None:
         show(fig, 300, yaxis_title="Turnovers")
         with st.expander("Game-by-game table"):
             st.dataframe(g.drop(columns=["game_id"]), hide_index=True, width="stretch")
+    fill_toc(nav_)
     next_step(PAGE_LEAGUE, "Is this normal? How every team changes after halftime.")
 
 # ================================================================== league
@@ -2158,6 +2255,7 @@ PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "players": PAGE_PLAYERS, 
 # The default page lives at "/"; this hidden twin makes a shared /games link work too.
 PAGE_GAMES_LINK = st.Page(page_replay, title="Games", url_path="games", visibility="hidden")
 nav = st.navigation(list(PAGES.values()) + [PAGE_GAMES_LINK], position="top")
+behind_notice()
 # Tests run a specific page by setting this in session state (AppTest can't change the URL).
 forced = st.session_state.get("_dashboard_page")
 if forced in PAGES:

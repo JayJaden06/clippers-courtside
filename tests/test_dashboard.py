@@ -199,3 +199,20 @@ def test_drawings_have_their_numbers_beside_them():
     assert "<h4>Half by half</h4>" in html and html.count('class="cmp-row"') >= 4
     players = " ".join(m.value for m in _app("players").markdown)
     assert players.count('class="slop-row"') >= 5 and ("Sloppier" in players or "Safer" in players)
+
+
+def test_games_missing_spots_a_refresh_that_hasnt_run():
+    import pandas as pd
+
+    lac = 1610612746
+    sched = pd.DataFrame({
+        "game_id": ["0022600001", "0022600002", "0022600003", "0012600009"],
+        "home_id": [lac, 1, lac, lac], "away_id": [2, lac, 3, 4],
+        "tipoff_utc": pd.to_datetime(["2026-11-01 03:00", "2026-11-09 03:00", "2026-11-11 03:00",
+                                      "2026-10-01 03:00"], utc=True)})
+    games = pd.DataFrame({"game_id": ["0022600001"]})
+    now = pd.Timestamp("2026-11-10 17:00", tz="UTC")
+    missing = D.games_missing(sched, games, lac, now)
+    # the Nov 9 game finished a day ago and isn't in; tonight's game and preseason don't count
+    assert list(missing["game_id"]) == ["0022600002"]
+    assert D.games_missing(sched, pd.DataFrame({"game_id": ["0022600001", "0022600002"]}), lac, now).empty
