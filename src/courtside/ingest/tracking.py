@@ -94,10 +94,23 @@ def parse_hustle(raw: dict) -> list[dict]:
     return rows
 
 
-def load_tracking(client: NBAClient, games: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
-    """Matchups and hustle for every game. Returns ``(matchups, hustle, game ids skipped)``."""
+GIVE_UP_DAYS = 7  # tracking usually appears within hours; after a week it isn't coming
+
+
+def load_tracking(client: NBAClient, games: pd.DataFrame, today: pd.Timestamp | None = None
+                  ) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    """Matchups and hustle for every game. Returns ``(matchups, hustle, game ids skipped)``.
+
+    A game older than ``GIVE_UP_DAYS`` whose tracking was never cached isn't asked for again; it comes back in
+    the skipped list as ``"gave-up:<game id>"``.
+    """
+    today = pd.Timestamp(today or pd.Timestamp.today()).normalize()
     m_rows, h_rows, skipped = [], [], []
     for g in games.itertuples():
+        old = (today - pd.Timestamp(g.game_date).normalize()).days > GIVE_UP_DAYS
+        if old and not client.cache_path(BoxScoreMatchupsV3.__name__, {"game_id": g.game_id}).exists():
+            skipped.append(f"gave-up:{g.game_id}")
+            continue
         m = _get(client, BoxScoreMatchupsV3, g.game_id)
         h = _get(client, BoxScoreHustleV2, g.game_id) if m is not None else None
         if m is None or h is None or not h["boxScoreHustle"]["homeTeam"]["players"]:
