@@ -8,6 +8,8 @@ up front, the basketball numbers one hover or expander away.
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -159,7 +161,9 @@ def page_answer() -> None:
             + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
             + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
         picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]), max_width="760px")
-        answer_cards(S.answer_page_cards(hl, reasons, res, season_prev))
+        # The court above already shows the half-by-half margin, and section 3 lists what's new.
+        answer_cards([c_ for c_ in S.answer_page_cards(hl, reasons, res, season_prev)
+                      if not c_.title.startswith(("Fine before", "New problems"))])
         glossary_button()
 
     hurts = [r for r in reasons if r.per_game < 0]
@@ -182,66 +186,50 @@ def page_answer() -> None:
             st.switch_page(PAGE_LEAGUE)
     st.markdown('<div class="jump">'
                 '<a href="#reasons">1 · Ranked reasons</a>'
-                + ('<a href="#hiding">What\'s hiding it</a>' if helps else '')
-                + '<a href="#theories">Theories checked</a><a href="#changes">Since last season</a>'
+                '<a href="#theories">Theories checked</a><a href="#changes">Since last season</a>'
                 '<a href="#whatif">What if?</a><a href="#stats">Every stat</a></div>', unsafe_allow_html=True)
 
-    # ---------------------------------------------------------- 1. ranked reasons
+    # ---------------------------------------------------------- 1. ranked reasons (costs and helps)
+    total_help = sum(r.per_game for r in helps)
     section("1. Why they blow leads, ranked", "reasons",
-            "Each pair of bars is one part of the game: <b>red = this season</b>, gray = last season. Left of zero = "
-            "it costs them points after halftime; right = it helps." if hurts else "")
-    if hurts:
-        names = [f"{i}. {r.name}" for i, r in enumerate(hurts, 1)]
+            "Each part of the game, after halftime: <b>red = this season</b>, gray = last season. Left of zero "
+            "costs them points; right of zero helps." if reasons else "")
+    if reasons:
+        ordered = hurts + sorted(helps, key=lambda r: -r.per_game)
+        names = [f"{i}. {r.name}" for i, r in enumerate(ordered, 1)]
         fig = go.Figure()
-        for label, vals, color in ((f"This season ({season_now})", [r.per_game for r in hurts], BAD),
-                                   (f"Last season ({season_prev})", [r.prev_per_game for r in hurts], MUTED_BAR)):
+        for label, vals, color in ((f"This season ({season_now})", [r.per_game for r in ordered], BAD),
+                                   (f"Last season ({season_prev})", [r.prev_per_game for r in ordered], MUTED_BAR)):
             fig.add_trace(go.Bar(
                 y=names, x=vals, orientation="h", name=label, marker_color=color,
                 text=[f"{signed(v)} a game" for v in vals], textposition="outside", cliponaxis=False,
-                customdata=[r.detail for r in hurts],
+                customdata=[r.detail for r in ordered],
                 hovertemplate="<b>%{y}</b><br>" + label + ": %{x:+.1f} points a game after halftime"
                               "<br>%{customdata}<extra></extra>"))
-        lo = min(min(r.per_game, r.prev_per_game) for r in hurts)
-        hi = max(max(r.per_game, r.prev_per_game) for r in hurts)
+        lo = min(min(r.per_game, r.prev_per_game) for r in ordered)
+        hi = max(max(r.per_game, r.prev_per_game) for r in ordered)
         fig.add_vline(x=0, line=dict(color=INK_MARK, width=1))
         fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.08)
         fig.update_yaxes(autorange="reversed")
         fig.update_xaxes(title="Points a game after halftime  (← costs them · helps them →)",
-                         range=[lo * 1.45, max(hi, 0) * 1.45 + 0.8], zeroline=False)
-        show(fig, 110 + 70 * len(hurts))
-        st.caption("Ranked by how much each costs this season. Hover a bar for the stat behind it.")
+                         range=[min(lo, 0) * 1.45 - 0.8, max(hi, 0) * 1.45 + 0.8], zeroline=False)
+        show(fig, 110 + 62 * len(ordered))
+        if helps and hl:
+            st.caption(f"The ones right of zero hide part of the drop: without them, second halves would be "
+                       f"{signed(hl['h2_per_game'] - total_help)} a game instead of {signed(hl['h2_per_game'])}.")
         with st.expander("Details for each reason"):
-            if helps:
-                st.markdown("The shares add up to more than 100% because a few things got *better* after halftime "
-                            "and cancel some of it out (section 2).")
-            for i, r in enumerate(hurts, 1):
-                st.markdown(f"**{i}. {r.name}** costs **{-r.per_game:.1f} points a game** after halftime "
-                            f"({r.share:.0%} of the drop). {r.detail} Last season: {signed(r.prev_per_game)} a game.")
+            for i, r in enumerate(ordered, 1):
+                verb = f"costs **{-r.per_game:.1f} points a game**" if r.per_game < 0 else \
+                    f"gains **{r.per_game:.1f} points a game**"
+                st.markdown(f"**{i}. {r.name}** {verb} after halftime. {r.detail} "
+                            f"Last season: {signed(r.prev_per_game)} a game.")
                 st.badge(r.status, color=STATUS_BADGE[r.status])
-
-    # ---------------------------------------------------------- 2. what's hiding it
-    if helps:
-        total_help = sum(r.per_game for r in helps)
-        residual = att_now.set_index("factor").loc["residual", "per_game"] if att_now is not None else 0.0
-        section("2. What's hiding how bad it is", "hiding",
-                f"A few things got <b>better</b> after halftime, worth {signed(total_help)} points a game. "
-                + (f"Without them, second halves would be {signed(hl['h2_per_game'] - total_help)} a game, not "
-                   f"{signed(hl['h2_per_game'])}." if hl else ""))
-        fig = go.Figure(go.Bar(
-            y=[r.name for r in helps], x=[r.per_game for r in helps], orientation="h", marker_color=GOOD,
-            text=[f"{signed(r.per_game)} pts a game" for r in helps], textposition="outside",
-            customdata=[r.detail for r in helps], hovertemplate="<b>%{y}</b><br>%{customdata}<extra></extra>"))
-        fig.update_xaxes(title="Points a game gained after halftime",
-                         range=[0, max(r.per_game for r in helps) * 1.5])
-        fig.update_yaxes(autorange="reversed")
-        show(fig, 90 + 50 * len(helps), showlegend=False)
-        with st.expander("Details"):
-            for r in helps:
-                st.markdown(f"- **{r.name}**: {r.detail}")
-            st.markdown(f"- A further {signed(residual)} a game can't be placed in any one bucket.")
+            if att_now is not None:
+                residual = att_now.set_index("factor").loc["residual", "per_game"]
+                st.markdown(f"A further {signed(residual)} a game can't be placed in any one part.")
 
     # ---------------------------------------------------------- 3. theories
-    section(f"{3 if helps else 2}. The popular theories, checked", "theories")
+    section("2. The popular theories, checked", "theories")
     left, right = st.columns([1, 1.25], gap="large")
     with left:
         st.subheader("Is it Garland?")
@@ -265,13 +253,6 @@ def page_answer() -> None:
             st.markdown(f"His extra turnovers explain about **{share:.0%}** of the drop. "
                         + (f"That's real, but short of the **{DRIVES:.0%}** we set in advance for calling something "
                            "*the* cause." if share < DRIVES else "That's enough to call him the main cause."))
-            fig = go.Figure(go.Bar(
-                y=["Share of team plays", "Share of team turnovers"], x=[k3["play_share_h2"], k3["tov_share_h2"]],
-                orientation="h", marker_color=[GRAY, FOCUS], text=[f"{k3['play_share_h2']:.0%}",
-                                                                   f"{k3['tov_share_h2']:.0%}"],
-                textposition="outside", hovertemplate="%{y}: %{x:.0%}<extra>after halftime</extra>"))
-            fig.update_xaxes(range=[0, max(0.5, k3["tov_share_h2"] * 1.3)], tickformat=".0%")
-            show(fig, 170, showlegend=False, title=dict(text="Garland after halftime", font=dict(size=14)))
     with right:
         cards = S.answer_cards(data.analysis)
         answer_cards(S.theory_cards(cards), link=False, big_size="1.3rem")
@@ -289,13 +270,8 @@ def page_answer() -> None:
         st.markdown(f'<div class="takeaway"><b>{wall.big}.</b> {wall.small}</div>', unsafe_allow_html=True)
         picture(G.wall_court(by.loc["H1", "ftm"] / by.loc["H1", "fta"], by.loc["H2", "ftm"] / by.loc["H2", "fta"]),
                 max_width="900px")
-        left, right = st.columns([1, 2.2], gap="large", vertical_alignment="center")
-        with left:
-            st.markdown("The Wall is 51 rows of Clippers fans behind one basket. If it rattled opponents at the "
-                        "line after halftime, their second-half free throws would drop at home.")
-            st.link_button("See the full Intuit Dome study", settings.wall_study_url,
-                           icon=":material/open_in_new:", width="stretch")
-        with right:
+        st.link_button("See the full Intuit Dome study", settings.wall_study_url, icon=":material/open_in_new:")
+        with st.expander("Each season, at home and on the road"):
             order = sorted(ft["season"].unique(), reverse=True)
             x = [f"{s_}<br>{'At Intuit Dome' if w_ == 'home' else 'On the road'}" for s_ in order
                  for w_ in ("home", "road")]
@@ -312,7 +288,6 @@ def page_answer() -> None:
                                                    "<extra></extra>"))
             fig.update_layout(barmode="group", bargap=0.3, bargroupgap=0.06)
             fig.update_yaxes(tickformat=".0%", range=[0, 1.12], title="Opponents' free throws made")
-            st.markdown("**Opponents at the free-throw line, before vs after halftime**")
             show(fig, 320)
         with st.expander("Details"):
             st.markdown(
@@ -323,46 +298,30 @@ def page_answer() -> None:
                 "- The home-court study looks at every arena since 2013-14 and finds the same thing: visitors' "
                 "free-throw shooting at Intuit Dome isn't consistently worse than at other arenas.")
 
-    # ---------------------------------------------------------- 4. since last season
-    section_n = 4 if helps else 3
+    # ---------------------------------------------------------- 3. since last season
+    section_n = 3
     if not data.comparison.empty and season_prev in data.attribution:
         st.header(f"{section_n}. What changed since last season", divider="gray", anchor="changes")
         comp = data.comparison.set_index("season")
         cur, prev = comp.loc[season_now], comp.loc[season_prev]
-        c = st.columns(4)
-        c[0].metric(f"Early leads blown, {season_prev}",
-                    f"{int(prev['blown_leads'])} of {int(prev['blown_leads'] + prev['held_leads'])}", border=True)
-        c[1].metric(f"Early leads blown, {season_now}",
-                    f"{int(cur['blown_leads'])} of {int(cur['blown_leads'] + cur['held_leads'])}", border=True)
-        c[2].metric(f"2nd halves per game, {season_prev}", signed(prev["margin_h2_per_game"]), border=True)
-        c[3].metric(f"2nd halves per game, {season_now}", signed(cur["margin_h2_per_game"]), border=True)
+        cur_leads = int(cur["blown_leads"] + cur["held_leads"])
+        prev_leads = int(prev["blown_leads"] + prev["held_leads"])
         new = [r.name for r in reasons if r.status == S.NEW]
         same = [r.name for r in reasons if r.status == S.SAME]
         better = [r.name for r in reasons if r.status == S.BETTER]
-        answer_cards([W.Verdict(title, " · ".join(names) or "Nothing", sub, tone, "changes")
-                      for title, names, sub, tone in (
-                          ("New this season", new, "Worse than last season by a point a game or more.", "bad"),
-                          ("Same as last season", same, "Hurt then, hurts now.", "warn"),
-                          ("Better than last season", better, "Hurts less than it did.", "good"))], link=False,
-                     big_size="1.15rem")
-
-        factors = [f for f in S.factor_order() if f != "residual"]
-        fig = go.Figure()
-        for f in factors:
-            fig.add_trace(go.Scatter(x=[prev[f"{f}_per_game"], cur[f"{f}_per_game"]],
-                                     y=[S.FACTOR_PLAIN[f][0]] * 2, mode="lines", line=dict(color=LIGHT, width=3),
-                                     hoverinfo="skip", showlegend=False))
-        for season_, vals, color, symbol in ((season_now, cur, FOCUS, "circle"),
-                                             (season_prev, prev, GRAY, "circle-open")):
-            fig.add_trace(go.Scatter(
-                x=[vals[f"{f}_per_game"] for f in factors], y=[S.FACTOR_PLAIN[f][0] for f in factors],
-                mode="markers", name=f"{season_} ({int(vals['games'])} games)",
-                marker=dict(color=color, size=14, symbol=symbol, line=dict(width=2.5, color=color)),
-                hovertemplate="%{y}: %{x:+.1f} points per game<extra>" + season_ + "</extra>"))
-        fig.add_vline(x=0, line=dict(color=GRAY, width=1))
-        fig.update_yaxes(autorange="reversed")
-        st.markdown("**Each bucket, this season vs last**")
-        show(fig, 360, xaxis_title="Points per game gained (+) or lost (−) after halftime")
+        answer_cards([
+            W.Verdict("Early leads blown", f"{int(cur['blown_leads'])} of {cur_leads}",
+                      f"Last season: {int(prev['blown_leads'])} of {prev_leads} "
+                      f"({prev['blown_leads'] / max(prev_leads, 1):.0%}).", "bad", "changes"),
+            W.Verdict("Second halves, a game", signed(cur["margin_h2_per_game"]),
+                      f"Last season: {signed(prev['margin_h2_per_game'])} a game.", "bad"
+                      if cur["margin_h2_per_game"] < prev["margin_h2_per_game"] else "good", "changes"),
+        ] + [W.Verdict(title, " · ".join(names), sub, tone, "changes")
+             for title, names, sub, tone in (
+                 ("New this season", new, "Worse than last season by a point a game or more.", "bad"),
+                 ("Same as last season", same, "Hurt then, hurts now.", "warn"),
+                 ("Better than last season", better, "Hurts less than it did.", "good")) if names],
+            link=False, big_size="1.15rem")
         with st.expander("Every stat, this season vs last (table)"):
             rows = S.scorecard(sh, season_now, season_prev)
             table = pd.DataFrame([{
@@ -422,8 +381,14 @@ def page_answer() -> None:
 TONE_COLOR = {"good": GOOD, "bad": BAD, "warn": FOCUS, "info": GRAY}
 
 
+def _minus(text: str) -> str:
+    """A hyphen before a digit becomes a true minus sign, so every number on the page looks the same."""
+    return re.sub(r"(?<![\w])-(?=\d)", "−", text)
+
+
 def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None = None) -> None:
     """Short-headline cards with one big number each; with ``link`` a click jumps to the card's section."""
+    cards = [W.Verdict(c.title, _minus(c.big), _minus(c.small), c.tone, c.anchor) for c in cards]
     big_style = f' style="font-size:{big_size}"' if big_size else ""
     html = "".join(
         (f'<a class="vcard" href="#{c.anchor}"' if link else '<div class="vcard"')
@@ -484,19 +449,8 @@ def page_whatnow() -> None:
         section("Does the starting five need to change?", "starters",
                 f"No. The starters hold even after halftime; the other lineups lose "
                 f"<b>{abs(rest):.1f} points a game</b>." if sf.not_the_problem and rest < 0 else
-                f"Starters: {sf.h2_pm / n:+.1f} a game after halftime; everyone else {rest:+.1f}.",
+                f"Starters: {signed(sf.h2_pm / n)} a game after halftime; everyone else {signed(rest)}.",
                 ("Keep it", "blue") if sf.not_the_problem else ("Maybe change it", "orange"))
-        vals = [sf.h2_pm / n, rest]
-        fig = go.Figure(go.Bar(
-            y=["Starting five together", "Every other lineup"], x=vals, orientation="h",
-            marker_color=[GOOD if v >= 0 else BAD for v in vals], text=[f"{signed(v)} a game" for v in vals],
-            textposition="outside", cliponaxis=False,
-            hovertemplate="%{y}: %{x:+.1f} points a game after halftime<extra></extra>"))
-        lim = max(abs(v) for v in vals + [2]) * 2.2
-        fig.add_vline(x=0, line=dict(color=GRAY, width=1))
-        fig.update_xaxes(range=[-lim, lim], title="Points a game after halftime (+ = Clippers outscore the other team)")
-        fig.update_yaxes(autorange="reversed")
-        show(fig, 190, showlegend=False)
         with st.expander("Details"):
             st.markdown(f"- Starters: {', '.join(sf.names)}; {sf.games_together} starts together.\n"
                         f"- They've played {sf.h2_min:.0f} second-half minutes together; other lineups "
@@ -587,20 +541,11 @@ def page_whatnow() -> None:
             show(fig, 250, showlegend=False)
         with right:
             if pr is not None and pr.tov:
-                own = pr.steals - pr.help
-                parts = [("Stolen by his defender", own, MUTED_BAR),
-                         ("Stolen by a 2nd defender (trap or help)", pr.help, FOCUS),
-                         ("No steal (bad pass out, travel, foul)", pr.tov - pr.steals, "#3d3c39")]
-                fig = go.Figure(go.Pie(
-                    labels=[p[0] for p in parts], values=[p[1] for p in parts], hole=0.6, sort=False,
-                    marker=dict(colors=[p[2] for p in parts], line=dict(color=BG, width=2)),
-                    textinfo="value", hovertemplate="%{label}: %{value} (%{percent})<extra></extra>"))
-                fig.add_annotation(text=f"<b>{pr.tov}</b><br>turnovers", showarrow=False, font=dict(size=15))
                 st.markdown("**Is he being double-teamed into them?**")
-                show(fig, 250, legend=dict(orientation="v", x=1.0, y=0.5))
-                st.caption(f"Only {pr.help_share:.0%} come from a second defender (teammates: "
-                           f"{pr.mates_help_share:.0%}). Double teams aren't logged publicly; this is the closest "
-                           "proxy.")
+                picture(G.turnover_strip(pr.steals - pr.help, pr.help, pr.tov - pr.steals))
+                st.caption(f"Only {pr.help_share:.0%} are stolen by a second defender, the way a double team "
+                           f"usually ends (teammates: {pr.mates_help_share:.0%}). Double teams aren't logged "
+                           "publicly; this is the closest proxy.")
         if pr is not None:
             st.markdown(f"**Bigger defenders are the new problem.** How often {focus_last} loses the ball, by the "
                         "height of the player guarding him:")
@@ -653,7 +598,7 @@ def page_whatnow() -> None:
             st.markdown(f"**{who} gives up size{' as a rookie' if r_['rookie'] else ''}**")
             picture(G.size_matchup(who, r_["own_ht"], r_["own_wt"], r_["opp_ht"], r_["opp_wt"], r_["fg_pct"],
                                    dfn.team_fg))
-    left, right = st.columns([1, 1], gap="large")
+    left = right = st.container()  # one column: the shooting chart, then the size table
     with left:
         if dfn is not None and len(dfn.table):
             t = dfn.table.sort_values("fg_pct", ascending=True)
@@ -673,22 +618,22 @@ def page_whatnow() -> None:
     with right:
         if dfn is not None and len(dfn.table):
             t = dfn.table.sort_values("wt_gap")
-            st.markdown("**How big are the players each one guards?**")
-            fig = go.Figure()
-            for r_ in t.itertuples():
-                fig.add_trace(go.Scatter(x=[r_.own_wt, r_.opp_wt], y=[r_.player_name.split(" ", 1)[-1]] * 2,
-                                         mode="lines", hoverinfo="skip", showlegend=False,
-                                         line=dict(color=FOCUS if r_.gives_up_size else LIGHT, width=4)))
-            y = [x.split(" ", 1)[-1] for x in t["player_name"]]
-            fig.add_trace(go.Scatter(x=t["own_wt"], y=y, mode="markers", name="His weight",
-                                     marker=dict(color=H1C, size=12, line=dict(color=BG, width=1.5)),
-                                     hovertemplate="%{y}: %{x:.0f} lb<extra>his weight</extra>"))
-            fig.add_trace(go.Scatter(x=t["opp_wt"], y=y, mode="markers", name="Who he guards (average)",
-                                     marker=dict(color=FOCUS, size=12, line=dict(color=BG, width=1.5)),
-                                     hovertemplate="%{y} guards players averaging %{x:.0f} lb<extra></extra>"))
-            fig.update_xaxes(title="Weight (lb)")
-            show(fig, 90 + 30 * len(t))
-            st.caption("Orange line = guards players 25+ lb heavier than himself.")
+            with st.expander("How big are the players each one guards?"):
+                fig = go.Figure()
+                for r_ in t.itertuples():
+                    fig.add_trace(go.Scatter(x=[r_.own_wt, r_.opp_wt], y=[r_.player_name.split(" ", 1)[-1]] * 2,
+                                             mode="lines", hoverinfo="skip", showlegend=False,
+                                             line=dict(color=FOCUS if r_.gives_up_size else LIGHT, width=4)))
+                y = [x.split(" ", 1)[-1] for x in t["player_name"]]
+                fig.add_trace(go.Scatter(x=t["own_wt"], y=y, mode="markers", name="His weight",
+                                         marker=dict(color=H1C, size=12, line=dict(color=BG, width=1.5)),
+                                         hovertemplate="%{y}: %{x:.0f} lb<extra>his weight</extra>"))
+                fig.add_trace(go.Scatter(x=t["opp_wt"], y=y, mode="markers", name="Who he guards (average)",
+                                         marker=dict(color=FOCUS, size=12, line=dict(color=BG, width=1.5)),
+                                         hovertemplate="%{y} guards players averaging %{x:.0f} lb<extra></extra>"))
+                fig.update_xaxes(title="Weight (lb)")
+                show(fig, 90 + 30 * len(t))
+                st.caption("Orange line = guards players 25+ lb heavier than himself.")
     if dfn is not None and len(dfn.table):
         with st.expander("Details and effort stats (contests, deflections, box-outs)"):
             for r_ in dfn.table[dfn.table["gives_up_size"]].itertuples():
@@ -721,13 +666,10 @@ def page_whatnow() -> None:
                if best is not None else ""))
     left, right = st.columns([1, 2.2], gap="large")
     with left:
-        fig = go.Figure(go.Pie(
-            labels=["Back from last season", "New this season"], values=[chem.continuity, 1 - chem.continuity],
-            hole=0.6, sort=False, marker=dict(colors=[H1C, FOCUS], line=dict(color=BG, width=2)),
-            texttemplate="%{percent:.0%}", hovertemplate="%{label}: %{percent} of minutes<extra></extra>"))
-        fig.add_annotation(text="share of<br>minutes", showarrow=False)
         st.markdown("**How much of the team is new**")
-        show(fig, 280, legend=dict(orientation="h", y=-0.1))
+        answer_cards([W.Verdict("Minutes from players who were here last season", f"{chem.continuity:.0%}",
+                                f"New this season: {', '.join(n.split(' ', 1)[-1] for n in chem.new[:5]) or 'nobody'}.",
+                                "info", "chemistry")], link=False)
     with right:
         if len(p):
             show_p = pd.concat([p.head(5), p.tail(5)]).drop_duplicates(subset=["a_id", "b_id"]).sort_values("pm")
@@ -736,7 +678,7 @@ def page_whatnow() -> None:
             fig = go.Figure(go.Bar(
                 y=labels, x=show_p["pm"], orientation="h",
                 marker_color=[GOOD if v > 0 else BAD if v < 0 else MUTED_BAR for v in show_p["pm"]],
-                text=[f"{v:+.0f} in {m:.0f} min" for v, m in zip(show_p["pm"], show_p["min"])],
+                text=[f"{signed(v, 0)} in {m:.0f} min" for v, m in zip(show_p["pm"], show_p["min"])],
                 textposition="outside",
                 hovertemplate="%{y}: Clippers %{x:+.0f} after halftime with both on<extra></extra>"))
             lim = float(show_p["pm"].abs().max()) * 1.6
@@ -841,7 +783,7 @@ def page_whatnow() -> None:
         if "H1" in res:
             k1 = res["H1"]["key"]
             watch.append("**The collapse is confirmed (not bad luck)** once the 90% range for the drop stops "
-                         f"including zero. It's {k1['boot_lo']:+.1f} to {k1['boot_hi']:+.1f} today.")
+                         f"including zero. It's {signed(k1['boot_lo'])} to {signed(k1['boot_hi'])} today.")
         watch.append(f"**The shooting problem is fading** if second-half shooting climbs back above the league "
                      f"average ({league_h2:.1%}). It's {sd.team_h2:.1%} today.")
         if pr is not None:
@@ -1095,7 +1037,7 @@ def page_league() -> None:
     flip = D.better_direction(metric) == "lower is better"
     lv = lv.assign(shown=-lv["value"] if flip else lv["value"]).sort_values("shown")
     pct = metric not in ("net_rtg", "tov_pct")
-    fmt = (lambda v: f"{v * 100:+.1f} pts") if pct else (lambda v: f"{v:+.1f}")
+    fmt = (lambda v: f"{signed(v * 100)} pts") if pct else (lambda v: signed(v))
     fig = go.Figure(go.Bar(
         x=lv["shown"], y=lv["team_name"], orientation="h",
         marker_color=[FOCUS if t else MUTED_BAR for t in lv["is_team"]],
