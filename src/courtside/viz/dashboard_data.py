@@ -78,6 +78,7 @@ class DashboardData:
     player_season: pd.DataFrame = field(default_factory=pd.DataFrame)
     team_misc: pd.DataFrame = field(default_factory=pd.DataFrame)
     roster: pd.DataFrame = field(default_factory=pd.DataFrame)
+    shots: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     @property
     def seasons(self) -> list[str]:
@@ -122,6 +123,7 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         player_season=optional("player_season"),
         team_misc=optional("team_misc"),
         roster=optional("roster"),
+        shots=optional("shots"),
     )
 
 
@@ -181,6 +183,17 @@ def game_turnovers(turnovers: pd.DataFrame, game_id: str) -> pd.DataFrame:
         "opponent pts off it": t["pts_off"],
         "margin before": t["margin_before"].map("{:+d}".format),
     }).reset_index(drop=True)
+
+
+ZONE_ORDER = ["At the rim", "Short range", "Mid-range", "Three"]
+
+
+def shot_zones(shots: pd.DataFrame, season: str) -> pd.DataFrame:
+    """Shooting by zone before and after halftime: made share and attempts, in ZONE_ORDER."""
+    s = shots[(shots["season"] == season) & shots["half"].isin(["H1", "H2"])]
+    t = s.groupby(["zone", "half"])["made"].agg(["mean", "size"]).unstack("half")
+    t.columns = [f"{a}_{b.lower()}" for a, b in t.columns]  # mean_h1, mean_h2, size_h1, size_h2
+    return t.reindex([z for z in ZONE_ORDER if z in t.index]).fillna(0)
 
 
 def _period_clock(period: int, seconds_left: float) -> str:

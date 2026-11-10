@@ -16,7 +16,7 @@ from rich.logging import RichHandler
 
 from courtside.analysis import hypotheses
 from courtside.config import get_settings
-from courtside.ingest import boxscores, games, league, lineups, playbyplay, players, schedule, tracking
+from courtside.ingest import boxscores, games, league, lineups, playbyplay, players, schedule, shots, tracking
 from courtside.nba_client import NBAClient
 from courtside.transform import fouls, halves, leads, league_context, onoff, stints, turnovers
 
@@ -83,6 +83,7 @@ def pull(season: SeasonOpt = None) -> None:
             tracking.load_bio(client, s, settings.season_type)
             schedule.load_player_season(client, s, settings.season_type)
             league.load_team_misc(client, s, settings.season_type)
+            shots.load_shots(client, settings.team_id, s, settings.season_type)
     with client.refreshing():  # the schedule changes daily (results, times)
         schedule.load_schedule(client, settings.current_season)
     console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}, "
@@ -233,6 +234,10 @@ def build(season: SeasonOpt = None) -> None:
     pd.concat([league.load_team_misc(client, s, settings.season_type) for s in seasons],
               ignore_index=True).to_parquet(out / "team_misc.parquet", index=False)
     player_season.to_parquet(out / "player_season.parquet", index=False)
+    shot_table = pd.concat([shots.load_shots(client, settings.team_id, s, settings.season_type) for s in seasons],
+                           ignore_index=True)
+    shot_table = shot_table[shot_table["game_id"].isin(set(df["game_id"]))]  # games we have box scores for
+    shot_table.to_parquet(out / "shots.parquet", index=False)
     console.print(
         f"tracking: {matchups['game_id'].nunique()} games of matchups and hustle "
         f"({len(skipped)} not published yet), matchups cover {coverage:.0%} of points; bio for {len(bio)} players"
