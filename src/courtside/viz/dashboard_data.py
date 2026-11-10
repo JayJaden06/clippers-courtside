@@ -318,6 +318,12 @@ def team_color(team_id: int) -> str:
     return TEAM_COLORS.get(int(team_id), "#898781")
 
 
+def shade(hex_color: str, k: float = 0.45) -> str:
+    """The color darkened toward black by ``k`` (0..1), for the deep end of a card gradient."""
+    r, g, b = (int(hex_color.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
+    return "#" + "".join(f"{round(v * (1 - k)):02x}" for v in (r, g, b))
+
+
 def is_light(hex_color: str) -> bool:
     """True for pale colors (Nets white, Spurs silver, Bucks cream), which need the light-background logo."""
     r, g, b = (int(hex_color.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
