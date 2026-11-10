@@ -1762,8 +1762,9 @@ PAGE_REPLAY = st.Page(page_replay, title="Games", url_path="home",
                       default=True)
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
-PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,
-         "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
+# Story order: the tracker, the answer, the evidence (players, the league), then what to do about it.
+PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "players": PAGE_PLAYERS, "league": PAGE_LEAGUE,
+         "whatnow": PAGE_WHATNOW}
 # The default page lives at "/"; this hidden twin makes a shared /games link work too.
 PAGE_GAMES_LINK = st.Page(page_replay, title="Games", url_path="games", visibility="hidden")
 nav = st.navigation(list(PAGES.values()) + [PAGE_GAMES_LINK], position="top")
