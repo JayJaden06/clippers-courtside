@@ -168,4 +168,3 @@ def test_every_clipper_has_a_photo_id(data):
     assert all(n in ids for n in lac)
     last = D.last_names(data.player_box, data.seasons[0], "LAC")
     assert len(set(last.values())) == len(last)
-
