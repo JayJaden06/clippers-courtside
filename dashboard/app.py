@@ -1782,9 +1782,8 @@ PAGE_REPLAY = st.Page(page_replay, title="Games", url_path="games",
                       default=True)
 PAGE_PLAYERS = st.Page(page_players, title="Players", icon=":material/groups:", url_path="players")
 PAGE_LEAGUE = st.Page(page_league, title="Vs. the league", icon=":material/leaderboard:", url_path="league")
-# Story order: the tracker, the answer, the evidence (players, the league), then what to do about it.
-PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "players": PAGE_PLAYERS, "league": PAGE_LEAGUE,
-         "whatnow": PAGE_WHATNOW}
+PAGES = {"replay": PAGE_REPLAY, "answer": PAGE_ANSWER, "whatnow": PAGE_WHATNOW,
+         "players": PAGE_PLAYERS, "league": PAGE_LEAGUE}
 nav = st.navigation(list(PAGES.values()), position="top")
 # Tests run a specific page by setting this in session state (AppTest can't change the URL).
 forced = st.session_state.get("_dashboard_page")
