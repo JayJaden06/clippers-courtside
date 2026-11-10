@@ -109,8 +109,16 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 settings = get_settings()
 
 
-@st.cache_data
-def load() -> D.DashboardData:
+def data_stamp() -> tuple[float, int]:
+    """Newest modified time and file count of the data the app reads; changes whenever a refresh lands."""
+    files = [p for p in settings.processed_dir.rglob("*") if p.is_file()]
+    files.append(settings.reports_dir / "analysis.json")
+    return max((p.stat().st_mtime for p in files if p.exists()), default=0.0), len(files)
+
+
+@st.cache_data(max_entries=1)
+def load(stamp: tuple[float, int]) -> D.DashboardData:
+    """Cached per ``stamp``, so a running server picks up new games without a restart."""
     return D.load(settings.processed_dir, settings.reports_dir / "analysis.json")
 
 
@@ -156,7 +164,7 @@ def signed(v: float, digits: int = 1) -> str:
 
 
 try:
-    data = load()
+    data = load(data_stamp())
 except FileNotFoundError as e:
     st.error(f"Processed data not found ({e.filename}). Run `courtside build` and `courtside analyze` first.")
     st.stop()
