@@ -66,6 +66,8 @@ def team_roster(client: NBAClient, team_id: int, season: str) -> pd.DataFrame:
         "player_name": df["PLAYER"].astype(str),
         "rookie": df["EXP"].astype(str).eq("R"),
         "how_acquired": df["HOW_ACQUIRED"].fillna("").astype(str),
+        "number": df["NUM"].fillna("").astype(str),
+        "position": df["POSITION"].fillna("").astype(str),
     })
 
 

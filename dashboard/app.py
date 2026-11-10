@@ -92,6 +92,48 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 [class*="st-key-gcard_"] {padding: .55rem .6rem !important; gap: .25rem}
 .st-key-gcard_sel {border-color: #d95926 !important; background: #1f1a17}
 .gc {padding-bottom: .9rem}
+.gc-stripe {height: 4px; border-radius: 3px; margin: -.15rem 0 .35rem 0}
+/* ---- Next up: the next game as the page's banner, over a faint drawn court */
+.nextup {position: relative; overflow: hidden; border-radius: 18px; padding: 1.3rem 1.6rem 1.2rem 1.6rem;
+         margin: .4rem 0 1.2rem 0; border: 1px solid #2c3550;
+         background: radial-gradient(120% 140% at 0% 0%, #1d2a4a 0%, #141a2b 45%, #141413 100%)}
+.nextup::before {content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--opp)}
+.nextup .court {position: absolute; right: -40px; top: -10px; width: 560px; opacity: .10; pointer-events: none}
+.nu-kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .75}
+.nu-row {display: flex; align-items: center; gap: 1.1rem; margin: .5rem 0 .35rem 0; position: relative}
+.nu-row img {width: 74px; height: 74px; object-fit: contain}
+.nu-at {font-size: 1.6rem; opacity: .6; font-weight: 700}
+.nu-name {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2.3rem; line-height: 1}
+.nu-chance {margin-left: auto; text-align: right}
+.nu-chance b {font-family: 'Barlow Condensed', sans-serif; font-size: 3.2rem; line-height: 1; display: block}
+.nu-chance span {font-size: .85rem; opacity: .75}
+.nu-key {position: relative; font-size: 1.02rem; opacity: .92; max-width: 46rem}
+.nu-key b {color: #f0efec}
+/* ---- player cards: trading-card style, one row that scrolls sideways */
+.pcards {display: flex; gap: .8rem; overflow-x: auto; padding: .2rem .1rem .8rem .1rem; margin-bottom: .6rem}
+.pcard {flex: 0 0 172px; border-radius: 14px; overflow: hidden; border: 1px solid #2c2c29; background: #1b1b19}
+.pc-top {position: relative; height: 128px; background: linear-gradient(160deg, #1d428a 0%, #26335a 55%, #c8102e 140%)}
+.pc-top img {position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 118px}
+.pc-num {position: absolute; z-index: 1; top: .4rem; left: .6rem; font-family: 'Barlow Condensed', sans-serif;
+         font-weight: 800; font-size: 1.7rem; line-height: 1; color: #f0efec; text-shadow: 0 1px 6px rgba(0,0,0,.6)}
+.pc-pos {position: absolute; top: .55rem; right: .6rem; font-size: .72rem; letter-spacing: .08em; opacity: .8}
+.pc-body {padding: .55rem .7rem .7rem .7rem}
+.pc-name {font-weight: 700; font-size: .95rem; line-height: 1.15}
+.pc-stats {display: flex; gap: .9rem; margin-top: .35rem}
+.pc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; display: block; line-height: 1}
+.pc-stats span {font-size: .72rem; opacity: .7; line-height: 1.15; display: block}
+/* ---- small motion: cards rise in, mini-charts draw left to right, cards lift on hover */
+@keyframes rise {from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none}}
+@keyframes draw {from {clip-path: inset(0 100% 0 0)} to {clip-path: inset(0 0 0 0)}}
+.vcard, .pcard, .nextup {animation: rise .45s ease-out both}
+.vcard:nth-child(2), .pcard:nth-child(2) {animation-delay: .05s}
+.vcard:nth-child(3), .pcard:nth-child(3) {animation-delay: .10s}
+.vcard:nth-child(4), .pcard:nth-child(4) {animation-delay: .15s}
+.vcard:nth-child(n+5), .pcard:nth-child(n+5) {animation-delay: .20s}
+.v-mini svg {animation: draw .8s ease-out .2s both}
+.pcard {transition: transform .12s, border-color .12s}
+.pcard:hover {transform: translateY(-3px); border-color: #4a4a45}
+@media (prefers-reduced-motion: reduce) {.vcard, .pcard, .nextup, .v-mini svg {animation: none}}
 .gc-date {font-size: .78rem; opacity: .7}
 .gc-opp {font-weight: 750; font-size: 1.02rem}
 .gc-status {font-weight: 700; font-size: .9rem}
@@ -1095,10 +1137,53 @@ def intro() -> None:
     right.button("Hide intro", icon=":material/close:", on_click=_hide_intro, width="stretch", type="tertiary")
 
 
+COURT_LINES = ('<svg class="court" viewBox="0 0 760 300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" '
+               'fill="none" stroke="#ffffff" stroke-width="4"><rect x="2" y="2" width="756" height="296" rx="6"/>'
+               '<line x1="380" y1="2" x2="380" y2="298"/><circle cx="380" cy="150" r="45"/>'
+               '<rect x="2" y="95" width="150" height="110"/><rect x="608" y="95" width="150" height="110"/>'
+               '<circle cx="152" cy="150" r="45"/><circle cx="608" cy="150" r="45"/>'
+               '<path d="M2 30 L50 30 A140 140 0 0 1 50 270 L2 270"/>'
+               '<path d="M758 30 L710 30 A140 140 0 0 0 710 270 L758 270"/></svg>')
+
+
+def _future_label(t: pd.Timestamp, pv, j: int) -> str:
+    """How an upcoming game reads in the game picker (the banner's button opens it by this label)."""
+    return (f"{t:%b} {t.day} · {'vs' if pv.home else '@'} {pv.opponent} · "
+            f"{'next game, ' if j == 0 else ''}{pv.chance:.0%} to win")
+
+
+def next_up(box, up: pd.DataFrame, previews: list, teams: pd.DataFrame, shooting: float | None) -> None:
+    """The next game as a banner: both logos, when and where, the win chance, and the top key to it."""
+    if not previews:
+        return
+    pv, g = previews[0], up.iloc[0]
+    t = g["tipoff_utc"].tz_convert("America/Los_Angeles")
+    opp_id = int(g["away_id"] if pv.home else g["home_id"])
+    players = GP.player_table(data.player_box, season_now, settings.team_abbreviation)
+    misc = data.team_misc[data.team_misc["season"] == season_now] if len(data.team_misc) else pd.DataFrame(
+        columns=["team_id", "opp_pts_paint"])
+    keys = GP.game_plan(pv, teams, misc, players, shooting)
+    key = (f'<div class="nu-key">The key: <b>{keys[0].title}</b>, worth about {signed(keys[0].points)} a game. '
+           f'{keys[0].why}</div>') if keys else ""
+    when = f"{t:%a %b} {t.day} · {t:%I:%M %p}".replace(" 0", " ") + f" PT · {pv.arena}"
+    with box:
+        st.markdown(
+            f'<div class="nextup" style="--opp:{D.team_color(opp_id)}">{COURT_LINES}'
+            f'<div class="nu-kicker">Next up · {when}</div>'
+            f'<div class="nu-row"><img src="{D.logo_url(settings.team_id)}" alt="Clippers">'
+            f'<span class="nu-at">{"vs" if pv.home else "@"}</span><img src="{D.logo_url(opp_id)}" alt="">'
+            f'<span class="nu-name">{pv.opponent_name}</span>'
+            f'<div class="nu-chance"><b>{pv.chance:.0%}</b><span>chance to win</span></div></div>{key}</div>',
+            unsafe_allow_html=True)
+        st.button("Open the game plan", icon=":material/sports_basketball:", key="open_next_up",
+                  on_click=_set_game, args=(f"pick_{season_now}", _future_label(t, pv, 0)))
+
+
 def page_replay() -> None:
     if not st.session_state.get("intro_hidden"):
         intro()
         st.markdown('<div id="games-list"></div>', unsafe_allow_html=True)
+    banner = st.container()
     page_top("Games", "Every game this season: the report for games played, the game plan for games coming up. "
              "Updates after each game.", show_kicker=bool(st.session_state.get("intro_hidden")))
     leads = data.game_leads.set_index("game_id")
@@ -1120,8 +1205,9 @@ def page_replay() -> None:
         t = g["tipoff_utc"].tz_convert("America/Los_Angeles")
         entries.append({"kind": "future", "idx": j, "date": t, "home": pv.home, "opp": pv.opponent,
                         "opp_id": int(g["away_id"] if pv.home else g["home_id"]), "status": f"{pv.chance:.0%} to win",
-                        "won": None, "label": f"{t:%b} {t.day} · {'vs' if pv.home else '@'} {pv.opponent} · "
-                                              f"{'next game, ' if j == 0 else ''}{pv.chance:.0%} to win"})
+                        "won": None, "label": _future_label(t, pv, j)})
+    if season == season_now:
+        next_up(banner, up, previews, teams, shooting)
     labels = [e["label"] for e in entries]
     n_past = len(strip)
     xs = pd.to_datetime(strip["game_date"]).dt.strftime("%b %d").str.replace(" 0", " ") + " " + strip[
@@ -1159,6 +1245,8 @@ def page_replay() -> None:
     for k, (col, e) in enumerate(zip(cols, window), start=lo):
         sel = k == idx
         with col.container(border=True, key=f"gcard_sel" if sel else f"gcard_{k}"):
+            st.markdown(f'<div class="gc-stripe" style="background:{D.team_color(e["opp_id"])}"></div>',
+                        unsafe_allow_html=True)
             st.image(D.logo_url(e["opp_id"]), width=40)
             color = GOOD if e["won"] else BAD if e["won"] is False else INK_MARK
             st.markdown(f'<div class="gc"><div class="gc-date">{e["date"]:%a %b} {e["date"].day}</div>'
@@ -1464,6 +1552,26 @@ def page_replay() -> None:
 
 # ================================================================= players
 
+def player_cards(ph: pd.DataFrame, season: str) -> None:
+    """The rotation as trading cards: photo, jersey number, and two numbers each, busiest first."""
+    h2 = ph[ph["split"] == "H2"].sort_values("play_share", ascending=False)
+    roster = (data.roster.set_index("player_id") if len(data.roster) and season == season_now
+              else pd.DataFrame(columns=["number", "position"]))
+    cards = []
+    for r in h2.itertuples():
+        info = roster.loc[r.player_id] if r.player_id in roster.index else None
+        num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
+        pos = info["position"] if info is not None else ""
+        every = f"1 in {round(1 / r.tov_pct)}" if r.tov_pct else "none"
+        cards.append(
+            f'<div class="pcard" title="{r.player_name}"><div class="pc-top"><span class="pc-num">{num}</span>'
+            f'<span class="pc-pos">{pos}</span><img src="{D.headshot_url(int(r.player_id))}" alt="" loading="lazy">'
+            f'</div><div class="pc-body"><div class="pc-name">{r.player_name}</div><div class="pc-stats">'
+            f'<div><b>{r.play_share:.0%}</b><span>of the plays after halftime</span></div>'
+            f'<div><b>{every}</b><span>plays ends in a turnover</span></div></div></div></div>')
+    st.markdown(f'<div class="pcards">{"".join(cards)}</div>', unsafe_allow_html=True)
+
+
 def page_players() -> None:
     page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.")
     season_p = st.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="player_season")
@@ -1472,6 +1580,7 @@ def page_players() -> None:
         st.info("No players with enough minutes in both halves yet.")
     else:
         answer_cards(S.player_cards(ph, focus))
+        player_cards(ph, season_p)
         h2 = ph[ph["split"] == "H2"].sort_values("tov_share")
         section("Who's losing the ball after halftime?", "who",
                 "Gray = how much of the offense goes through him. Orange = how many of the turnovers he makes.")

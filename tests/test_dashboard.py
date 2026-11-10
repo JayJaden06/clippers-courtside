@@ -168,3 +168,20 @@ def test_every_clipper_has_a_photo_id(data):
     assert all(n in ids for n in lac)
     last = D.last_names(data.player_box, data.seasons[0], "LAC")
     assert len(set(last.values())) == len(last)
+
+
+def test_next_up_banner_opens_the_game_plan(data):
+    at = _app("replay")
+    html = " ".join(m.value for m in at.markdown)
+    if data.schedule.empty:
+        pytest.skip("no schedule")
+    assert 'class="nextup"' in html and "chance to win" in html
+    next(b for b in at.button if b.label == "Open the game plan").click().run()
+    assert not at.exception
+    assert "next game" in at.selectbox(key=f"pick_{data.seasons[0]}").value
+
+
+def test_players_page_shows_the_rotation_as_cards():
+    at = _app("players")
+    html = " ".join(m.value for m in at.markdown)
+    assert html.count('class="pcard"') >= 5 and "of the plays after halftime" in html

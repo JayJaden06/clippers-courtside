@@ -287,6 +287,24 @@ def opp_ft_by_half(game_halves: pd.DataFrame) -> pd.DataFrame:
     return t
 
 
+# Each team's brightest brand color: a thin stripe on its game card and the "Next up" banner. Where the
+# main color is too dark to see on the dark theme (Nets, Bucks, Heat, Cavaliers...) the secondary is used.
+TEAM_COLORS = {
+    1610612737: "#E03A3E", 1610612738: "#2E9E5B", 1610612739: "#FDBB30", 1610612740: "#C8102E",
+    1610612741: "#CE1141", 1610612742: "#0B6FD0", 1610612743: "#FEC524", 1610612744: "#FFC72C",
+    1610612745: "#CE1141", 1610612746: "#C8102E", 1610612747: "#FDB927", 1610612748: "#F9A01B",
+    1610612749: "#EEE1C6", 1610612750: "#78BE20", 1610612751: "#FFFFFF", 1610612752: "#F58426",
+    1610612753: "#0A8FDB", 1610612754: "#FDBB30", 1610612755: "#1D7DD1", 1610612756: "#E56020",
+    1610612757: "#E03A3E", 1610612758: "#8E64C8", 1610612759: "#C4CED4", 1610612760: "#2E9AE0",
+    1610612761: "#CE1141", 1610612762: "#F9A01B", 1610612763: "#7D97CC", 1610612764: "#E31837",
+    1610612765: "#E0294A", 1610612766: "#1BA9BB",
+}
+
+
+def team_color(team_id: int) -> str:
+    return TEAM_COLORS.get(int(team_id), "#898781")
+
+
 def logo_url(team_id: int, dark: bool = True) -> str:
     """The team's logo on the NBA's image CDN; ``dark`` is the version made for dark backgrounds."""
     return f"https://cdn.nba.com/logos/nba/{int(team_id)}/global/{'D' if dark else 'L'}/logo.svg"
