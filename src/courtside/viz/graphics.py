@@ -304,7 +304,7 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
     """
     color = getattr(c, TONES.get(tone, "gray"))
     kind, *a = viz
-    w, h = 240, 40
+    w, h = 240, 46
     out: list[str] = []
     if kind == "dots":
         k, n = int(a[0]), int(a[1])
@@ -316,9 +316,9 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
     elif kind == "pair":
         va, vb, la, lb = float(a[0]), float(a[1]), str(a[2]), str(a[3])
         top = max(abs(va), abs(vb), 1e-9)
-        for y, v, label, fill in ((4, va, la, c.gray), (23, vb, lb, color)):
-            out.append(_text(0, y + 11, label, 11, c.muted, anchor="start"))
-            out.append(f'<rect x="52" y="{y}" width="{max(3.0, 184 * abs(v) / top):.1f}" height="13" rx="3" '
+        for y, v, label, fill in ((5, va, la, c.gray), (26, vb, lb, color)):
+            out.append(_text(0, y + 12, label, 13, c.muted, anchor="start"))
+            out.append(f'<rect x="66" y="{y}" width="{max(3.0, 170 * abs(v) / top):.1f}" height="14" rx="3" '
                        f'fill="{fill}"/>')
     elif kind == "share":
         p = float(a[0])
@@ -336,8 +336,8 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
             x = w - 8 - (i - 1) * step  # 1st on the right
             out.append(f'<circle cx="{x:.1f}" cy="16" r="{7 if i == r_ else 3}" '
                        f'fill="{color if i == r_ else c.empty}"/>')
-        out.append(_text(w - 2, 38, "best", 10, c.muted, anchor="end"))
-        out.append(_text(2, 38, "worst", 10, c.muted, anchor="start"))
+        out.append(_text(w - 2, 44, "best", 12, c.muted, anchor="end"))
+        out.append(_text(2, 44, "worst", 12, c.muted, anchor="start"))
     elif kind == "diverge":
         values, labels = list(a[0]), list(a[1])
         lim = max([abs(v) for v in values] + [1e-9])
@@ -349,7 +349,7 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
             y = 20 - hgt if v >= 0 else 20
             out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{slot * 0.4:.1f}" height="{hgt:.1f}" rx="2" '
                        f'fill="{c.good if v > 0 else c.bad if v < 0 else c.gray}"/>')
-            out.append(_text(x + slot * 0.2, 38 if v >= 0 else 10, label, 9, c.muted))
+            out.append(_text(x + slot * 0.2, 45 if v >= 0 else 8, label, 11, c.muted))
     else:
         return ""
     return (f'<svg class="mini" viewBox="0 0 {w} {h}" preserveAspectRatio="xMinYMid meet" aria-hidden="true" '
