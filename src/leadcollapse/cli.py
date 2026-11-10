@@ -18,7 +18,7 @@ from leadcollapse.analysis import hypotheses
 from leadcollapse.config import get_settings
 from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players, tracking
 from leadcollapse.nba_client import NBAClient
-from leadcollapse.transform import fouls, halves, leads, league_context, onoff, turnovers
+from leadcollapse.transform import fouls, halves, leads, league_context, onoff, stints, turnovers
 
 app = typer.Typer(help="Why do the Clippers lose second-half leads?", no_args_is_help=True)
 console = Console()
@@ -167,6 +167,19 @@ def build(season: SeasonOpt = None) -> None:
     console.print(
         f"play-by-play: {len(events)} events; final scores and halftime margins match box scores; "
         f"{len(game_leads)} games classified"
+    )
+
+    # Who was on the floor (seasons with per-quarter box scores), and the plays behind each game report.
+    segments = stints.build_segments(events, player_box, df, settings.team_id, settings.quarter_seasons)
+    seg_check = stints.check_segments(segments, player_box)
+    segments.to_parquet(out / "segments.parquet", index=False)
+    play_cols = ["game_id", "season", "event_index", "period", "clock", "elapsed", "team_id", "person_id",
+                 "player_name", "action_type", "sub_type", "description", "shot_value", "shot_result",
+                 "team_score", "opp_score", "margin", "is_team"]
+    events[events["season"].isin(settings.quarter_seasons)][play_cols].to_parquet(out / "plays.parquet", index=False)
+    console.print(
+        f"on court: {len(segments)} segments; minutes match the box score for {seg_check['minutes_match']:.1%} "
+        f"of player-games, plus-minus for {seg_check['plus_minus_match']:.1%}"
     )
 
     seasons = sorted(df["season"].unique())
