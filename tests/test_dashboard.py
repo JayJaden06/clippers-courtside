@@ -149,3 +149,21 @@ def test_games_page_opens_with_the_intro_and_it_can_be_hidden(data):
     next(b for b in at.button if b.label == "Hide intro").click().run()
     assert not at.exception
     assert "Clippers Courtside</div>" not in " ".join(m.value for m in at.markdown)
+
+
+def test_names_in_finds_players_in_reading_order():
+    full = {"Darius Garland": 1, "Kris Dunn": 2, "Zion Williamson": 3, "Derrick Jones Jr.": 4}
+    last = {"Garland": 1, "Dunn": 2, "Jones Jr.": 4}
+    assert D.names_in("More minutes: Dunn & Garland", full, last) == [2, 1]
+    assert D.names_in("Best Clipper: Darius Garland", full, last) == [1]
+    assert D.names_in("Zion Williamson scored on Jones Jr.", full, last) == [3, 4]
+    assert D.names_in("Dunnigan and Garlands", full, last) == []  # whole words only
+
+
+def test_every_clipper_has_a_photo_id(data):
+    ids = D.player_ids(data)
+    lac = data.player_box[(data.player_box["season"] == data.seasons[0])
+                          & (data.player_box["team_abbreviation"] == "LAC")]["player_name"].unique()
+    assert all(n in ids for n in lac)
+    last = D.last_names(data.player_box, data.seasons[0], "LAC")
+    assert len(set(last.values())) == len(last)

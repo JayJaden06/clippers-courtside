@@ -8,6 +8,7 @@ and so the dashboard never touches the network or the raw cache: it reads
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -289,6 +290,44 @@ def logo_url(team_id: int, dark: bool = True) -> str:
     return f"https://cdn.nba.com/logos/nba/{int(team_id)}/global/{'D' if dark else 'L'}/logo.svg"
 
 
-def headshot_url(player_id: int) -> str:
-    """The player's headshot on the NBA's image CDN."""
-    return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{int(player_id)}.png"
+def headshot_url(player_id: int, small: bool = False) -> str:
+    """The player's headshot on the NBA's image CDN; ``small`` is the 260x190 version for charts and tables."""
+    return f"https://cdn.nba.com/headshots/nba/latest/{'260x190' if small else '1040x760'}/{int(player_id)}.png"
+
+
+def player_ids(data: DashboardData) -> dict[str, int]:
+    """Every player name the dashboard can show (Clippers, opponents, defenders), to their NBA player id."""
+    pairs = [data.player_box[["player_name", "player_id"]], data.history[["player_name", "player_id"]]
+             if len(data.history) else None,
+             data.bio[["player_name", "player_id"]] if len(data.bio) else None]
+    if len(data.matchups):
+        for side in ("off", "def"):
+            pairs.append(data.matchups[[f"{side}_player", f"{side}_player_id"]].set_axis(
+                ["player_name", "player_id"], axis=1))
+    df = pd.concat([x for x in pairs if x is not None]).dropna().drop_duplicates("player_name")
+    return dict(zip(df["player_name"], df["player_id"].astype(int)))
+
+
+def last_names(player_box: pd.DataFrame, season: str, team: str) -> dict[str, int]:
+    """Last name -> player id for one team's players this season, leaving out last names two of them share."""
+    pb = player_box[(player_box["season"] == season) & (player_box["team_abbreviation"] == team)]
+    roster = pb.drop_duplicates("player_id")[["player_name", "player_id"]]
+    last = roster["player_name"].str.split(" ", n=1).str[-1]
+    keep = ~last.duplicated(keep=False)
+    return dict(zip(last[keep], roster.loc[keep, "player_id"].astype(int)))
+
+
+def names_in(text: str, full: dict[str, int], last: dict[str, int]) -> list[int]:
+    """Player ids named in ``text`` (full names anywhere, the team's last names as whole words), in reading order."""
+    found: dict[int, int] = {}
+    rest = text
+    for name in sorted(full, key=len, reverse=True):
+        i = rest.find(name)
+        if i >= 0 and " " in name:
+            found.setdefault(full[name], i)
+            rest = rest.replace(name, " " * len(name))
+    for name, pid in last.items():
+        m = re.search(rf"(?<![\w']){re.escape(name)}(?![\w])", rest)
+        if m:
+            found.setdefault(pid, m.start())
+    return sorted(found, key=found.get)
