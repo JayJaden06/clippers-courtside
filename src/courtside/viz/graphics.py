@@ -87,7 +87,10 @@ def court_halves(h1: float, h2: float, c: Ink = DARK) -> str:
     body = [f'<g transform="translate(20,20)">{_court(c, tint(h1), tint(h2))}</g>']
     for x, label, v in ((210, "1ST HALF", h1), (590, "2ND HALF", h2)):
         color = c.good if v > 0 else c.bad if v < 0 else c.ink
-        body += [_text(x, 112, label, 22, c.muted, 700, spacing=3),
+        # a soft panel in the floor color, so the court lines don't run through the numbers
+        body += [f'<rect x="{x - 118}" y="84" width="236" height="164" rx="16" fill="{c.floor}" '
+                 'fill-opacity="0.9"/>',
+                 _text(x, 112, label, 22, c.muted, 700, spacing=3),
                  _text(x, 192, _signed(v), 76, color, 800),
                  _text(x, 232, "points a game", 22, c.muted)]
     body.append(_text(400, 356, "Average Clippers score margin in each half this season", 22, c.muted))
