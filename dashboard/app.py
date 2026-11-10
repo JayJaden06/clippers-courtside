@@ -67,6 +67,8 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .v-img {width: 74px; height: 54px; object-fit: cover; object-position: top; border-radius: 10px;
          background: #2c2c29; margin-bottom: .35rem}
 .vcard:has(.v-img) .v-big {font-size: 1.6rem}
+.vcards.intro {grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))}
+#games-list {scroll-margin-top: 4rem}
 [data-testid="stLayoutWrapper"]:has(> .st-key-gamebar) {position: sticky; top: 3.6rem; z-index: 60}
 .st-key-gamebar {background: #141413; padding: .35rem 0 .55rem 0; border-bottom: 1px solid #2c2c29}
 .lineup {display: flex; align-items: center; gap: .9rem; padding: .55rem .2rem; border-bottom: 1px solid #262624}
@@ -109,8 +111,16 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 settings = get_settings()
 
 
-@st.cache_data
-def load() -> D.DashboardData:
+def data_stamp() -> tuple[float, int]:
+    """Newest modified time and file count of the data the app reads; changes whenever a refresh lands."""
+    files = [p for p in settings.processed_dir.rglob("*") if p.is_file()]
+    files.append(settings.reports_dir / "analysis.json")
+    return max((p.stat().st_mtime for p in files if p.exists()), default=0.0), len(files)
+
+
+@st.cache_data(max_entries=1)
+def load(stamp: tuple[float, int]) -> D.DashboardData:
+    """Cached per ``stamp``, so a running server picks up new games without a restart."""
     return D.load(settings.processed_dir, settings.reports_dir / "analysis.json")
 
 
@@ -156,7 +166,7 @@ def signed(v: float, digits: int = 1) -> str:
 
 
 try:
-    data = load()
+    data = load(data_stamp())
 except FileNotFoundError as e:
     st.error(f"Processed data not found ({e.filename}). Run `courtside build` and `courtside analyze` first.")
     st.stop()
@@ -873,7 +883,81 @@ def _upcoming(season: str) -> tuple[pd.DataFrame, list, pd.DataFrame, float | No
     return up, [P.preview(g, teams, tid, shooting) for _, g in up.iterrows()], teams, shooting
 
 
+def _hide_intro() -> None:
+    st.session_state["intro_hidden"] = True
+
+
+def intro() -> None:
+    """The welcome at the top of the landing page: what this is, and one live tile per page."""
+    g = data.games[data.games["season"] == season_now]
+    wins, losses = int((g["result"] == "W").sum()), int((g["result"] == "L").sum())
+    last = pd.to_datetime(g["game_date"]).max()
+    lc = data.game_leads.loc[data.game_leads["season"] == season_now, "lead_class"]
+    blown, leads = int((lc == "blown_lead").sum()), int(lc.isin(["blown_lead", "held_lead"]).sum())
+    hl = (S.headline(data.analysis, data.comparison, data.games, season_now)
+          if not data.comparison.empty and season_now in set(data.comparison["season"]) else None)
+    h1, h2 = (hl["h1_per_game"], hl["h2_per_game"]) if hl else (np.nan, np.nan)
+    ph = D.player_halves(data.player_stats, season_now)
+    top = ph[ph["split"] == "H2"].sort_values("tov_share").iloc[-1] if len(ph) else None
+    rk = data.ranks[(data.ranks["season"] == season_now) & data.ranks["is_team"]
+                    & (data.ranks["metric"] == "net_rtg") & (data.ranks["split"] == "H2")]["rank"]
+
+    tiles = [("games-list", "Games", f"{wins}-{losses}",
+              "Pick any game below: a report for each one played, a game plan for each one coming up.",
+              None, None, "info")]
+    if leads:
+        tiles.append(("answer", "Blown leads", f"{blown} of {leads}",
+                      "early leads they let slip. Why the second half goes wrong.", ("dots", blown, leads), None,
+                      "bad" if blown * 2 >= leads else "info"))
+    if not np.isnan(h2):
+        tiles.append(("what-now", "What now?", f"{signed(h2)} per game",
+                      "after halftime. What the numbers say has to change.",
+                      ("pair", h1, h2, "1st half", "2nd half"), None, "bad" if h2 < h1 else "good"))
+    if top is not None:
+        tiles.append(("players", "Players", top["player_name"],
+                      f"makes {top['tov_share']:.0%} of the turnovers after halftime. Who else, and how.",
+                      None, D.headshot_url(int(top["player_id"])), "warn"))
+    if len(rk):
+        r = int(rk.iloc[0])
+        tiles.append(("league", "Vs. the league", f"{ordinal(r)} of 30",
+                      "in the second half. How every team changes after halftime.", ("rank", r, 30), None,
+                      "bad" if r > 20 else "good" if r <= 10 else "warn"))
+
+    st.markdown(f'<div class="kicker">LA Clippers · {season_now} season · updated through {last:%b} {last.day}'
+                '</div><div class="hero">Clippers Courtside</div>'
+                '<div class="lede">A fan-made tracker of the Clippers\' season, built from the NBA\'s own play-by-play '
+                'data. It began with one question (why do they keep losing leads after halftime?) and now follows '
+                'every game. It updates the morning after each game. Start anywhere:</div>',
+                unsafe_allow_html=True)
+    html = "".join(
+        f'<a class="vcard" href="{"#" + slug if slug == "games-list" else slug}" target="_self">'
+        + (f'<img class="v-img" src="{img}" alt="" loading="lazy">' if img else "")
+        + f'<div class="v-title"><span class="v-dot" style="background:{TONE_COLOR.get(tone, GRAY)}"></span>'
+          f'{title}</div><div class="v-big">{_minus(big)}</div>'
+        + (f'<div class="v-mini">{G.mini(viz, tone)}</div>' if viz else "")
+        + f'<div class="v-small">{small}</div></a>'
+        for slug, title, big, small, viz, img, tone in tiles)
+    st.markdown(f'<div class="vcards intro">{html}</div>', unsafe_allow_html=True)
+    left, right = st.columns([5, 1], vertical_alignment="center")
+    with left:
+        with st.expander("How it works"):
+            st.markdown(
+                "- **Data:** every play of every Clippers game, pulled from stats.nba.com with the open-source "
+                "[nba_api](https://github.com/swar/nba_api) package, compared with last season and the rest of "
+                "the league.\n"
+                "- **Updates:** each morning, a refresh pulls the newest games and reruns everything. Every page "
+                "and every number moves with it.\n"
+                "- **Odds** for upcoming games come from a simple team-strength model: no injuries, rest or "
+                "betting lines.\n"
+                "- Not affiliated with the NBA or the Clippers. Words you don't know? Try the "
+                "**What do these words mean?** button.")
+    right.button("Hide intro", icon=":material/close:", on_click=_hide_intro, width="stretch", type="tertiary")
+
+
 def page_replay() -> None:
+    if not st.session_state.get("intro_hidden"):
+        intro()
+        st.markdown('<div id="games-list"></div>', unsafe_allow_html=True)
     page_top("Games", "Every game this season: the report for games played, the game plan for games coming up. "
              "Updates after each game.")
     leads = data.game_leads.set_index("game_id")

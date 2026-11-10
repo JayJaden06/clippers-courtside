@@ -138,3 +138,14 @@ def test_games_page_opens_an_upcoming_game_plan(data):
     assert not at.exception, at.exception[0].value if at.exception else None
     assert any(h.value.startswith("How to beat") for h in at.header)
     assert at.toggle  # the game-plan checklist
+
+
+def test_games_page_opens_with_the_intro_and_it_can_be_hidden(data):
+    at = _app("replay")
+    html = " ".join(m.value for m in at.markdown)
+    assert "Clippers Courtside" in html and 'href="answer"' in html and 'href="league"' in html
+    wins = int((data.games.loc[data.games["season"] == data.seasons[0], "result"] == "W").sum())
+    assert f">{wins}-" in html
+    next(b for b in at.button if b.label == "Hide intro").click().run()
+    assert not at.exception
+    assert "Clippers Courtside</div>" not in " ".join(m.value for m in at.markdown)
