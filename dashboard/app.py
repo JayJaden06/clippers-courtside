@@ -369,6 +369,34 @@ def page_answer() -> None:
                 residual = att_now.set_index("factor").loc["residual", "per_game"]
                 st.markdown(f"A further {signed(residual)} a game can't be placed in any one part.")
 
+    # ---------------------------------------------------------- where the shots stop falling
+    SHOTS_SAID = {"At the rim": "Shots at the rim", "Short range": "Short-range shots",
+                  "Mid-range": "Mid-range shots", "Three": "Threes"}
+    if len(data.shots) and (data.shots["season"] == season_now).any():
+        z = D.shot_zones(data.shots, season_now)
+        ch = (z["mean_h2"] - z["mean_h1"]).sort_values()
+        worst, steady = ch.index[0], ch.abs().idxmin()
+        st.subheader("Where the shots stop falling", anchor="shots")
+        st.markdown(
+            f'<div class="takeaway"><b>{SHOTS_SAID[worst]}</b> go from '
+            f'{z.loc[worst, "mean_h1"]:.0%} before halftime to <b>{z.loc[worst, "mean_h2"]:.0%}</b> after'
+            + (f"; {SHOTS_SAID[steady].lower()} hold about steady ({z.loc[steady, 'mean_h1']:.0%} → "
+               f"{z.loc[steady, 'mean_h2']:.0%})." if steady != worst else ".") + "</div>",
+            unsafe_allow_html=True)
+        cur = data.shots[data.shots["season"] == season_now]
+        pts = lambda h: list(zip(cur.loc[cur["half"] == h, "loc_x"], cur.loc[cur["half"] == h, "loc_y"],  # noqa: E731
+                                 cur.loc[cur["half"] == h, "made"]))
+        zones = [(zn, r.mean_h1, r.mean_h2, int(r.size_h1), int(r.size_h2)) for zn, r in z.iterrows()]
+        picture(G.shot_map(pts("H1"), pts("H2"), zones), max_width="1060px")
+        with st.expander("Details"):
+            st.markdown(
+                "- Every Clippers field-goal attempt this season from the NBA's shot charts; overtime left out. "
+                "The counts match the box scores half by half.\n"
+                "- Zones: *at the rim* is the restricted area, *short range* the rest of the paint, *three* "
+                "includes the corners.\n- "
+                + "; ".join(f"{zn}: {int(r.size_h1)} shots before halftime, {int(r.size_h2)} after"
+                            for zn, r in z.iterrows()) + ".")
+
     # ---------------------------------------------------------- 3. theories
     section("2. The popular theories, checked", "theories")
     left, right = st.columns([1, 1.25], gap="large")
