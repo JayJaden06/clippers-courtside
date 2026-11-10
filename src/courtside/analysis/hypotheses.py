@@ -22,8 +22,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import logging
+
 import numpy as np
 import pandas as pd
+
+log = logging.getLogger(__name__)
 
 from courtside.analysis.decompose import FACTOR_LABELS, FACTORS, bootstrap, decompose_frame
 from courtside.transform.halves import summarize
@@ -549,9 +553,21 @@ def season_comparison(inp: Inputs) -> HypothesisResult:
     )
 
 
+REQUIRED = ("H1", "H2", "H3", "H4", "H5", "ATTR", "SEASONS")
+
+
 def run_all(inp: Inputs) -> list[HypothesisResult]:
-    return [h1_collapse_is_real(inp), h2_turnovers(inp), h3_garland(inp), h4_fouls(inp), h5_shooting(inp),
-            ranked_attribution(inp), season_comparison(inp)]
+    """Every test that the data can support today. Early in a season one can lack data (the focus player
+    hasn't played both halves yet, say); it's left out with a note, and the rest still run, so the morning
+    refresh keeps going and the site shows what it can."""
+    out = []
+    for test in (h1_collapse_is_real, h2_turnovers, h3_garland, h4_fouls, h5_shooting, ranked_attribution,
+                 season_comparison):
+        try:
+            out.append(test(inp))
+        except (ValueError, KeyError, IndexError, ZeroDivisionError) as e:
+            log.warning("%s skipped: not enough data yet (%s)", test.__name__, e)
+    return out
 
 
 # ------------------------------------------------------------------- I/O
