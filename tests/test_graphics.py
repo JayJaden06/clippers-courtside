@@ -67,8 +67,10 @@ def test_mini_pictures():
 
 def test_scoreboard_and_ball_ladder():
     texts = _texts(G.scoreboard("LAC", "MIA", [24, 43, 20, 20, 9], [33, 19, 26, 29, 10], False))
-    assert {"Q1", "Q4", "OT", "2ND HALF", "FINAL"} <= set(texts)
+    assert {"Q1", "Q4", "OT", "1ST HALF", "2ND HALF", "FINAL"} <= set(texts)
     assert "116" in texts and "117" in texts and "40" in texts and "55" in texts  # finals; 2nd halves
+    assert "67" in texts and "52" in texts  # first halves (24+43, 33+19)
+    assert texts.index("1ST HALF") < texts.index("Q3") < texts.index("2ND HALF") < texts.index("OT")
     ladder = _svg(G.ball_ladder([("Garland", 5.0, 4.0), ("Lopez", 10.0, 12.0)]))
     reds = [c for c in ladder.iter("{http://www.w3.org/2000/svg}circle") if c.get("fill") == G.DARK.bad]
     balls = list(ladder.iter("{http://www.w3.org/2000/svg}circle"))
