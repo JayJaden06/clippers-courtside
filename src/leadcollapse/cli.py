@@ -16,7 +16,7 @@ from rich.logging import RichHandler
 
 from leadcollapse.analysis import hypotheses
 from leadcollapse.config import get_settings
-from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players, tracking
+from leadcollapse.ingest import boxscores, games, league, lineups, playbyplay, players, schedule, tracking
 from leadcollapse.nba_client import NBAClient
 from leadcollapse.transform import fouls, halves, leads, league_context, onoff, stints, turnovers
 
@@ -70,6 +70,9 @@ def pull(season: SeasonOpt = None) -> None:
             lineups.load_lineups(client, settings.team_id, s, settings.season_type)
             league.load_league(client, s, settings.season_type)
             tracking.load_bio(client, s, settings.season_type)
+            schedule.load_player_season(client, s, settings.season_type)
+    with client.refreshing():  # the schedule changes daily (results, times)
+        schedule.load_schedule(client, settings.current_season)
     console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}, "
                   f"on/off, lineups, league, tracking): {client.stats}")
 
@@ -192,7 +195,8 @@ def build(season: SeasonOpt = None) -> None:
     onoff_h = onoff.onoff_halves(onoff_raw)
     lineup_h = onoff.lineup_halves(lineup_raw)
     ranks = league_context.half_ranks(league_raw, settings.team_id)
-    for name, frame in (("onoff_halves", onoff_h), ("lineup_halves", lineup_h), ("league_half_ranks", ranks)):
+    for name, frame in (("onoff_halves", onoff_h), ("lineup_halves", lineup_h), ("league_half_ranks", ranks),
+                        ("league_periods", league_raw)):
         frame.to_parquet(out / f"{name}.parquet", index=False)
         frame.round(4).to_csv(out / f"{name}.csv", index=False)
     ranks.round(4).to_csv(settings.tableau_dir / "league_half_ranks.csv", index=False)
@@ -207,6 +211,11 @@ def build(season: SeasonOpt = None) -> None:
     for name, frame in (("matchups", matchups), ("hustle", hustle), ("player_bio", bio)):
         frame.to_parquet(out / f"{name}.parquet", index=False)
         frame.round(4).to_csv(out / f"{name}.csv", index=False)
+    sched = schedule.load_schedule(client, settings.current_season)
+    player_season = pd.concat([schedule.load_player_season(client, s, settings.season_type) for s in seasons],
+                              ignore_index=True)
+    sched.to_parquet(out / "schedule.parquet", index=False)
+    player_season.to_parquet(out / "player_season.parquet", index=False)
     console.print(
         f"tracking: {matchups['game_id'].nunique()} games of matchups and hustle "
         f"({len(skipped)} not published yet), matchups cover {coverage:.0%} of points; bio for {len(bio)} players"
