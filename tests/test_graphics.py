@@ -73,3 +73,13 @@ def test_scoreboard_and_ball_ladder():
     reds = [c for c in ladder.iter("{http://www.w3.org/2000/svg}circle") if c.get("fill") == G.DARK.bad]
     balls = list(ladder.iter("{http://www.w3.org/2000/svg}circle"))
     assert len(reds) == 2 and len(balls) == 4 + 12
+
+
+def test_figures_can_wear_the_players_face():
+    url = "https://cdn.nba.com/headshots/nba/latest/260x190/1629636.png"
+    plain = G.size_matchup("Wagler", 78, 175, 77, 208, 0.57, 0.49)
+    faced = G.size_matchup("Wagler", 78, 175, 77, 208, 0.57, 0.49, photo=url)
+    assert "<image" not in plain and faced.count(f'href="{url}"') == 1 and "clipPath" in faced
+    tall = G.height_matchup("Garland", 73, 192, 11, 24, 25, 22, photo=url)
+    assert tall.count(f'href="{url}"') == 2  # one face per panel, each with its own clip id
+    assert len(set(re.findall(r'clipPath id="(\w+)"', tall))) == 2
