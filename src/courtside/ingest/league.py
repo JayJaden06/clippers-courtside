@@ -10,8 +10,8 @@ from __future__ import annotations
 import pandas as pd
 from nba_api.stats.endpoints import LeagueDashTeamStats
 
-from leadcollapse.ingest.lineups import PERIODS, result_frame
-from leadcollapse.nba_client import NBAClient
+from courtside.ingest.lineups import PERIODS, result_frame
+from courtside.nba_client import NBAClient
 
 BASE_COLS = ["GP", "MIN", "PTS", "FGM", "FGA", "FG3M", "FG3A", "FTM", "FTA", "OREB", "DREB", "TOV", "PF"]
 OPP_COLS = ["OPP_PTS", "OPP_FGM", "OPP_FGA", "OPP_FG3M", "OPP_FG3A", "OPP_FTM", "OPP_FTA", "OPP_OREB",

@@ -25,9 +25,9 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from leadcollapse.analysis.decompose import FACTOR_LABELS, FACTORS, bootstrap, decompose_frame
-from leadcollapse.transform.halves import summarize
-from leadcollapse.transform.turnovers import summarize_players, tov_pct
+from courtside.analysis.decompose import FACTOR_LABELS, FACTORS, bootstrap, decompose_frame
+from courtside.transform.halves import summarize
+from courtside.transform.turnovers import summarize_players, tov_pct
 
 DRIVES, CONTRIBUTES = 0.40, 0.15
 WORST_RANKS = 26
@@ -557,7 +557,7 @@ def run_all(inp: Inputs) -> list[HypothesisResult]:
 # ------------------------------------------------------------------- I/O
 
 def load_inputs(processed_dir, season: str, comparison_season: str, focus_player: str) -> Inputs:
-    """Read the processed tables written by ``leadcollapse build``."""
+    """Read the processed tables written by ``courtside build``."""
     p = processed_dir
     return Inputs(
         game_halves=pd.read_parquet(p / "game_halves.parquet"),

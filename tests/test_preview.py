@@ -7,8 +7,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from leadcollapse.analysis import preview as P
-from leadcollapse.ingest.schedule import next_game
+from courtside.analysis import preview as P
+from courtside.ingest.schedule import next_game
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
@@ -59,7 +59,7 @@ def test_next_game_skips_finished_games():
     assert next_game(s[s["game_id"] == "a"], 1, now) is None
 
 
-@pytest.mark.skipif(not (PROCESSED / "league_periods.parquet").exists(), reason="run leadcollapse build")
+@pytest.mark.skipif(not (PROCESSED / "league_periods.parquet").exists(), reason="run courtside build")
 def test_league_table_on_the_real_data():
     lp = pd.read_parquet(PROCESSED / "league_periods.parquet")
     t = P.team_table(lp, lp["season"].max())

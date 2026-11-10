@@ -13,8 +13,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from leadcollapse.ingest.games import games_frame, parse_game_log, team_games
-from leadcollapse.models import Game
+from courtside.ingest.games import games_frame, parse_game_log, team_games
+from courtside.models import Game
 
 FIXTURE = Path(__file__).parent / "fixtures" / "leaguegamelog_2026-27_lac.json"
 LAC = 1610612746

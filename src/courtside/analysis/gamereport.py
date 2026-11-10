@@ -7,14 +7,14 @@ updates as games come in:
   PTS + 0.4 FGM - 0.7 FGA - 0.4 missed FT + 0.7 OREB + 0.3 DREB + STL + 0.7 AST + 0.7 BLK
   - 0.4 PF - TOV), with plus-minus alongside. "Worst" only considers players with 12+ minutes.
 - **What decided it**: the game is compared with the team's average game this season (every
-  other game), using the exact margin decomposition from :mod:`leadcollapse.analysis.decompose`:
+  other game), using the exact margin decomposition from :mod:`courtside.analysis.decompose`:
   shooting, opponent shooting, turnovers, rebounding, free throws and possessions. The parts add
   up to the difference between this game's margin and an average game's.
 - **What needed to happen** (losses): the factors that were worse than normal, biggest first, and
   whether getting them back to normal would have covered the margin. Each comes with suggestions
   that follow simple rules (below) about who should have played more or less.
 - **Runs**: the biggest stretch each way, from the running score, with the five Clippers who were
-  on the floor most of it (from :mod:`leadcollapse.transform.stints`), the turnovers and missed
+  on the floor most of it (from :mod:`courtside.transform.stints`), the turnovers and missed
   shots in it, and who scored for the opponent.
 
 Suggestion rules:
@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from leadcollapse.analysis.decompose import FACTORS, decompose
+from courtside.analysis.decompose import FACTORS, decompose
 
 WORST_MIN_MINUTES = 12
 LEVER_MIN_POINTS = 2.0

@@ -13,7 +13,7 @@ import pandas as pd
 from nba_api.stats.endpoints import PlayerDashboardByGameSplits, PlayerGameLog
 from nba_api.stats.static import players
 
-from leadcollapse.nba_client import NBAClient
+from courtside.nba_client import NBAClient
 
 HALF_LABELS = {"First Half": "H1", "Second Half": "H2", "Overtime": "OT"}
 

@@ -12,9 +12,9 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from leadcollapse.ingest.playbyplay import parse_pbp
-from leadcollapse.models import elapsed_seconds
-from leadcollapse.transform import fouls as F
+from courtside.ingest.playbyplay import parse_pbp
+from courtside.models import elapsed_seconds
+from courtside.transform import fouls as F
 
 FIXTURES = Path(__file__).parent / "fixtures"
 LAC = 1610612746

@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from leadcollapse.transform.onoff import HALF_OF_PERIOD
+from courtside.transform.onoff import HALF_OF_PERIOD
 
 COUNTS = ["gp", "min", "poss", "pts", "fgm", "fga", "fg3m", "fta", "oreb", "dreb", "tov", "pf",
           "opp_pts", "opp_fgm", "opp_fga", "opp_fg3m", "opp_fta", "opp_oreb", "opp_dreb", "opp_tov"]

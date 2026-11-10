@@ -14,9 +14,9 @@ from collections import defaultdict
 import pandas as pd
 from nba_api.stats.endpoints import LeagueGameLog
 
-from leadcollapse.config import Settings
-from leadcollapse.models import Game, TeamGameLogRow
-from leadcollapse.nba_client import NBAClient
+from courtside.config import Settings
+from courtside.models import Game, TeamGameLogRow
+from courtside.nba_client import NBAClient
 
 log = logging.getLogger(__name__)
 

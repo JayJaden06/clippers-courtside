@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import xml.etree.ElementTree as ET
 
-from leadcollapse.viz import graphics as G
+from courtside.viz import graphics as G
 
 
 def _svg(html: str) -> ET.Element:

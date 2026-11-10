@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from leadcollapse.analysis import gameplan as GP
-from leadcollapse.analysis import preview as P
+from courtside.analysis import gameplan as GP
+from courtside.analysis import preview as P
 
 
 def _team(tid, name, **kw):

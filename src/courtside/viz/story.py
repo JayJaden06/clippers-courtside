@@ -12,9 +12,9 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from leadcollapse.analysis.decompose import FACTORS
-from leadcollapse.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
-from leadcollapse.viz.whatnow import Verdict
+from courtside.analysis.decompose import FACTORS
+from courtside.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
+from courtside.viz.whatnow import Verdict
 
 GLOSSARY = {
     "Possession": "One trip down the floor: it ends with a shot that's made or rebounded by the defense, "

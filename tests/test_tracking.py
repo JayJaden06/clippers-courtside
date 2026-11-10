@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from leadcollapse.ingest import tracking
+from courtside.ingest import tracking
 
 
 def _p(pid, first, last, **extra):

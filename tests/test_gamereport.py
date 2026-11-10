@@ -7,13 +7,13 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from leadcollapse.analysis import gamereport as R
-from leadcollapse.analysis.decompose import FACTORS
-from leadcollapse.transform import stints
+from courtside.analysis import gamereport as R
+from courtside.analysis.decompose import FACTORS
+from courtside.transform import stints
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
-needs = pytest.mark.skipif(not (PROCESSED / "segments.parquet").exists(), reason="run leadcollapse build")
+needs = pytest.mark.skipif(not (PROCESSED / "segments.parquet").exists(), reason="run courtside build")
 
 
 # ------------------------------------------------------------------ names

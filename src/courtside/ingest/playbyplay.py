@@ -19,8 +19,8 @@ import logging
 import pandas as pd
 from nba_api.stats.endpoints import PlayByPlayV3
 
-from leadcollapse.models import PlayEvent
-from leadcollapse.nba_client import NBAClient
+from courtside.models import PlayEvent
+from courtside.nba_client import NBAClient
 
 log = logging.getLogger(__name__)
 

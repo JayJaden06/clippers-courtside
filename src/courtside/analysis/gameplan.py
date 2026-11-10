@@ -2,7 +2,7 @@
 
 A key appears only when the numbers point to it, either because of a Clippers weakness the opponent
 makes worse or because of a weakness of theirs the Clippers can attack. Each key says how many
-points a game it's worth, what the win chance becomes (same model as :mod:`leadcollapse.analysis.preview`),
+points a game it's worth, what the win chance becomes (same model as :mod:`courtside.analysis.preview`),
 and which Clippers to lean on. The rules:
 
 - **Protect the ball**: the Clippers' expected turnover rate tonight is their own rate, shifted by how
@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from leadcollapse.analysis.preview import Preview, _ord, win_chance
+from courtside.analysis.preview import Preview, _ord, win_chance
 
 BOTTOM10 = 21  # rank 21-30 of 30
 SWAPPED_THREES = 5

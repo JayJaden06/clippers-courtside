@@ -9,7 +9,7 @@ Live-ball turnover: the play-by-play logs a separate STEAL event for the
 other team at the same timestamp. That is exact (PBP steals equal box-score
 steals in every game), so no guessing from the turnover type. The stealer is
 kept (``stealer_id``) so turnovers can be matched to who was guarding the
-player (see ``leadcollapse.viz.whatnow.pressure``).
+player (see ``courtside.viz.whatnow.pressure``).
 
 Points off a turnover (play-by-play estimate): the other team's points from
 the turnover until the committing team's next possession event (a shot or
@@ -28,7 +28,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from leadcollapse.transform.periods import count_by_split
+from courtside.transform.periods import count_by_split
 
 CATEGORY = {
     "Bad Pass": "bad_pass",

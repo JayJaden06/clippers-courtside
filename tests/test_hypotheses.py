@@ -12,10 +12,10 @@ from pathlib import Path
 
 import pytest
 
-from leadcollapse.analysis import hypotheses as H
+from courtside.analysis import hypotheses as H
 
 PROCESSED = Path(__file__).resolve().parents[1] / "data" / "processed"
-pytestmark = pytest.mark.skipif(not (PROCESSED / "game_halves.parquet").exists(), reason="run leadcollapse build")
+pytestmark = pytest.mark.skipif(not (PROCESSED / "game_halves.parquet").exists(), reason="run courtside build")
 
 
 @pytest.fixture(scope="module")

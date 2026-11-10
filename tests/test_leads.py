@@ -12,9 +12,9 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from leadcollapse.ingest.playbyplay import parse_pbp
-from leadcollapse.models import elapsed_seconds
-from leadcollapse.transform.leads import check_halftime_margins, classify, game_leads, margin_series
+from courtside.ingest.playbyplay import parse_pbp
+from courtside.models import elapsed_seconds
+from courtside.transform.leads import check_halftime_margins, classify, game_leads, margin_series
 
 FIXTURES = Path(__file__).parent / "fixtures"
 LAC = 1610612746

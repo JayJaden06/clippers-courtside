@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from leadcollapse.analysis.decompose import FACTOR_LABELS  # noqa: E402
-from leadcollapse.transform.league_context import METRICS  # noqa: E402
+from courtside.analysis.decompose import FACTOR_LABELS  # noqa: E402
+from courtside.transform.league_context import METRICS  # noqa: E402
 
 H1, H2 = "#2a78d6", "#eb6834"
 HELPED, HURT, NEUTRAL = "#2a78d6", "#e34948", "#898781"

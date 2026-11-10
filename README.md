@@ -1,6 +1,6 @@
-# Why do the Clippers lose leads?
+# Clippers Courtside
 
-The Clippers keep building first-half leads and giving them back after halftime. This repo checks why with play-by-play, box score, lineup and league-wide data from stats.nba.com, comparing 2026-27 with 2025-26.
+Follows the Clippers' season game by game: a report on every game (who played well, what decided it, who guarded whom, what needed to happen), the odds and a game plan for every game coming up, and the analysis that started it: why they keep building first-half leads and giving them back after halftime. Built on play-by-play, box score, lineup, tracking and league-wide data from stats.nba.com.
 
 Work in progress.
 
@@ -12,8 +12,8 @@ python -m venv .venv
 pip install -e ".[dev]"
 pytest
 
-leadcollapse pull    # download + cache stats.nba.com data (the only networked step)
-leadcollapse build   # build data/processed/ tables from the cache, offline
+courtside pull    # download + cache stats.nba.com data (the only networked step)
+courtside build   # build data/processed/ tables from the cache, offline
 ```
 
 The first `pull` makes about 610 API calls (about 10 minutes, throttled to stay polite to stats.nba.com); later pulls only fetch new games.

@@ -12,8 +12,8 @@ import json
 import pytest
 import requests
 
-from leadcollapse.config import Settings
-from leadcollapse.nba_client import (
+from courtside.config import Settings
+from courtside.nba_client import (
     CacheMissError,
     NBAClient,
     PermanentAPIError,

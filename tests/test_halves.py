@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from leadcollapse.ingest.boxscores import parse_box
-from leadcollapse.transform.halves import COUNTS, add_rates, build_game_halves, summarize
+from courtside.ingest.boxscores import parse_box
+from courtside.transform.halves import COUNTS, add_rates, build_game_halves, summarize
 
 FIXTURE = Path(__file__).parent / "fixtures" / "boxscore_0022600186_lac_mia_ot.json"
 LAC, MIA = 1610612746, 1610612748

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from leadcollapse.analysis.decompose import FACTORS, bootstrap, decompose, decompose_frame
+from courtside.analysis.decompose import FACTORS, bootstrap, decompose, decompose_frame
 
 BASE = {"pts": 0, "fgm": 20, "fga": 45, "fg3m": 6, "ftm": 8, "fta": 10, "oreb": 5, "tov": 7, "tov_team": 0,
         "possessions": 50, "ft_trips": 5}
