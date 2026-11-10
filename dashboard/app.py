@@ -79,6 +79,10 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .lineup .faces img {width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: top;
                     background: #2c2c29; border: 2px solid #141413; margin-left: -10px}
 .lineup .faces img:first-child {margin-left: 0}
+.v-faces {display: flex; margin-bottom: .4rem}
+.v-faces img {width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: top;
+              background: #2c2c29; border: 2px solid #1e1e1c; margin-left: -12px}
+.v-faces img:first-child {margin-left: 0}
 .lineup .who {flex: 1; font-size: .92rem; opacity: .85}
 .lineup .pm {font-size: 1.35rem; font-weight: 800; min-width: 4.5rem; text-align: right}
 .lineup .min {font-size: .82rem; opacity: .6; min-width: 3.5rem}
@@ -134,6 +138,12 @@ def show(fig: go.Figure, height: int, key: str | None = None, select: bool = Fal
                      hoverlabel=dict(align="left", font=dict(size=13)), font=dict(size=13),
                      barcornerradius=4, clickmode="event+select" if select else None)
     fig.update_layout(**(settings_ | layout))
+    face_px = getattr(fig, "_face_px", None)
+    if face_px:
+        plot_h = height - 36 - 8 - face_px - 30  # plot area height, roughly, under the default margins
+        for im in fig.layout.images:
+            if im.yref == "paper":
+                im.sizey = face_px / max(plot_h, 60)
     fig.update_xaxes(showgrid=False, zeroline=False)
     fig.update_yaxes(zeroline=False)
     return st.plotly_chart(fig, width="stretch", config=PLOTLY_CONFIG, key=key,
@@ -179,6 +189,45 @@ season_now = meta.get("season", data.seasons[0])
 season_prev = meta.get("comparison_season", data.seasons[-1])
 focus = settings.focus_player
 focus_last = focus.split(" ", 1)[-1]
+PLAYER_IDS = D.player_ids(data)
+TEAM_LAST = D.last_names(data.player_box, season_now, settings.team_abbreviation)
+
+
+def face(name: str | None) -> str | None:
+    """Small headshot URL for a player's full name (None if it isn't a player we know)."""
+    pid = PLAYER_IDS.get(name) if name else None
+    return D.headshot_url(pid, small=True) if pid is not None else None
+
+
+def axis_faces(fig: go.Figure, sources: list[str | None], row_px: float, axis: str = "y") -> None:
+    """A face next to each category label, in category order (the order the chart's rows were added).
+
+    ``sources`` are image URLs (``face(name)``, or a team logo), one per category; None leaves that row bare.
+    ``row_px`` is the height of one row (horizontal charts) or the face height (vertical ones).
+    """
+    h = row_px * (0.86 if axis == "y" else 1)
+    for i, src in enumerate(sources):
+        if not src:
+            continue
+        if axis == "y":
+            fig.add_layout_image(source=src, xref="paper", yref="y", x=0, y=i, xanchor="right", yanchor="middle",
+                                 sizex=0.5, sizey=0.86, sizing="contain", layer="above")
+        else:
+            fig.add_layout_image(source=src, xref="x", yref="paper", x=i, y=0, xanchor="center", yanchor="top",
+                                 sizex=0.9, sizey=1, sizing="contain", layer="above")
+    if axis == "y":
+        fig.update_yaxes(ticklabelstandoff=int(h * 1.37) + 8)
+    else:
+        fig.update_xaxes(ticklabelstandoff=int(h) + 6)
+        fig._face_px = h  # read by show() to size the face strip under the plot
+
+
+def with_photos(df: pd.DataFrame, name_col: str = "player_name") -> pd.DataFrame:
+    """The table with a photo column in front, for st.dataframe (use PHOTO_COL in its column_config)."""
+    return df.assign(photo=[face(n) for n in df[name_col]])[["photo"] + list(df.columns)]
+
+
+PHOTO_COL = {"photo": st.column_config.ImageColumn("", width="small")}
 
 
 
@@ -448,11 +497,19 @@ def _minus(text: str) -> str:
 def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None = None) -> None:
     """Short-headline cards with one big number each; with ``link`` a click jumps to the card's section."""
     cards = [W.Verdict(c.title, _minus(c.big), _minus(c.small), c.tone, c.anchor, c.viz, c.image) for c in cards]
+
+    def faces_html(c: W.Verdict) -> str:
+        if c.image:
+            return f'<img class="v-img" src="{c.image}" alt="" loading="lazy">'
+        ids = D.names_in(f"{c.title} {c.big}", PLAYER_IDS, TEAM_LAST)[:5]
+        return ('<div class="v-faces">' + "".join(f'<img src="{D.headshot_url(i, small=True)}" alt="" '
+                                                 'loading="lazy">' for i in ids) + "</div>") if ids else ""
+
     big_style = f' style="font-size:{big_size}"' if big_size else ""
     html = "".join(
         (f'<a class="vcard" href="#{c.anchor}"' if link else '<div class="vcard"')
         + ">"
-        + (f'<img class="v-img" src="{c.image}" alt="" loading="lazy">' if c.image else "")
+        + faces_html(c)
         + (f'<div class="v-title">{c.title}</div>' if c.viz or c.image else
            f'<div class="v-title"><span class="v-dot" style="background:{TONE_COLOR.get(c.tone, GRAY)}"></span>'
            f'{c.title}</div>')
@@ -552,6 +609,7 @@ def page_whatnow() -> None:
         lim = float(r["h2_pm_pg"].abs().max()) * 1.35
         fig.add_vline(x=0, line=dict(color=GRAY, width=1))
         fig.update_xaxes(range=[-lim, lim], title="Points a game with him on the floor after halftime")
+        axis_faces(fig, [face(x) for x in r["player_name"]], 34)
         show(fig, 110 + 34 * len(r))
         st.caption("Sorted by second-half minutes a game (most at the top). (R) = rookie. Blue = the team does much "
                    "better with him on than off, even if the bar is small; red = the team falls well behind with him "
@@ -564,9 +622,10 @@ def page_whatnow() -> None:
                         "- Small samples swing on a few possessions, and on-court numbers depend on who else is "
                         "out there.")
             st.dataframe(
-                rot[["player_name", "rookie", "gp", "mpg", "h2_mpg", "q4_mpg", "h2_pm_pg", "h2_on_off", "h2_reb36"]],
+                with_photos(rot[["player_name", "rookie", "gp", "mpg", "h2_mpg", "q4_mpg", "h2_pm_pg", "h2_on_off",
+                                 "h2_reb36"]]),
                 hide_index=True, width="stretch",
-                column_config={
+                column_config=PHOTO_COL | {
                     "player_name": "Player", "rookie": st.column_config.CheckboxColumn("Rookie"),
                     "gp": "Games", "mpg": st.column_config.NumberColumn("Min/game", format="%.1f"),
                     "h2_mpg": st.column_config.NumberColumn("2nd-half min/game", format="%.1f"),
@@ -601,6 +660,7 @@ def page_whatnow() -> None:
             fig.update_xaxes(tickformat=".0%", range=[0, max(vals) * 1.35],
                              title="Second-half plays that end in a turnover")
             fig.update_yaxes(autorange="reversed")
+            axis_faces(fig, [face(focus)] + [face(x) for x in safest["player_name"]], 33)
             st.markdown("**How often his plays end in a turnover**")
             show(fig, 250, showlegend=False)
         with right:
@@ -624,7 +684,8 @@ def page_whatnow() -> None:
             ht = float(me["height_in"].iloc[0]) if len(me) else 73.0
             wt = float(me["weight_lb"].iloc[0]) if len(me) else 190.0
             picture(G.height_matchup(focus_last, ht, wt, 100 / pr.tov100_long, 100 / pr.tov100_short,
-                                     100 / pr.prior_tov100_long, 100 / pr.prior_tov100_short, W.LONG_IN),
+                                     100 / pr.prior_tov100_long, 100 / pr.prior_tov100_short, W.LONG_IN,
+                                     photo=face(focus)),
                     max_width="820px")
         with st.expander("Details"):
             st.markdown(
@@ -668,7 +729,7 @@ def page_whatnow() -> None:
             who = r_["player_name"].split(" ", 1)[-1]
             st.markdown(f"**{who} gives up size{' as a rookie' if r_['rookie'] else ''}**")
             picture(G.size_matchup(who, r_["own_ht"], r_["own_wt"], r_["opp_ht"], r_["opp_wt"], r_["fg_pct"],
-                                   dfn.team_fg))
+                                   dfn.team_fg, photo=face(r_["player_name"])))
     left = right = st.container()  # one column: the shooting chart, then the size table
     with left:
         if dfn is not None and len(dfn.table):
@@ -684,6 +745,7 @@ def page_whatnow() -> None:
             fig.add_vline(x=dfn.team_fg, line=dict(color=INK_MARK, width=1, dash="dash"),
                           annotation_text=f"team {dfn.team_fg:.0%}", annotation_position="top")
             fig.update_xaxes(tickformat=".0%", range=[0, float(t["fg_pct"].max()) * 1.25])
+            axis_faces(fig, [face(x) for x in t["player_name"]], 30)
             show(fig, 90 + 30 * len(t), showlegend=False)
             st.caption(f"Red = opponents shoot {W.ATTACKED_FG:.0%}+ better on him than on the team. (R) = rookie.")
     with right:
@@ -703,6 +765,7 @@ def page_whatnow() -> None:
                                          marker=dict(color=FOCUS, size=12, line=dict(color=BG, width=1.5)),
                                          hovertemplate="%{y} guards players averaging %{x:.0f} lb<extra></extra>"))
                 fig.update_xaxes(title="Weight (lb)")
+                axis_faces(fig, [face(x) for x in t["player_name"]], 30)
                 show(fig, 90 + 30 * len(t))
                 st.caption("Orange line = guards players 25+ lb heavier than himself.")
     if dfn is not None and len(dfn.table):
@@ -712,10 +775,11 @@ def page_whatnow() -> None:
                             f"{', rookie' if r_.rookie else ''}): guards players averaging {r_.opp_wt:.0f} lb; "
                             f"{r_.def_box_outs:.0f} defensive box-outs in {r_.hustle_min:.0f} minutes.")
             st.dataframe(
-                dfn.table[["player_name", "rookie", "hustle_min", "contested_shots_36", "deflections_36",
-                           "def_box_outs_36", "fg_pct", "shooting_fouls"]].sort_values("hustle_min", ascending=False),
+                with_photos(dfn.table[["player_name", "rookie", "hustle_min", "contested_shots_36", "deflections_36",
+                                       "def_box_outs_36", "fg_pct", "shooting_fouls"]].sort_values(
+                    "hustle_min", ascending=False)),
                 hide_index=True, width="stretch",
-                column_config={
+                column_config=PHOTO_COL | {
                     "player_name": "Player", "rookie": st.column_config.CheckboxColumn("Rookie"),
                     "hustle_min": st.column_config.NumberColumn("Minutes tracked", format="%.0f"),
                     "contested_shots_36": st.column_config.NumberColumn("Contests/36", format="%.1f"),
@@ -779,6 +843,7 @@ def page_whatnow() -> None:
                                    text=[f"{v:.0%}" for v in ys], textposition="outside",
                                    hovertemplate="%{x}: %{y:.1%} from three after halftime<extra></extra>"))
             fig.update_yaxes(tickformat=".0%", range=[0, max(ys) * 1.3])
+            axis_faces(fig, [face(c.name) for c in shooters] + [D.logo_url(settings.team_id)], 40, axis="x")
             st.markdown("**Three-point shooting after halftime**")
             show(fig, 300, showlegend=False)
     with right:
@@ -794,13 +859,16 @@ def page_whatnow() -> None:
                                    hovertemplate="%{x}: %{y:.1f} rebounds per 36 minutes after halftime"
                                                  "<extra></extra>"))
             fig.update_yaxes(range=[0, max(ys) * 1.3])
+            axis_faces(fig, [face(c.name) for c in bigs] + [face(x) for x in top["player_name"]], 40, axis="x")
             st.markdown("**Rebounds per 36 minutes after halftime**")
             show(fig, 300, showlegend=False)
     help_color = {"shooting": "green", "threes": "green", "ball security": "blue", "rebounding": "violet"}
     cols = st.columns(len(cands) or 1)
     for col, c in zip(cols, cands):
         with col.container(border=True, height="stretch"):
-            st.markdown(f'<div class="big-q">{c.name}</div>', unsafe_allow_html=True)
+            pic = face(c.name)
+            st.markdown((f'<div class="v-faces"><img src="{pic}" alt=""></div>' if pic else "")
+                        + f'<div class="big-q">{c.name}</div>', unsafe_allow_html=True)
             st.caption(("Out so far" if c.this_season_minutes == 0
                         else f"Playing: {c.this_season_minutes:.0f} min so far")
                        + (f" · {c.mpg:.0f} min a game ({c.sample.split(',')[0]})" if c.mpg == c.mpg else ""))
@@ -811,11 +879,13 @@ def page_whatnow() -> None:
     with st.expander("Details"):
         st.markdown("Numbers for players who haven't played much this season come from their most recent season with "
                     f"{W.SMALL_SAMPLE_MIN}+ second-half minutes, on whatever team they played for.")
-        st.dataframe(pd.DataFrame([{
+        st.dataframe(with_photos(pd.DataFrame([{
             "Player": c.name, "Sample": c.sample, "2nd-half min": c.h2_minutes, "Shooting (eFG%)": c.efg,
-            "3P%": c.fg3_pct, "3PA": c.fg3a, "Turnover rate": c.tov_pct, "Rebounds/36": c.reb36} for c in cands]),
+            "3P%": c.fg3_pct, "3PA": c.fg3a, "Turnover rate": c.tov_pct, "Rebounds/36": c.reb36} for c in cands],
+            columns=["Player", "Sample", "2nd-half min", "Shooting (eFG%)", "3P%", "3PA", "Turnover rate",
+                     "Rebounds/36"]), "Player"),
             hide_index=True, width="stretch",
-            column_config={"2nd-half min": st.column_config.NumberColumn(format="%.0f"),
+            column_config=PHOTO_COL | {"2nd-half min": st.column_config.NumberColumn(format="%.0f"),
                            "Shooting (eFG%)": st.column_config.NumberColumn(format="percent"),
                            "3P%": st.column_config.NumberColumn(format="percent"),
                            "3PA": st.column_config.NumberColumn(format="%.0f"),
@@ -839,6 +909,7 @@ def page_whatnow() -> None:
     fig.add_vline(x=league_h2, line=dict(color=INK_MARK, width=1, dash="dash"), annotation_text="league average",
                   annotation_position="top")
     fig.update_xaxes(tickformat=".0%", title="Shooting accuracy (eFG%, which counts threes as worth more)")
+    axis_faces(fig, [face(x) for x in t["player_name"]], 40)
     show(fig, 90 + 40 * len(t))
     with st.expander("Details"):
         st.markdown("The biggest drops come from players who were unusually hot before halftime, so some of this "
@@ -1330,16 +1401,17 @@ def page_replay() -> None:
     with st.expander("Box score"):
         cols = ["player_name", "starter", "minutes", "pts", "reb", "ast", "stl", "blk", "tov", "pf", "fgm", "fga",
                 "fg3m", "fg3a", "ftm", "fta", "plus_minus", "game_score"]
-        st.dataframe(lines[cols].round(1), hide_index=True, width="stretch")
+        st.dataframe(with_photos(lines[cols].round(1)), hide_index=True, width="stretch", column_config=PHOTO_COL)
         if len(game_def):
             st.markdown("**Each Clippers defender's night (tracking)**")
-            st.dataframe(game_def[["def_player", "main_assignment", "poss", "pts", "fgm", "fga"]].round(1),
-                         hide_index=True, width="stretch")
+            st.dataframe(with_photos(game_def[["def_player", "main_assignment", "poss", "pts", "fgm", "fga"]].round(1),
+                                     "def_player"), hide_index=True, width="stretch", column_config=PHOTO_COL)
     with st.expander("Before vs after halftime: every stat (table)"):
         st.dataframe(D.game_half_table(data.game_halves, gid), hide_index=True, width="stretch",
                      column_config={"stat": st.column_config.TextColumn("", width="medium")})
     with st.expander("Every Clippers turnover in this game"):
-        st.dataframe(D.game_turnovers(data.turnovers, gid), hide_index=True, width="stretch")
+        st.dataframe(with_photos(D.game_turnovers(data.turnovers, gid), "player"), hide_index=True, width="stretch",
+                     column_config=PHOTO_COL)
 
 # ================================================================= players
 
@@ -1369,6 +1441,7 @@ def page_players() -> None:
         st.session_state.setdefault("player_pick", focus if focus in names else names[0])
         if st.session_state["player_pick"] not in names:
             st.session_state["player_pick"] = names[0]
+        axis_faces(fig, [face(x) for x in h2["player_name"]], 46)
         event = show(fig, 80 + 46 * len(h2), key=f"who_{season_p}", select=True)
         name = clicked(event, "y", f"who_click_{season_p}")
         if name in names:
@@ -1400,6 +1473,7 @@ def page_players() -> None:
         with st.expander("Details: the same numbers as a before/after chart"):
             st.markdown("Players with 40+ minutes in each half. Hover for the counts: a big jump on very few plays can "
                         "be a couple of bad possessions.")
+            axis_faces(fig, [face(x) for x in w.index], 40)
             show(fig, 80 + 40 * len(w))
 
         section("One player, game by game", "one")
