@@ -58,9 +58,11 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 .tldr {border-left: 4px solid #d95926; padding: .2rem 0 .2rem 1rem; margin: .6rem 0 .4rem 0}
 .tldr li {margin-bottom: .35rem; font-size: 1.05rem}
 .vcards {display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: .8rem; margin: .4rem 0 1rem 0}
-[data-testid="stMainBlockContainer"] {padding-top: 4.2rem}
-.vcard {display: flex; flex-direction: column; gap: .15rem; text-decoration: none !important; color: inherit !important;
-        background: linear-gradient(180deg, #22221f 0%, #1b1b19 100%); border: 1px solid #2c2c29; border-radius: 14px;
+[data-testid="stMainBlockContainer"] {padding-top: 60px}  /* every page opens with a band, right under the menu */
+/* the style-only blocks take no room (their styles still apply) */
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] style) {display: none}
+.vcard {display: flex; flex-direction: column; gap: .15rem; text-decoration: none !important; color: #f0efec !important;
+        background: linear-gradient(160deg, #1d2742 0%, #1c1c1a 58%); border: 1px solid #2c2c29; border-radius: 14px;
         padding: .9rem 1rem .85rem 1rem; transition: transform .12s, border-color .12s}
 a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 .v-title {font-weight: 650; font-size: .9rem; line-height: 1.25; opacity: .8}
@@ -92,11 +94,34 @@ a.vcard:hover {transform: translateY(-2px); border-color: #4a4a45}
 [class*="st-key-gcard_"] {padding: .55rem .6rem !important; gap: .25rem}
 .st-key-gcard_sel {border-color: #d95926 !important; background: #1f1a17}
 .gc {padding-bottom: .9rem}
-.gc-stripe {height: 4px; border-radius: 3px; margin: -.15rem 0 .35rem 0}
+/* ---- matchup cards: Clippers navy and the opponent's color, split on a diagonal */
+.gm {position: relative; height: 62px; border-radius: 10px; overflow: hidden; margin: -.1rem 0 .5rem 0;
+     background: linear-gradient(115deg, #1d428a 0 48%, #f0efec 48% 50%, var(--opp) 50% 100%)}
+.gm img {position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; object-fit: contain;
+         filter: drop-shadow(0 1px 3px rgba(0,0,0,.45))}
+.gm .lac {left: 11%} .gm .opp {right: 11%}
+/* ---- color bands, after the team site: a light band for each page's header, a navy band for its key cards */
+[class*="st-key-band_"] {position: relative; padding: 1.6rem 0 1.5rem 0; margin: 0; clip-path: inset(0 -100vmax)}
+/* bands that follow each other touch (no strip of page color between them) */
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-band_"]) + [data-testid="stLayoutWrapper"]:has(> [class*="st-key-band_"]) {
+  margin-top: -16px}
+[class*="st-key-band_light"] {background: #f3f1ec; box-shadow: 0 0 0 100vmax #f3f1ec; color: #13213f}
+[class*="st-key-band_navy"] {background: #13213f; box-shadow: 0 0 0 100vmax #13213f}
+[class*="st-key-band_light"] :is(h1, h2, h3, p, li, .kicker, .page-sub, .hero, .lede, label,
+                                 [data-testid="stMarkdownContainer"]) {color: #13213f}
+[class*="st-key-band_light"] .vcard :is(div, span, p) {color: #f0efec}
+[class*="st-key-band_light"] .kicker {opacity: .7}
+[class*="st-key-band_light"] .page-sub, [class*="st-key-band_light"] .lede {opacity: .85}
+[class*="st-key-band_light"] button {background: #ffffff; border-color: rgba(19,33,63,.3)}
+[class*="st-key-band_light"] button :is(p, span, div) {color: #13213f}
+[class*="st-key-band_light"] [data-testid="stExpander"] details {background: #ffffff; border-color: rgba(19,33,63,.2)}
+[class*="st-key-band_light"] [data-testid="stExpander"] :is(p, li, span, summary) {color: #13213f}
 /* ---- Next up: the next game as the page's banner, over a faint drawn court */
 .nextup {position: relative; overflow: hidden; border-radius: 18px; padding: 1.3rem 1.6rem 1.2rem 1.6rem;
          margin: .4rem 0 1.2rem 0; border: 1px solid #2c3550;
-         background: radial-gradient(120% 140% at 0% 0%, #1d2a4a 0%, #141a2b 45%, #141413 100%)}
+         background: radial-gradient(70% 140% at 100% 50%, color-mix(in srgb, var(--opp) 42%, transparent) 0%,
+                                     transparent 70%),
+                     radial-gradient(120% 140% at 0% 0%, #1d2a4a 0%, #141a2b 45%, #141413 100%)}
 .nextup::before {content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--opp)}
 .nextup .court {position: absolute; right: -40px; top: -10px; width: 560px; opacity: .10; pointer-events: none}
 .nu-kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .75}
@@ -217,14 +242,16 @@ def kicker() -> str:
     return f'<div class="kicker">LA Clippers · {season_now} season · through {last:%b} {last.day}</div>'
 
 
-def page_top(title: str, subtitle: str, show_kicker: bool = True) -> None:
-    if show_kicker:
-        st.markdown(kicker(), unsafe_allow_html=True)
-    left, right = st.columns([4, 1], vertical_alignment="bottom")
-    left.title(title)
-    with right:
-        glossary_button()
-    st.markdown(f'<div class="page-sub">{subtitle}</div>', unsafe_allow_html=True)
+def page_top(title: str, subtitle: str, show_kicker: bool = True, band: bool = True) -> None:
+    box = st.container(key="band_light_" + re.sub(r"\W+", "_", title.lower())) if band else st.container()
+    with box:
+        if show_kicker:
+            st.markdown(kicker(), unsafe_allow_html=True)
+        left, right = st.columns([4, 1], vertical_alignment="bottom")
+        left.title(title)
+        with right:
+            glossary_button()
+        st.markdown(f'<div class="page-sub">{subtitle}</div>', unsafe_allow_html=True)
 
 
 def next_step(page, blurb: str) -> None:
@@ -329,23 +356,25 @@ def page_answer() -> None:
                if att_now is not None and att_prev is not None else [])
     top = reasons[0].factor if reasons else None
     last_game = pd.to_datetime(data.game_leads.loc[data.game_leads["season"] == season_now, "game_date"]).max()
-    st.markdown(f'<div class="kicker">LA Clippers · {season_now} season · through {last_game:%b} {last_game.day}'
-                "</div>", unsafe_allow_html=True)
     title = ("They're fine for a half. Then the shots stop falling." if top == "shooting"
              else "They're fine for a half. Then it falls apart.")
-    st.markdown(f'<div class="hero">{title}</div>', unsafe_allow_html=True)
+    with st.container(key="band_light_answer"):
+        st.markdown(f'<div class="kicker">LA Clippers · {season_now} season · through {last_game:%b} '
+                    f'{last_game.day}</div><div class="hero">{title}</div>', unsafe_allow_html=True)
+        if hl:
+            garland_main = "H3" in res and res["H3"]["key"]["share_of_swing"] >= DRIVES
+            st.markdown(
+                f'<div class="lede">{hl["wins"]}-{hl["losses"]}, and {hl["blown"]} of {hl["leads"]} early leads '
+                f"blown. Is it {focus}'s turnovers? "
+                + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
+                + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
+            glossary_button()
     if hl:
-        garland_main = "H3" in res and res["H3"]["key"]["share_of_swing"] >= DRIVES
-        st.markdown(
-            f'<div class="lede">{hl["wins"]}-{hl["losses"]}, and {hl["blown"]} of {hl["leads"]} early leads blown. '
-            f"Is it {focus}'s turnovers? "
-            + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
-            + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
-        picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]), max_width="760px")
-        # The court above already shows the half-by-half margin, and section 3 lists what's new.
-        answer_cards([c_ for c_ in S.answer_page_cards(hl, reasons, res, season_prev)
-                      if not c_.title.startswith(("Fine before", "New problems"))])
-        glossary_button()
+        with st.container(key="band_navy_answer"):
+            picture(G.court_halves(hl["h1_per_game"], hl["h2_per_game"]), max_width="760px")
+            # The court above already shows the half-by-half margin, and section 3 lists what's new.
+            answer_cards([c_ for c_ in S.answer_page_cards(hl, reasons, res, season_prev)
+                          if not c_.title.startswith(("Fine before", "New problems"))])
 
     hurts = [r for r in reasons if r.per_game < 0]
     helps = [r for r in reasons if r.per_game >= 0]
@@ -671,7 +700,8 @@ def page_whatnow() -> None:
                      int(ids.iloc[0])) if tracked and len(ids) and "stealer_id" in data.turnovers else None)
     chem = W.chemistry(data.player_box, data.lineups, season_now, season_prev, team)
 
-    answer_cards(W.verdicts(sf, bl, cands, sd, focus, rot, dfn, gl, pr, n_games))
+    with st.container(key="band_navy_whatnow"):
+        answer_cards(W.verdicts(sf, bl, cands, sd, focus, rot, dfn, gl, pr, n_games))
     with st.expander("Read it as text instead"):
         st.markdown("\n".join(f"- {line}" for line in W.summary_lines(sf, bl, cands, sd, focus, rot, dfn, gl, pr)),
                     unsafe_allow_html=True)
@@ -1099,7 +1129,13 @@ def _hide_intro() -> None:
 
 
 def intro() -> None:
-    """The welcome at the top of the landing page: what this is, and one live tile per page."""
+    """The welcome at the top of the landing page, in its light band."""
+    with st.container(key="band_light_intro"):
+        _intro()
+
+
+def _intro() -> None:
+    """What this is, and one live tile per page."""
     g = data.games[data.games["season"] == season_now]
     wins, losses = int((g["result"] == "W").sum()), int((g["result"] == "L").sum())
     last = pd.to_datetime(g["game_date"]).max()
@@ -1212,8 +1248,9 @@ def page_replay() -> None:
         intro()
         st.markdown('<div id="games-list"></div>', unsafe_allow_html=True)
     banner = st.container()
+    hidden = bool(st.session_state.get("intro_hidden"))
     page_top("Games", "Every game this season: the report for games played, the game plan for games coming up. "
-             "Updates after each game.", show_kicker=bool(st.session_state.get("intro_hidden")))
+             "Updates after each game.", show_kicker=hidden, band=hidden)
     leads = data.game_leads.set_index("game_id")
     g_all = data.games.set_index("game_id")
     season = st.session_state.get("game_season", data.seasons[0])
@@ -1273,9 +1310,10 @@ def page_replay() -> None:
     for k, (col, e) in enumerate(zip(cols, window), start=lo):
         sel = k == idx
         with col.container(border=True, key=f"gcard_sel" if sel else f"gcard_{k}"):
-            st.markdown(f'<div class="gc-stripe" style="background:{D.team_color(e["opp_id"])}"></div>',
-                        unsafe_allow_html=True)
-            st.image(D.logo_url(e["opp_id"]), width=40)
+            oc = D.team_color(e["opp_id"])
+            st.markdown(f'<div class="gm" style="--opp:{oc}"><img class="lac" src="{D.logo_url(settings.team_id)}" '
+                        f'alt="Clippers"><img class="opp" src="{D.logo_url(e["opp_id"], dark=not D.is_light(oc))}" '
+                        f'alt="{e["opp"]}"></div>', unsafe_allow_html=True)
             color = GOOD if e["won"] else BAD if e["won"] is False else INK_MARK
             st.markdown(f'<div class="gc"><div class="gc-date">{e["date"]:%a %b} {e["date"].day}</div>'
                         f'<div class="gc-opp">{"vs" if e["home"] else "@"} {e["opp"]}</div>'
@@ -1602,13 +1640,15 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
 
 def page_players() -> None:
     page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.")
-    season_p = st.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="player_season")
+    band = st.container(key="band_navy_players")  # the season picker and the key cards share the navy band
+    season_p = band.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="player_season")
     ph = D.player_halves(data.player_stats, season_p)
     if ph.empty:
-        st.info("No players with enough minutes in both halves yet.")
+        band.info("No players with enough minutes in both halves yet.")
     else:
-        answer_cards(S.player_cards(ph, focus))
-        player_cards(ph, season_p)
+        with band:
+            answer_cards(S.player_cards(ph, focus))
+            player_cards(ph, season_p)
         h2 = ph[ph["split"] == "H2"].sort_values("tov_share")
         section("Who's losing the ball after halftime?", "who",
                 "Gray = how much of the offense goes through him. Orange = how many of the turnovers he makes.")
@@ -1705,9 +1745,11 @@ def page_league() -> None:
     stat_names = {"net_rtg": "Overall (net rating)", "efg_pct": "Shooting accuracy",
                   "opp_efg_pct": "Opponents' shooting", "tov_pct": "Turnovers",
                   "opp_ft_rate": "Fouling (opponent free throws)", "opp_oreb_pct": "Second chances given up"}
-    season_l = st.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="league_season")
+    band = st.container(key="band_navy_league")  # the season picker and the key cards share the navy band
+    season_l = band.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="league_season")
     cr = D.clippers_ranks(data.ranks, season_l)
-    answer_cards(S.league_cards(cr))
+    with band:
+        answer_cards(S.league_cards(cr))
     section("How every team changes after halftime", "teams",
             "Pick a stat. Each logo is a team: <b>left = worse after halftime, right = better</b>; higher = "
             "better in first halves. Clippers ringed in orange.")

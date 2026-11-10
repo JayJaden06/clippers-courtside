@@ -185,3 +185,10 @@ def test_players_page_shows_the_rotation_as_cards():
     at = _app("players")
     html = " ".join(m.value for m in at.markdown)
     assert html.count('class="pcard"') >= 5 and "of the plays after halftime" in html
+
+
+def test_game_cards_show_the_matchup_in_both_teams_colors():
+    assert D.is_light("#FFFFFF") and D.is_light("#EEE1C6") and not D.is_light("#1d428a")
+    at = _app("replay")
+    html = " ".join(m.value for m in at.markdown)
+    assert html.count('class="gm"') >= 5 and "--opp:" in html
