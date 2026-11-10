@@ -70,6 +70,8 @@ class DashboardData:
     matchups: pd.DataFrame = field(default_factory=pd.DataFrame)
     hustle: pd.DataFrame = field(default_factory=pd.DataFrame)
     bio: pd.DataFrame = field(default_factory=pd.DataFrame)
+    segments: pd.DataFrame = field(default_factory=pd.DataFrame)
+    plays: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     @property
     def seasons(self) -> list[str]:
@@ -107,6 +109,8 @@ def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         matchups=optional("matchups"),
         hustle=optional("hustle"),
         bio=optional("player_bio"),
+        segments=optional("segments"),
+        plays=optional("plays"),
     )
 
 
