@@ -26,7 +26,7 @@ Through 9 games of 2026-27, the Clippers are +1.3 per 100 possessions in first h
 
 **Answer: Not clearly.**
 
-Not clearly: net rating goes from +1.3 in first halves to -8.4 in second halves, a change of -10.4 per 100 possessions. That ranks 25th of 30 (league average change -0.0, so most teams barely move), and second halves were worse in 5 of 9 games. Some of it is regression: first-half eFG% was 0.577 (2nd in the league, +0.039 vs the league's first-half average). But the second half (0.517, 18th) is -0.011 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.564 first-half eFG% vs a league average of 0.539; 3P% 0.376) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 9 games (18 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -27.3 to +8.1, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.
+Not clearly: net rating goes from +1.3 in first halves to -8.4 in second halves, a change of -10.4 per 100 possessions. That ranks 25th of 30 (league average change +0.0, so most teams barely move), and second halves were worse in 5 of 9 games. Some of it is regression: first-half eFG% was 0.577 (2nd in the league, +0.039 vs the league's first-half average). But the second half (0.517, 18th) is -0.012 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.564 first-half eFG% vs a league average of 0.538; 3P% 0.376) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 9 games (18 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -27.3 to +8.1, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.
 
 ![margin_small_multiples.png](figures/margin_small_multiples.png)
 
@@ -49,7 +49,7 @@ Not clearly: net rating goes from +1.3 in first halves to -8.4 in second halves,
 | half | clippers_efg | league_avg_efg | clippers_minus_league | clippers_prior_season_efg |
 |---|---|---|---|---|
 | H1 | 0.577 | 0.538 | 0.039 | 0.549 |
-| H2 | 0.517 | 0.528 | -0.011 | 0.569 |
+| H2 | 0.517 | 0.529 | -0.012 | 0.569 |
 
 ## H2. Turnovers drive it
 
@@ -220,7 +220,7 @@ Last season the Clippers were essentially even after halftime (+0.5 per game in 
 
 ## Methodology
 
-- **Data.** Every 2026-27 and 2025-26 Clippers regular-season game from stats.nba.com via `nba_api`: game logs, box scores filtered to each half (`BoxScoreTraditionalV3`, `AdvancedV3`, `MiscV3`), play-by-play, on/off and lineup dashboards by period, and league-wide team dashboards by period for ranks. 2026-27 data through 2026-11-08; analyzed on 2026-11-09.
+- **Data.** Every 2026-27 and 2025-26 Clippers regular-season game from stats.nba.com via `nba_api`: game logs, box scores filtered to each half (`BoxScoreTraditionalV3`, `AdvancedV3`, `MiscV3`), play-by-play, on/off and lineup dashboards by period, and league-wide team dashboards by period for ranks. 2026-27 data through 2026-11-08; analyzed on 2026-11-10.
 - **Halves.** Period filters on the V3 box-score endpoints are only honoured with `range_type=1`; without it they silently return the full game. Every pull checks that H1 + H2 (+ OT) equals the full-game box score, that play-by-play final scores match, and that the halftime margin from play-by-play matches the H1 box score. Overtime is kept separate and excluded from 1H vs 2H comparisons.
 - **Rates.** All rates (eFG%, TOV%, FT rate, ratings) are recomputed from summed counts, never averaged across games. Possessions follow the NBA's box-score estimate.
 - **Attribution.** Points = 2 x eFG% x FGA + FTM for each side, and the change from first to second half is split exactly with the midpoint rule; shot volume is then split with FGA = possessions + OREB - TOV - free-throw trips. The factors sum exactly to the change in margin. What can't be placed is reported as "unattributed" rather than folded into another factor. It describes where the points went, not why.

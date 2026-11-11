@@ -594,7 +594,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1642349,Ajay Mitchell,OKC,24.0,76,190.0,2024,False
 2026-27,201143,Al Horford,GSW,40.0,80,260.0,2007,False
 2026-27,1627936,Alex Caruso,OKC,32.0,77,186.0,Undrafted,False
-2026-27,1642284,Alex Karaban,SAC,23.0,79,220.0,2026,True
+2026-27,1642284,Alex Karaban,SAC,24.0,79,220.0,2026,True
 2026-27,1631457,Alex Morales,ORL,28.0,78,195.0,Undrafted,False
 2026-27,1642259,Alex Sarr,WAS,21.0,84,205.0,2024,False
 2026-27,1642918,Alijah Martin,TOR,24.0,74,210.0,2025,False
@@ -807,7 +807,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630579,Jericho Sims,MIL,28.0,82,250.0,2021,False
 2026-27,1641724,Jett Howard,DAL,23.0,80,215.0,2023,False
 2026-27,1628975,Jevon Carter,ORL,31.0,73,190.0,2018,False
-2026-27,1642866,Joan Beringer,MIN,19.0,84,230.0,2025,False
+2026-27,1642866,Joan Beringer,MIN,20.0,84,230.0,2025,False
 2026-27,1629111,Jock Landale,ATL,31.0,83,255.0,Undrafted,False
 2026-27,203954,Joel Embiid,PHI,32.0,84,270.0,2014,False
 2026-27,1628381,John Collins,DET,29.0,81,226.0,2017,False
@@ -978,7 +978,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630583,Santi Aldama,DAL,25.0,84,215.0,2021,False
 2026-27,1630703,Scoot Henderson,POR,22.0,75,207.0,2023,False
 2026-27,1630567,Scottie Barnes,TOR,25.0,80,237.0,2021,False
-2026-27,1630590,Scotty Pippen Jr.,MEM,25.0,73,170.0,Undrafted,False
+2026-27,1630590,Scotty Pippen Jr.,MEM,26.0,73,170.0,Undrafted,False
 2026-27,1643547,Sergio de Larrea,DAL,20.0,78,175.0,2026,True
 2026-27,1628983,Shai Gilgeous-Alexander,OKC,28.0,78,195.0,2018,False
 2026-27,1631321,Sidy Cissoko,POR,22.0,78,220.0,2023,False
