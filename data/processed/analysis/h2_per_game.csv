@@ -8,3 +8,4 @@ game_id,opponent_abbreviation,tov_h1,tov_h2,opp_pts_off_tov_h1,opp_pts_off_tov_h
 0022600171,TOR,5.0,10.0,2.0,19.0,11.0,-18.0,blown_lead,True
 0022600186,MIA,10.0,9.0,9.0,12.0,15.0,-15.0,blown_lead,True
 0022600201,NOP,6.0,5.0,6.0,8.0,7.0,9.0,held_lead,True
+0022600213,PHX,9.0,4.0,18.0,5.0,-17.0,-6.0,never_led_big,False
