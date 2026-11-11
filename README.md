@@ -1,6 +1,9 @@
 # Clippers Courtside
 
 **An interactive data story and live season tracker for the LA Clippers, built in Python and Streamlit.**
+
+**Live site: [clippers-courtside.streamlit.app](https://clippers-courtside.streamlit.app)**
+
 Every game gets a report, every upcoming game gets odds and a game plan, and the whole season is checked against one question: *why do they keep losing leads after halftime?* It refreshes itself the morning after each game.
 
 ![The Games page: the intro, one live tile per page, and the game picker](docs/images/home.png)
