@@ -5,21 +5,21 @@
     "games": 10,
     "focus_player": "Darius Garland",
     "team": "LAC",
-    "analyzed_on": "2026-11-11",
+    "analyzed_on": "2026-11-12",
     "lead_threshold": 8
   },
   "results": [
     {
       "id": "H1",
       "title": "The second-half collapse is real",
-      "verdict": "Not clearly: net rating goes from -2.4 in first halves to -8.9 in second halves, a change of -7.2 per 100 possessions. That ranks 23rd of 30 (league average change +0.1, so most teams barely move), and second halves were worse in 5 of 10 games. Some of it is regression: first-half eFG% was 0.566 (4th in the league, +0.029 vs the league's first-half average). But the second half (0.519, 17th) is -0.011 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.573 first-half eFG% vs a league average of 0.538; 3P% 0.391) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 10 games (20 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -23.2 to +9.9, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.",
+      "verdict": "Not clearly: net rating goes from -2.4 in first halves to -8.9 in second halves, a change of -7.2 per 100 possessions. That ranks 23rd of 30 (league average change +0.1, so most teams barely move), and second halves were worse in 5 of 10 games. Some of it is regression: first-half eFG% was 0.566 (3rd in the league, +0.026 vs the league's first-half average). But the second half (0.519, 18th) is -0.010 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.573 first-half eFG% vs a league average of 0.540; 3P% 0.391) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 10 games (20 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -23.2 to +9.9, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.",
       "chart": "league_rank_dots.png",
       "key": {
         "net_h1": -2.3791,
         "net_h2": -8.9267,
         "net_change": -7.2431,
         "net_change_rank": 23,
-        "league_mean_change": 0.0646,
+        "league_mean_change": 0.0739,
         "boot_lo": -23.1788,
         "boot_hi": 9.8591,
         "games_worse": 5,
@@ -35,7 +35,7 @@
     {
       "id": "H2",
       "title": "Turnovers drive it",
-      "verdict": "The turnover factor contributes to the collapse, but not in the way it looks. The Clippers turn it over about as often after halftime (93 vs 91 turnovers including team turnovers; TOV% 29th and 27th of 30 in the two halves, so the rate is a whole-game problem, 17th on the change). What changes is the cost: opponents score 110 points off them in first halves and 138 in second halves (1.18 vs 1.52 per turnover), with live-ball share 47% -> 52% and opponent fast-break points 65 -> 98. In the exact decomposition, lost shots from turnovers account for -8.1 of the -36-point swing (23%); the extra transition scoring shows up inside opponent shooting, which overall got *worse* after halftime. Across games, second-half points off turnovers and second-half margin correlate at r = -0.48, and the change in turnovers vs the change in margin at r = -0.51 (n = 10). Sample: 10 games (20 halves), so treat every number here as a lead, not a settled rate.",
+      "verdict": "The turnover factor contributes to the collapse, but not in the way it looks. The Clippers turn it over about as often after halftime (93 vs 91 turnovers including team turnovers; TOV% 29th and 28th of 30 in the two halves, so the rate is a whole-game problem, 17th on the change). What changes is the cost: opponents score 110 points off them in first halves and 138 in second halves (1.18 vs 1.52 per turnover), with live-ball share 47% -> 52% and opponent fast-break points 65 -> 98. In the exact decomposition, lost shots from turnovers account for -8.1 of the -36-point swing (23%); the extra transition scoring shows up inside opponent shooting, which overall got *worse* after halftime. Across games, second-half points off turnovers and second-half margin correlate at r = -0.48, and the change in turnovers vs the change in margin at r = -0.51 (n = 10). Sample: 10 games (20 halves), so treat every number here as a lead, not a settled rate.",
       "chart": "half_team_stats.png",
       "key": {
         "tov_h1": 93.0,
@@ -102,7 +102,7 @@
     {
       "id": "H5",
       "title": "It's shooting regression, not turnovers",
-      "verdict": "Mostly yes, but it is the Clippers' shooting, not the opponents'. Clippers eFG% falls from 0.566 to 0.519 (-0.047; 90% interval -0.109 to +0.007), the 6th-largest drop in the league, and 3P% from 0.424 to 0.342. Opponents actually shoot worse after halftime (0.573 -> 0.568; interval -0.059 to +0.048), so the answer to 'do opponents just shoot better after halftime?' is no. In the decomposition, Clippers shooting accounts for -39.8 of the -36-point swing; the other factors roughly cancel (opponent shooting +4.2, turnovers -8.1, rebounding -1.5, free throws +4.8, unattributed +7.3). Offensive rebounds allowed rise (0.262 -> 0.307, change ranked 25th), worth -1.5 points net; pace barely moves (101.9 -> 100.2). Last season the same shooting factor was +1.6 points per game; this season it is -4.0. Sample: 10 games (20 halves), so treat every number here as a lead, not a settled rate.",
+      "verdict": "Mostly yes, but it is the Clippers' shooting, not the opponents'. Clippers eFG% falls from 0.566 to 0.519 (-0.047; 90% interval -0.109 to +0.007), the 5th-largest drop in the league, and 3P% from 0.424 to 0.342. Opponents actually shoot worse after halftime (0.573 -> 0.568; interval -0.059 to +0.048), so the answer to 'do opponents just shoot better after halftime?' is no. In the decomposition, Clippers shooting accounts for -39.8 of the -36-point swing; the other factors roughly cancel (opponent shooting +4.2, turnovers -8.1, rebounding -1.5, free throws +4.8, unattributed +7.3). Offensive rebounds allowed rise (0.262 -> 0.307, change ranked 24th), worth -1.5 points net; pace barely moves (101.9 -> 100.2). Last season the same shooting factor was +1.6 points per game; this season it is -4.0. Sample: 10 games (20 halves), so treat every number here as a lead, not a settled rate.",
       "chart": "half_team_stats.png",
       "key": {
         "efg_change": -0.0472,
@@ -113,7 +113,7 @@
         "opp_efg_hi": 0.0481,
         "shooting_points": -39.8296,
         "opp_shooting_points": 4.1632,
-        "efg_change_rank": 25
+        "efg_change_rank": 26
       },
       "tables": [
         "h5_shooting"

@@ -653,7 +653,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1643409,Cameron Boozer,MEM,19.0,80,250.0,2026,True
 2026-27,1643418,Cameron Carr,LAL,21.0,77,175.0,2026,True
 2026-27,1629661,Cameron Johnson,DEN,30.0,80,210.0,2019,False
-2026-27,1643721,Carson Cooper,MEM,22.0,82,245.0,Undrafted,False
+2026-27,1643721,Carson Cooper,LAL,22.0,82,245.0,Undrafted,False
 2026-27,1642868,Carter Bryant,SAS,20.0,78,220.0,2025,False
 2026-27,1641717,Cason Wallace,OKC,23.0,75,195.0,2023,False
 2026-27,1642907,Cedric Coward,MEM,23.0,78,206.0,2025,False
@@ -787,6 +787,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1641716,Jarace Walker,IND,23.0,79,235.0,2023,False
 2026-27,1642272,Jared McCain,OKC,22.0,74,195.0,2024,False
 2026-27,1628991,Jaren Jackson Jr.,UTA,27.0,82,242.0,2018,False
+2026-27,1643555,Jaron Pierre Jr.,NOP,24.0,78,206.0,2026,True
 2026-27,1629020,Jarred Vanderbilt,LAL,27.0,80,214.0,2018,False
 2026-27,1628386,Jarrett Allen,CLE,28.0,81,250.0,2017,False
 2026-27,1642859,Jase Richardson,ORL,21.0,74,185.0,2025,False
@@ -939,7 +940,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629023,P.J. Washington,DAL,28.0,78,230.0,2019,False
 2026-27,1641790,PJ Hall,CHA,24.0,81,245.0,Undrafted,False
 2026-27,1642359,Pacôme Dadiet,NYK,21.0,81,210.0,2024,False
-2026-27,1631094,Paolo Banchero,ORL,23.0,82,250.0,2022,False
+2026-27,1631094,Paolo Banchero,ORL,24.0,82,250.0,2022,False
 2026-27,1627783,Pascal Siakam,IND,32.0,81,245.0,2016,False
 2026-27,1630311,Pat Spencer,PHX,30.0,74,205.0,Undrafted,False
 2026-27,1630172,Patrick Williams,CHI,25.0,79,235.0,2020,False
@@ -947,6 +948,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630194,Paul Reed,DET,27.0,81,210.0,2020,False
 2026-27,1630202,Payton Pritchard,BOS,28.0,73,212.0,2020,False
 2026-27,1641796,Pelle Larsson,MIA,25.0,77,215.0,2024,False
+2026-27,1631250,Pete Nance,MIL,26.0,81,225.0,Undrafted,False
 2026-27,1631212,Peyton Watson,CLE,24.0,79,215.0,2022,False
 2026-27,1630173,Precious Achiuwa,SAC,27.0,80,243.0,2020,False
 2026-27,1629656,Quentin Grimes,LAL,26.0,76,207.0,2021,False
