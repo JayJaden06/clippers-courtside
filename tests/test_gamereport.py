@@ -110,3 +110,22 @@ def test_factors_add_up_to_the_margin_difference():
     gid = sorted(gh.loc[gh["season"] == gh["season"].max(), "game_id"].unique())[-1]
     f = R.vs_normal(gh, gid)
     assert f["points"].sum() == pytest.approx(f.attrs["margin"] - f.attrs["normal_margin"], abs=1e-6)
+
+
+def test_outscored_units_are_one_entry_and_shooting_always_says_something():
+    f = pd.DataFrame({"factor": FACTORS, "name": [R.FACTOR_NAMES[x] for x in FACTORS],
+                      "points": [-6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]})
+    f.attrs = {"margin": -10.0, "normal_margin": -1.0}
+    lines = pd.DataFrame({"player_name": ["A B", "C D"], "minutes": [30.0, 25.0], "tov": [1, 0], "pf": [2, 1],
+                          "fga": [10, 8], "fgm": [4, 3], "fg3a": [5, 4], "fg3m": [1, 1], "efg": [0.45, 0.43]})
+    season = pd.DataFrame({"player_name": ["A B", "C D"], "minutes": [300.0, 250.0], "fga": [100, 80],
+                           "fta": [20, 10], "tov": [10, 5], "oreb": [5, 4], "dreb": [20, 15], "fgm": [45, 35],
+                           "fg3m": [10, 8]})
+    units = pd.DataFrame({"unit": [("A B", "C D")] * 3, "seconds": [600, 400, 300], "minutes": [10.0, 6.7, 5.0],
+                          "plus_minus": [-6, -7, -8]})
+    lvs = R.levers(f, lines, season, pd.DataFrame(), None, units)
+    shooting = next(lv for lv in lvs if lv.factor == "shooting")
+    assert shooting.suggestions and shooting.suggestions[0].startswith("Spread across the team: 7/18 overall")
+    unit = [lv for lv in lvs if lv.factor == "unit"]
+    assert len(unit) == 1 and unit[0].title == "3 five-man units that got outscored" and unit[0].points == 21
+    assert len(unit[0].suggestions) == 3 and unit[0].suggestions[0].endswith("−8 in 5 min".replace("−", "-"))

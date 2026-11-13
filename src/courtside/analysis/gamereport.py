@@ -36,6 +36,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
+from courtside.names import distinct, short
 from courtside.analysis.decompose import FACTORS, decompose
 
 WORST_MIN_MINUTES = 12
@@ -241,7 +242,7 @@ class Lever:
 
 
 def _short(name: str) -> str:
-    return name.split(" ", 1)[-1]
+    return short(name)
 
 
 def levers(factors: pd.DataFrame, lines: pd.DataFrame, season_box: pd.DataFrame, game_defenders: pd.DataFrame,
@@ -281,6 +282,14 @@ def levers(factors: pd.DataFrame, lines: pd.DataFrame, season_box: pd.DataFrame,
             cold = j[(j["fga"] >= 6) & (j["efg"] <= j["season_efg"] - 0.15)]
             tips += [f"{_short(x.player_name)} shot {int(x.fgm)}/{int(x.fga)} (season eFG {x.season_efg:.0%})"
                      for x in cold.itertuples()]
+            fga, fgm = int(lines["fga"].sum()), int(lines["fgm"].sum())
+            if not tips and fga:  # nobody far below his usual: the misses were spread around, so say where
+                threes = (f", {int(lines['fg3m'].sum())}/{int(lines['fg3a'].sum())} from three"
+                          if {"fg3m", "fg3a"} <= set(lines.columns) else "")
+                tips.append(f"Spread across the team: {fgm}/{fga} overall{threes}")
+                most = j[j["fga"] >= 4].assign(miss=lambda d: d["fga"] - d["fgm"]).sort_values(
+                    "miss", ascending=False).head(2)
+                tips += [f"{_short(x.player_name)} {int(x.fgm)}/{int(x.fga)}" for x in most.itertuples()]
         elif r.factor == "opp_shooting" and len(game_defenders):
             worst = game_defenders.iloc[0]
             tip = (f"{_short(worst['def_player'])} gave up {int(worst['pts'])} points, mostly guarding "
@@ -289,17 +298,20 @@ def levers(factors: pd.DataFrame, lines: pd.DataFrame, season_box: pd.DataFrame,
                 stingy = season_defense[season_defense["player_name"] != worst["def_player"]].sort_values(
                     "pts100").head(1)
                 if len(stingy):
-                    tip += (f"; {_short(stingy['player_name'].iloc[0])} allows the fewest points per possession "
-                            "this season")
+                    who = distinct(stingy["player_name"].iloc[0], str(worst["main_assignment"]))
+                    tip += f"; {who} allows the fewest points per possession this season"
             tips.append(tip)
         elif r.factor == "free_throws":
             fouls = lines[lines["pf"] >= 5]
             tips += [f"{_short(x.player_name)} had {int(x.pf)} fouls" for x in fouls.itertuples()]
         out.append(Lever(r.factor, r.name, -float(r.points), tips))
     bad = game_units[(game_units["seconds"] >= UNIT_MIN_SECONDS) & (game_units["plus_minus"] <= -UNIT_SWING)]
-    for u in bad.itertuples():
-        out.append(Lever("unit", "A five-man unit that got outscored", float(-u.plus_minus),
-                         [f"{', '.join(_short(n) for n in u.unit)}: {u.plus_minus:+d} in {u.minutes:.0f} min"]))
+    if len(bad):
+        bad = bad.sort_values("plus_minus")
+        title = "A five-man unit that got outscored" if len(bad) == 1 else f"{len(bad)} five-man units that got outscored"
+        out.append(Lever("unit", title, float(-bad["plus_minus"].sum()),
+                         [f"{', '.join(_short(n) for n in u.unit)}: {u.plus_minus:+d} in {u.minutes:.0f} min"
+                          for u in bad.itertuples()]))
     return out
 
 
