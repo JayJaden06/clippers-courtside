@@ -45,6 +45,8 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
+from courtside.names import short
+
 LEAGUE_SHOOTING_MIN_FGA = 20
 THREE_PCT_GOOD, THREE_MIN_ATT = 0.36, 20
 SAFE_TOV_PCT = 0.12
@@ -248,7 +250,7 @@ def ball_load(player_box: pd.DataFrame, lineups: pd.DataFrame, h3_key: dict, sea
     h2 = h[h["split"] == "H2"].copy()
     h2["play_share"] = h2["plays"] / h2["plays"].sum()
     others = h2[(h2["player_name"] != focus) & (h2["play_share"] >= 0.08) & (h2["minutes"] >= 40)]
-    last = focus.split(" ", 1)[-1]
+    last = short(focus)
     reg = lineups[(lineups["season"] == season) & (lineups["split"] == "REG")]
     has = reg["group_name"].str.contains(last, regex=False)
     w, wo = reg[has], reg[~has]
@@ -590,7 +592,7 @@ def summary_lines(sf: StartingFive | None, bl: BallLoad | None, cands: list[Cand
                   gl: Glass | None = None, pr: Pressure | None = None) -> list[str]:
     """Plain-English recommendations (HTML), each one tied to the number behind it."""
     out = []
-    last = focus.split(" ", 1)[-1]
+    last = short(focus)
     if sf is not None and sf.h2_min > 0:
         if sf.not_the_problem:
             level = "even" if abs(sf.h2_net) < 0.5 else f"{sf.h2_net:+.1f} per 100 possessions"
@@ -705,7 +707,7 @@ class Verdict:
 
 
 def _last(name: str) -> str:
-    return name.split(" ", 1)[-1]
+    return short(name)
 
 
 def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate], sd: ShootingDrop, focus: str,

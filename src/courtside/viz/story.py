@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from courtside.names import short
 from courtside.analysis.decompose import FACTORS
 from courtside.analysis.hypotheses import CONTRIBUTES, DRIVES, ordinal
 from courtside.viz.whatnow import Verdict
@@ -150,7 +151,7 @@ def answer_cards(analysis: dict) -> list[Card]:
 
 def _last(name: str) -> str:
     """'Darius Garland' -> 'Garland' (the focus player's name as the page uses it)."""
-    return name.split(" ", 1)[-1] if name else "the point guard"
+    return short(name) if name else "the point guard"
 
 
 def _even(net: float) -> str:
@@ -480,7 +481,7 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
         return []
     out = []
     most = h2.sort_values("tov", ascending=False).iloc[0]
-    out.append(Verdict(f"Most turnovers after halftime: {most['player_name'].split(' ', 1)[-1]}", f"{most['tov']:.0f}",
+    out.append(Verdict(f"Most turnovers after halftime: {short(most['player_name'])}", f"{most['tov']:.0f}",
                        f"{most['tov_share']:.0%} of the team's second-half turnovers, while handling "
                        f"{most['play_share']:.0%} of its plays.", "bad", "who",
                        ("pair", most["play_share"], most["tov_share"], "plays", "turnovers")))
@@ -488,14 +489,14 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
     if {"H1", "H2"} <= set(w.columns):
         jump = (w["H2"] - w["H1"]).sort_values()
         name = jump.index[-1]
-        out.append(Verdict(f"Sloppiest after halftime: {name.split(' ', 1)[-1]}",
+        out.append(Verdict(f"Sloppiest after halftime: {short(name)}",
                            f"{w.loc[name, 'H1']:.0%} → {w.loc[name, 'H2']:.0%}",
-                           f"Share of {name.split(' ', 1)[-1]}'s plays that end in a turnover, first half then second.",
+                           f"Share of {short(name)}'s plays that end in a turnover, first half then second.",
                            "warn", "sloppier", ("pair", w.loc[name, "H1"], w.loc[name, "H2"], "1st half", "2nd half")))
     regular = h2[h2["play_share"] >= 0.08]
     if len(regular):
         safe = regular.sort_values("tov_pct").iloc[0]
-        last = safe["player_name"].split(" ", 1)[-1]
+        last = short(safe["player_name"])
         out.append(Verdict(f"Safest with the ball: {last}", f"1 in {round(1 / safe['tov_pct'])}" if safe["tov_pct"]
                            else "0", f"of {last}'s second-half plays ends in a turnover (among regular ball-handlers).",
                            "good", "who",

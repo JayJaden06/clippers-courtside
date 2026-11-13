@@ -15,6 +15,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from courtside.names import set_team, short
 from courtside.analysis import gamereport as R
 from courtside.analysis import gameplan as GP
 from courtside.analysis import preview as P
@@ -394,7 +395,10 @@ meta = data.analysis.get("meta", {})
 season_now = meta.get("season", data.seasons[0])
 season_prev = meta.get("comparison_season", data.seasons[-1])
 focus = settings.focus_player
-focus_last = focus.split(" ", 1)[-1]
+# Every Clipper's name (box scores, any season, plus today's roster), so two who share a last name are told apart.
+set_team(set(data.player_box.loc[data.player_box["team_abbreviation"] == settings.team_abbreviation, "player_name"])
+         | (set(data.roster["player_name"]) if len(data.roster) else set()))
+focus_last = short(focus)
 PLAYER_IDS = D.player_ids(data)
 TEAM_LAST = D.last_names(data.player_box, season_now, settings.team_abbreviation)
 
@@ -927,13 +931,13 @@ def page_whatnow() -> None:
     if rot is not None and len(rot):
         r = rot[rot["h2_min_on"] > 0].sort_values("h2_mpg").copy()
         losing = int((r["h2_pm_pg"] < 0).sum())
-        earned = list(r.loc[r["earned"], "player_name"].map(lambda x: x.split(" ", 1)[-1]))
+        earned = list(r.loc[r["earned"], "player_name"].map(lambda x: short(x)))
         section("Who plays after halftime, and how it goes", "minutes",
                 f"The Clippers lose the second half with <b>{losing} of {len(r)}</b> regulars on the floor."
                 + (f" {' and '.join(earned)} {'is' if len(earned) == 1 else 'are'} the exception." if earned else ""))
         tag = np.where(r["struggling"], BAD, np.where(r["earned"], GOOD, MUTED_BAR))
         too_few = ~r["struggling"] & ~r["earned"] & (r["h2_min_on"] < W.EARNED_MIN)
-        labels = [f"{x.split(' ', 1)[-1]}{' (R)' if rk else ''} · {m:.0f} min"
+        labels = [f"{short(x)}{' (R)' if rk else ''} · {m:.0f} min"
                   for x, rk, m in zip(r["player_name"], r["rookie"], r["h2_mpg"])]
         fig = go.Figure(go.Bar(
             y=labels, x=r["h2_pm_pg"], orientation="h", showlegend=False,
@@ -992,7 +996,7 @@ def page_whatnow() -> None:
         left, right = st.columns([1.3, 1], gap="large")
         with left:
             safest = bl.safest.head(4)
-            names = [f"<b>{focus_last}</b>"] + [x.split(" ", 1)[-1] for x in safest["player_name"]]
+            names = [f"<b>{focus_last}</b>"] + [short(x) for x in safest["player_name"]]
             vals = [bl.tov_pct_h2] + list(safest["tov_pct"])
             fig = go.Figure(go.Bar(
                 y=names, x=vals, orientation="h", marker_color=[FOCUS] + [MUTED_BAR] * len(safest),
@@ -1078,7 +1082,7 @@ def page_whatnow() -> None:
         if small is not None and len(small):
             q4 = rot.set_index("player_id")["q4_mpg"] if rot is not None else pd.Series(dtype=float)
             r_ = small.assign(q4=small["player_id"].map(q4).fillna(0)).sort_values("q4", ascending=False).iloc[0]
-            who = r_["player_name"].split(" ", 1)[-1]
+            who = short(r_["player_name"])
             st.markdown(f"**{who} gives up size{' as a rookie' if r_['rookie'] else ''}**")
             picture(G.size_matchup(who, r_["own_ht"], r_["own_wt"], r_["opp_ht"], r_["opp_wt"], r_["fg_pct"],
                                    dfn.team_fg, photo=face(r_["player_name"])))
@@ -1088,7 +1092,7 @@ def page_whatnow() -> None:
             t = dfn.table.sort_values("fg_pct", ascending=True)
             st.markdown("**How well opponents shoot when he's the defender**")
             fig = go.Figure(go.Bar(
-                y=t["player_name"].str.split(" ", n=1).str[-1] + np.where(t["rookie"], " (R)", ""), x=t["fg_pct"],
+                y=t["player_name"].map(short) + np.where(t["rookie"], " (R)", ""), x=t["fg_pct"],
                 orientation="h", marker_color=[BAD if a_ else MUTED_BAR for a_ in t["attacked"]],
                 text=[f"{v:.0%}" for v in t["fg_pct"]], textposition="outside",
                 customdata=np.column_stack([t["player_name"], t["fga"]]),
@@ -1106,10 +1110,10 @@ def page_whatnow() -> None:
             with st.expander("How big are the players each one guards?"):
                 fig = go.Figure()
                 for r_ in t.itertuples():
-                    fig.add_trace(go.Scatter(x=[r_.own_wt, r_.opp_wt], y=[r_.player_name.split(" ", 1)[-1]] * 2,
+                    fig.add_trace(go.Scatter(x=[r_.own_wt, r_.opp_wt], y=[short(r_.player_name)] * 2,
                                              mode="lines", hoverinfo="skip", showlegend=False,
                                              line=dict(color=FOCUS if r_.gives_up_size else LIGHT, width=4)))
-                y = [x.split(" ", 1)[-1] for x in t["player_name"]]
+                y = [short(x) for x in t["player_name"]]
                 fig.add_trace(go.Scatter(x=t["own_wt"], y=y, mode="markers", name="His weight",
                                          marker=dict(color=H1C, size=12, line=dict(color=BG, width=1.5)),
                                          hovertemplate="%{y}: %{x:.0f} lb<extra>his weight</extra>"))
@@ -1152,7 +1156,7 @@ def page_whatnow() -> None:
     left, right = st.columns(2, gap="large")
     with left:
         if shooters:
-            xs = [c.name.split(" ", 1)[-1] for c in shooters] + ["Clippers now"]
+            xs = [short(c.name) for c in shooters] + ["Clippers now"]
             ys = [c.fg3_pct for c in shooters] + [sd.team_fg3_h2]
             fig = go.Figure(go.Bar(x=xs, y=ys, marker_color=[FOCUS] * len(shooters) + [MUTED_BAR],
                                    text=[f"{v:.0%}" for v in ys], textposition="outside",
@@ -1166,7 +1170,7 @@ def page_whatnow() -> None:
         if bigs and rot is not None:
             cur = rot[(rot["h2_mpg"] * rot["gp"] >= 40) & ~rot["player_name"].isin([c.name for c in bigs])]
             top = cur.sort_values("h2_reb36", ascending=False).head(1)
-            xs = [c.name.split(" ", 1)[-1] for c in bigs] + [f"{x.split(' ', 1)[-1]} (best now)"
+            xs = [short(c.name) for c in bigs] + [f"{short(x)} (best now)"
                                                             for x in top["player_name"]]
             ys = [c.reb36 for c in bigs] + list(top["h2_reb36"])
             fig = go.Figure(go.Bar(x=xs, y=ys, marker_color=[FOCUS] * len(bigs) + [MUTED_BAR] * len(top),
@@ -1240,18 +1244,18 @@ def page_whatnow() -> None:
         best = p.iloc[-1] if len(p) else None
         section("Chemistry: which duos work?", "chemistry",
                 f"<b>{chem.continuity:.0%}</b> of minutes go to players who were here last season."
-                + (f" Best duo after halftime: <b>{best['a'].split(' ', 1)[-1]} + {best['b'].split(' ', 1)[-1]}</b>."
+                + (f" Best duo after halftime: <b>{short(best['a'])} + {short(best['b'])}</b>."
                    if best is not None else ""), toc=False)
         left, right = st.columns([1, 2.2], gap="large")
         with left:
             st.markdown("**How much of the team is new**")
             answer_cards([W.Verdict("Minutes from players who were here last season", f"{chem.continuity:.0%}",
-                                    f"New this season: {', '.join(n.split(' ', 1)[-1] for n in chem.new[:5]) or 'nobody'}.",
+                                    f"New this season: {', '.join(short(n) for n in chem.new[:5]) or 'nobody'}.",
                                     "info", "chemistry", ("share", chem.continuity, None))], link=False)
         with right:
             if len(p):
                 show_p = pd.concat([p.head(5), p.tail(5)]).drop_duplicates(subset=["a_id", "b_id"]).sort_values("pm")
-                labels = [f"{a.split(' ', 1)[-1]} + {b.split(' ', 1)[-1]}{' ✦' if new else ''}"
+                labels = [f"{short(a)} + {short(b)}{' ✦' if new else ''}"
                           for a, b, new in zip(show_p["a"], show_p["b"], show_p["new_pair"])]
                 fig = go.Figure(go.Bar(
                     y=labels, x=show_p["pm"], orientation="h",
@@ -1641,7 +1645,7 @@ def page_replay() -> None:
                 tone, "players"))
     for run, title, tone in ((run_against, f"Biggest {opp} run", "bad"), (run_for, "Biggest Clippers run", "good")):
         if run is not None:
-            who = ", ".join(n.split(" ", 1)[-1] for n in run.unit) if run.unit else "?"
+            who = ", ".join(short(n) for n in run.unit) if run.unit else "?"
             tiles.append(W.Verdict(title, run.label, f"{R.run_window(run)}. On the floor: {who}.", tone, "runs",
                                    ("diverge", (run.team_pts, -run.opp_pts), ("LAC", opp))))
     tiles.append(S.game_cards(row, halves, data.turnovers, focus_last)[-1])
@@ -1789,7 +1793,7 @@ def page_replay() -> None:
             other = int(total - grp["pts"].sum())
             rows = "".join(
                 f'<div class="sc-row"><img src="{face(d) or ""}" alt=""><div class="who">Guarded by '
-                f'<b>{d.split(" ", 1)[-1]}</b><br><span style="opacity:.65">{int(m_)}/{int(a_)} shooting, '
+                f'<b>{short(d)}</b><br><span style="opacity:.65">{int(m_)}/{int(a_)} shooting, '
                 f'{pp:.0f} possessions</span></div><div class="pts" style="color:{BAD if p_ >= 10 else INK_MARK}">'
                 f'{int(p_)}</div></div>'
                 for d, p_, m_, a_, pp in zip(grp["defender"], grp["pts"], grp["fgm"], grp["fga"], grp["poss"]))
@@ -1819,7 +1823,7 @@ def page_replay() -> None:
             color = GOOD if u.plus_minus > 0 else BAD if u.plus_minus < 0 else GRAY
             rows_html.append(
                 f'<div class="lineup"><div class="faces">{faces}</div>'
-                f'<div class="who">{", ".join(n.split(" ", 1)[-1] for n in u.unit)}</div>'
+                f'<div class="who">{", ".join(short(n) for n in u.unit)}</div>'
                 f'<div class="min">{u.minutes:.0f} min</div>'
                 f'<div class="pm" style="color:{color}">{signed(u.plus_minus, 0)}</div></div>')
         st.markdown('<div class="takeaway">The best and worst five-man units (2+ minutes together): points scored '
@@ -1827,7 +1831,7 @@ def page_replay() -> None:
         with st.expander("Every unit, as a chart"):
             gu2 = gu.sort_values("plus_minus")
             fig = go.Figure(go.Bar(
-                y=[", ".join(n.split(" ", 1)[-1] for n in u_) for u_ in gu2["unit"]], x=gu2["plus_minus"],
+                y=[", ".join(short(n) for n in u_) for u_ in gu2["unit"]], x=gu2["plus_minus"],
                 orientation="h", marker_color=[GOOD if v > 0 else BAD if v < 0 else MUTED_BAR for v in gu2["plus_minus"]],
                 text=[f"{signed(v, 0)} in {mm:.0f} min" for v, mm in zip(gu2["plus_minus"], gu2["minutes"])],
                 textposition="outside", cliponaxis=False, hovertemplate="%{y}: %{x:+d}<extra></extra>"))
@@ -1919,7 +1923,7 @@ def page_players() -> None:
                            showarrow=False, xanchor="left", font=dict(size=13, color=BAD))
         fig.add_trace(go.Scatter(
             x=h2["play_share"], y=h2["tov_share"], mode="markers+text", customdata=h2["player_name"],
-            text=[n_.split(" ", 1)[-1] if n_ in named else "" for n_ in h2["player_name"]],
+            text=[short(n_) if n_ in named else "" for n_ in h2["player_name"]],
             textposition="bottom center",
             textfont=dict(size=12, color=INK_MARK), marker=dict(size=40, opacity=0), showlegend=False,
             hovertemplate="<b>%{customdata}</b><br>%{x:.0%} of the plays after halftime<br>%{y:.0%} of the "
@@ -1951,7 +1955,7 @@ def page_players() -> None:
             color, verdict = ((BAD, "Sloppier") if d_ >= 0.02 else (GOOD, "Safer") if d_ <= -0.02
                               else (MUTED_BAR, "About the same"))
             rows_.append(
-                f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{n_.split(" ", 1)[-1]}'
+                f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{short(n_)}'
                 f'<span class="chip sm" style="background:{color}">{verdict}</span></div>'
                 f'<div class="vals"><span class="b">{every(r_["H1"])}</span> → '
                 f'<span style="color:{color}">{every(r_["H2"])}</span></div>'
@@ -2118,7 +2122,7 @@ TAPE = [  # (label, column, higher is better)
 def _faces(lean: list[tuple[str, int, str]]) -> str:
     """Small round headshots with name and the stat behind each pick."""
     return "".join(
-        f'<div class="lean"><img src="{D.headshot_url(pid)}" alt=""><div><b>{name.split(" ", 1)[-1]}</b>'
+        f'<div class="lean"><img src="{D.headshot_url(pid)}" alt=""><div><b>{short(name)}</b>'
         f'<br><span>{stat}</span></div></div>' for name, pid, stat in lean)
 
 
