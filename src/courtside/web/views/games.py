@@ -602,6 +602,15 @@ def _faces(lean: list[tuple[str, int, str]]) -> str:
         f'<br><span>{stat}</span></div></div>' for name, pid, stat in lean)
 
 
+def _rating_line(who: str, t: pd.Series) -> str:
+    """A net rating in words: "They're outscored by 5.7 points per 100 possessions (24th of 30): they score 110.2
+    (20th) and allow 115.9 (25th)." """
+    net = float(t["net"])
+    lead = (f"{who} outscore teams by {net:.1f}" if net >= 0 else f"{who}'re outscored by {-net:.1f}")
+    return (f"{lead} points per 100 possessions ({P._ord(t['net_rank'])} of 30): they score {t['ortg']:.1f} "
+            f"({P._ord(t['ortg_rank'])}) and allow {t['drtg']:.1f} ({P._ord(t['drtg_rank'])}).")
+
+
 def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None) -> None:
     """An upcoming game: the odds, a checklist of keys that updates them, matchups, and the tale of the tape."""
     ctx = current()
@@ -625,19 +634,25 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
     # ---- the odds, live with the keys picked below
     odds = st.empty()
     h2h = P.head_to_head(data.games, season_now, pv.opponent)
+    played = data.games[(data.games["season"] == season_now)].sort_values("game_date")
+    w_, l_ = int((played["result"] == "W").sum()), int((played["result"] == "L").sum())
+    last5 = played.tail(5)
+    record = f" Record {w_}-{l_}" + (f", {int((last5['result'] == 'W').sum())}-{int((last5['result'] == 'L').sum())} "
+                                    "in the last 5." if len(played) > 5 else ".")
     tiles = [
-        W.Verdict("Clippers this season", signed(lac["net"]),
-                  f"Points per 100 possessions, scored minus allowed: {P._ord(lac['net_rank'])} of 30.",
+        W.Verdict("Clippers this season", signed(lac["net"]), _rating_line("They", lac) + record,
                   "bad" if lac["net"] < 0 else "good", "plan", ("rank", int(lac["net_rank"]), 30), D.logo_url(tid)),
-        W.Verdict(f"{pv.opponent} this season", signed(opp["net"]), f"{P._ord(opp['net_rank'])} of 30.",
+        W.Verdict(f"{pv.opponent} this season", signed(opp["net"]), _rating_line("They", opp),
                   "bad" if opp["net"] > lac["net"] else "good", "plan", ("rank", int(opp["net_rank"]), 30),
                   D.logo_url(opp_id)),
     ]
     if len(h2h):
         wins = int((h2h["result"] == "W").sum())
-        tiles.append(W.Verdict("Earlier this season", f"{wins}-{len(h2h) - wins}",
-                               "; ".join(f"{r.result} {int(r.team_pts)}-{int(r.opp_pts)}" for r in h2h.itertuples()),
-                               "info", "plan"))
+        tiles.append(W.Verdict(
+            "Against them this season", f"{wins}-{len(h2h) - wins}",
+            "; ".join(f"{r.game_date:%b} {r.game_date.day} {'vs' if r.is_home else 'at'} {pv.opponent}: "
+                      f"{'won' if r.result == 'W' else 'lost'} {int(r.team_pts)}-{int(r.opp_pts)}"
+                      for r in h2h.itertuples()) + ".", "info", "plan"))
 
     section(f"How to beat the {pv.opponent_name.split(' ')[-1]}", "plan",
             "The keys to this game from both teams' season numbers. Switch them on and off: the odds above "
