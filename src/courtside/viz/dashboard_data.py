@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from courtside.names import short_names
@@ -86,7 +87,50 @@ class DashboardData:
         return sorted(self.game_leads["season"].unique(), reverse=True)
 
 
+# The pages build HTML from names and labels in the data (stats.nba.com). Those never legitimately contain these
+# characters, so they're removed where the data loads: whatever a source sends, it can't become markup or script.
+_UNSAFE = re.compile(r'[<>"`]')
+
+
+def clean_text(value):
+    """``value`` with the characters that could open a tag or break out of an attribute removed; non-text
+    values (numbers, dates) pass through, and lists or tuples of names are cleaned item by item."""
+    if isinstance(value, str):
+        return _UNSAFE.sub("", value)
+    if isinstance(value, (list, tuple)):
+        return type(value)(clean_text(v) for v in value)
+    if isinstance(value, np.ndarray) and value.dtype == object:
+        return np.array([clean_text(v) for v in value], dtype=object)
+    if isinstance(value, dict):
+        return {k: clean_text(v) for k, v in value.items()}
+    return value
+
+
+def clean_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Every text column (and list-of-names column) of ``df`` run through ``clean_text``."""
+    out = df.copy()
+    for col in out.columns:
+        s_ = out[col]
+        if pd.api.types.is_string_dtype(s_) or s_.dtype == object:
+            out[col] = s_.map(clean_text)
+    return out
+
+
 def load(processed_dir: Path, analysis_json: Path) -> DashboardData:
+    """Read every table the dashboard uses, with all text cleaned (see ``clean_text``)."""
+    raw = _load(processed_dir, analysis_json)
+    for f in fields(raw):
+        v = getattr(raw, f.name)
+        if isinstance(v, pd.DataFrame):
+            setattr(raw, f.name, clean_frame(v))
+        elif f.name == "attribution":
+            setattr(raw, f.name, {k: clean_frame(df) for k, df in v.items()})
+        elif f.name == "analysis":
+            setattr(raw, f.name, clean_text(v))
+    return raw
+
+
+def _load(processed_dir: Path, analysis_json: Path) -> DashboardData:
     p = Path(processed_dir)
     analysis = json.loads(Path(analysis_json).read_text(encoding="utf-8")) if Path(analysis_json).exists() else {}
     a = p / "analysis"

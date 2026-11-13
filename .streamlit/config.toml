@@ -9,6 +9,14 @@ font = "sans serif"
 [client]
 # Hide the Deploy button and developer menu from visitors.
 toolbarMode = "viewer"
+# If a page ever fails, visitors see the error's type, not a traceback with file paths and code.
+# Locally, see everything with: $env:STREAMLIT_CLIENT_SHOW_ERROR_DETAILS="full"
+showErrorDetails = "type"
+
+[server]
+# Streamlit's defaults, stated so they can't be switched off by accident.
+enableXsrfProtection = true
+enableCORS = true
 
 [browser]
 gatherUsageStats = false
