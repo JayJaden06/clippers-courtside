@@ -253,3 +253,16 @@ h1, .hero {font-weight: 800 !important}
 .u-pm {font-weight: 800; font-size: 1.05rem; color: #f08a5d !important; text-align: right}
 .u-min {font-size: .78rem; opacity: .7; text-align: right}
 .u-who {grid-column: 1 / -1; font-size: .8rem; opacity: .8; margin-top: .2rem}
+
+/* Who's out: a team-colored header, then one row per listed player */
+.o-top {display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem;
+        background: linear-gradient(150deg, var(--tc) 0%, var(--td) 100%); color: #f0efec}
+.o-top img {width: 30px; height: 30px; object-fit: contain}
+.o-top span {flex: 1; font-weight: 800; color: #f0efec}
+.o-top b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; color: #f0efec}
+.o-status {display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .02em; padding: .05rem .45rem;
+           border-radius: 999px; vertical-align: middle; font-family: 'Source Sans 3', sans-serif}
+.o-out {background: #fbe3d9; color: #9a3a12}
+.o-doubtful {background: #fbe3d9; color: #9a3a12}
+.o-questionable {background: #fdf0d2; color: #7a5300}
+.o-blank {width: 30px; height: 30px; border-radius: 50%; background: #e3e0d8; flex: none}

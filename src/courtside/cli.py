@@ -17,7 +17,7 @@ from rich.logging import RichHandler
 from courtside.analysis import hypotheses
 from courtside.config import get_settings, settle_season
 from courtside.nba_client import CacheMissError
-from courtside.ingest import boxscores, games, league, lineups, playbyplay, players, schedule, shots, tracking
+from courtside.ingest import boxscores, games, injuries, league, lineups, playbyplay, players, schedule, shots, tracking
 from courtside.nba_client import NBAClient
 from courtside.transform import fouls, halves, leads, league_context, onoff, stints, turnovers
 
@@ -93,6 +93,8 @@ def pull(season: SeasonOpt = None) -> None:
             shots.load_shots(client, settings.team_id, s, settings.season_type)
     with client.refreshing():  # the schedule changes daily (results, times)
         schedule.load_schedule(client, settings.current_season)
+    report_pdf = injuries.pull_latest(settings.raw_dir)  # official.nba.com, not stats.nba.com; never fatal
+    console.print(f"injury report: {report_pdf.name if report_pdf else 'not available (odds carry no injury adjustment)'}")
     console.print(f"pull done (game logs, box scores, play-by-play, {settings.focus_player}, "
                   f"on/off, lineups, league, tracking): {client.stats}")
 
@@ -252,11 +254,32 @@ def build(season: SeasonOpt = None) -> None:
                            ignore_index=True)
     shot_table = shot_table[shot_table["game_id"].isin(set(df["game_id"]))]  # games we have box scores for
     shot_table.to_parquet(out / "shots.parquet", index=False)
+    _write_injuries(settings, out)
     console.print(
         f"tracking: {matchups['game_id'].nunique()} games of matchups and hustle "
         f"({len(skipped)} not published yet), matchups cover {coverage:.0%} of points; bio for {len(bio)} players"
     )
     console.print(f"wrote to {settings.processed_dir}")
+
+
+
+def _write_injuries(settings, out) -> None:
+    """The newest injury report's rows for Clippers games. Rewritten only when a player or status changes, so a
+    report that says the same thing as the last one isn't news for the morning refresh."""
+    try:
+        table = injuries.team_table(settings.raw_dir, settings.team_abbreviation)
+    except Exception as e:  # a report in a new layout shouldn't stop the rest of the build
+        console.print(f"[yellow]injury report not read ({type(e).__name__}: {e}); keeping the previous one[/]")
+        return
+    if table is None:
+        console.print("injury report: none cached yet")
+        return
+    path = out / "injuries.parquet"
+    if path.exists() and injuries.same_rows(pd.read_parquet(path), table):
+        console.print("injury report: no change for Clippers games")
+        return
+    table.to_parquet(path, index=False)
+    console.print(f"injury report: {len(table)} players listed for Clippers games")
 
 
 def _analysis_meta(settings, inp: hypotheses.Inputs) -> dict:

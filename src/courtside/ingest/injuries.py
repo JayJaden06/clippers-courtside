@@ -1,0 +1,148 @@
+"""The NBA's official injury report: who is out, doubtful or questionable for each upcoming game.
+
+The league posts it as a PDF several times a day (every 15 minutes on game days) and lists the links on
+official.nba.com. ``pull_latest`` finds the newest one and caches it under ``data/raw/injuries/`` (one request for
+the page, one for a PDF we haven't seen). ``parse`` reads the table by word position, because the PDF has no text
+spacing to split on.
+
+Not stats.nba.com, so it doesn't go through ``NBAClient``; any failure here is reported and skipped, never fatal:
+the odds then simply carry no injury adjustment.
+"""
+
+from __future__ import annotations
+
+import io
+import re
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+import requests
+
+PAGE = "https://official.nba.com/nba-injury-report/"
+LINK = re.compile(r"https://ak-static\.cms\.nba\.com/referee/injury/(Injury-Report_[A-Za-z0-9_\-]+\.pdf)")
+STAMP = re.compile(r"_(\d{4}-\d{2}-\d{2})_(\d{2})(?:_(\d{2}))?(AM|PM)\.pdf$")
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                         "Chrome/130.0 Safari/537.36"}
+COLUMNS = ["report_time", "game_date", "matchup", "team_name", "player_name", "status", "reason"]
+
+# Column starts (PDF points) of the report's table; a word belongs to the last column that starts at or before it.
+_COLS = (("game_date", 0), ("game_time", 110), ("matchup", 195), ("team", 260), ("player", 420),
+         ("status", 580), ("reason", 660))
+
+
+def report_time(name: str) -> datetime | None:
+    """The report's timestamp (US Eastern) from its file name, e.g. ``Injury-Report_2026-11-13_06_15PM.pdf``."""
+    m = STAMP.search(name)
+    if not m:
+        return None
+    return datetime.strptime(f"{m[1]} {m[2]}:{m[3] or '00'} {m[4]}", "%Y-%m-%d %I:%M %p")
+
+
+def pull_latest(raw_dir: Path, timeout: float = 30) -> Path | None:
+    """Download the newest injury report (if it isn't cached yet); returns its path, or None if it can't be had."""
+    folder = raw_dir / "injuries"
+    folder.mkdir(parents=True, exist_ok=True)
+    try:
+        page = requests.get(PAGE, headers=HEADERS, timeout=timeout)
+        page.raise_for_status()
+        names = [n for n in set(LINK.findall(page.text)) if report_time(n)]
+        if not names:
+            return None
+        name = max(names, key=report_time)
+        path = folder / name
+        if not path.exists():
+            pdf = requests.get(f"https://ak-static.cms.nba.com/referee/injury/{name}", headers=HEADERS,
+                               timeout=timeout)
+            pdf.raise_for_status()
+            if not pdf.content.startswith(b"%PDF"):
+                return None
+            path.write_bytes(pdf.content)
+        return path
+    except requests.RequestException:
+        return None
+
+
+def latest_cached(raw_dir: Path) -> Path | None:
+    files = [p for p in (raw_dir / "injuries").glob("Injury-Report_*.pdf") if report_time(p.name)]
+    return max(files, key=lambda p: report_time(p.name)) if files else None
+
+
+def _player(last_first: str) -> str:
+    """"Williams, Jalen" -> "Jalen Williams"; "Johnson Jr., Morez" -> "Morez Johnson Jr."."""
+    last, _, first = last_first.partition(",")
+    return f"{first.strip()} {last.strip()}".strip()
+
+
+def parse(pdf: bytes, name: str = "") -> pd.DataFrame:
+    """Every player row in the report: game date, matchup (AWAY@HOME), team, player, status and reason.
+
+    Rows only name the date, matchup and team on their first line, so those carry down (across pages too). A long
+    reason wraps onto lines just above and below its player's line; each such line joins the nearest player row.
+    """
+    import pdfplumber  # only the pipeline needs it, not the website
+
+    stamp = report_time(name)
+    rows: list[dict] = []
+    carry = {"game_date": None, "matchup": None, "team": None}
+    with pdfplumber.open(io.BytesIO(pdf)) as doc:
+        for page in doc.pages:
+            lines: dict[int, list[dict]] = {}
+            for w in page.extract_words(x_tolerance=1.5):
+                lines.setdefault(round(w["top"]), []).append(w)
+            parsed = []
+            for top in sorted(lines):
+                cells: dict[str, list[str]] = {}
+                for w in sorted(lines[top], key=lambda w: w["x0"]):
+                    col = [c for c, x in _COLS if w["x0"] >= x - 2][-1]
+                    cells.setdefault(col, []).append(w["text"])
+                parsed.append((top, {c: " ".join(v) for c, v in cells.items()}))
+            page_rows = []
+            for top, c in parsed:
+                whole = " ".join(c.values())
+                if (c.get("game_date", "").startswith(("Injury", "Game")) or "Report:" in whole
+                        or re.fullmatch(r"Page \d+ of \d+", whole)):
+                    continue  # title, header and footer lines (the footer sits in the team column)
+                if re.fullmatch(r"\d{2}/\d{2}/\d{4}", c.get("game_date", "")):
+                    carry["game_date"] = c["game_date"]
+                if re.fullmatch(r"[A-Z]{2,3}@[A-Z]{2,3}", c.get("matchup", "")):
+                    carry["matchup"] = c["matchup"]
+                if c.get("team"):
+                    carry["team"] = c["team"]
+                if c.get("player") and c.get("status"):
+                    page_rows.append({"top": top, "game_date": carry["game_date"], "matchup": carry["matchup"],
+                                      "team_name": carry["team"], "player_name": _player(c["player"]),
+                                      "status": c["status"], "reason": [(top, c.get("reason", ""))]})
+                elif c.get("reason") and not c.get("player") and "NOT YET SUBMITTED" not in c["reason"]:
+                    page_rows.append({"top": top, "wrap": c["reason"]})
+            players = [r for r in page_rows if "wrap" not in r]
+            for r in page_rows:
+                if "wrap" in r and players:
+                    min(players, key=lambda p: abs(p["top"] - r["top"]))["reason"].append((r["top"], r["wrap"]))
+            for p in players:
+                text = " ".join(t for _, t in sorted(p.pop("reason")) if t)
+                p["reason"] = re.sub(r"\s+/\s*|\s*/\s+", "/", re.sub(r"\s+", " ", text)).strip(" -")
+                p.pop("top")
+                rows.append(p)
+    df = pd.DataFrame(rows, columns=[c for c in COLUMNS if c != "report_time"])
+    df["game_date"] = pd.to_datetime(df["game_date"], format="%m/%d/%Y", errors="coerce")
+    df.insert(0, "report_time", pd.Timestamp(stamp) if stamp else pd.NaT)
+    return df.dropna(subset=["game_date", "matchup", "team_name"]).reset_index(drop=True)
+
+
+def team_table(raw_dir: Path, team_abbreviation: str) -> pd.DataFrame | None:
+    """The newest cached report's rows for games involving the team (both sides), or None if there is none."""
+    path = latest_cached(raw_dir)
+    if path is None:
+        return None
+    df = parse(path.read_bytes(), path.name)
+    return df[df["matchup"].str.split("@").map(lambda t: team_abbreviation in t)].reset_index(drop=True)
+
+
+def same_rows(a: pd.DataFrame, b: pd.DataFrame) -> bool:
+    """Whether two tables list the same players and statuses (ignoring when the report was posted)."""
+    cols = [c for c in COLUMNS if c != "report_time"]
+    if set(cols) - set(a.columns) or set(cols) - set(b.columns):
+        return False
+    key = lambda d: d[cols].astype(str).sort_values(cols).reset_index(drop=True)  # noqa: E731
+    return key(a).equals(key(b))

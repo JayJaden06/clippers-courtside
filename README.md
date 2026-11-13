@@ -18,7 +18,7 @@ Once that worked, I didn't want a one-off report that goes stale. So the project
 
 | Page | What it answers |
 |---|---|
-| **Games** | Every game this season. A played game opens its report: the scoreboard, a replay of the score margin with the biggest runs shaded, the best and worst Clippers, which lineups won and lost, and what decided it compared with a normal night. An upcoming game opens its game plan: the win chance and the keys to that matchup, each with how many points it's worth. |
+| **Games** | Every game this season. A played game opens its report: the scoreboard, a replay of the score margin with the biggest runs shaded, the best and worst Clippers, which lineups won and lost, and what decided it compared with a normal night. An upcoming game opens its game plan: the win chance (adjusted for who's on the NBA's injury report), who's out and what each absence is worth, and the keys to that matchup, each with how many points it's worth. |
 | **Blown leads** | The answer, ranked: which parts of the game cost them points after halftime, a shot map of where the shots stop falling, the popular theories checked one by one, what changed since last season, and "what if" switches to see how much each fix would be worth. |
 | **Players** | Who loses the ball after halftime, player by player, with each player's games. |
 | **Vs. the league** | Whether every team fades after halftime (most don't), with all 30 teams on one chart. |
@@ -59,9 +59,9 @@ stats.nba.com ──► courtside pull ──► data/raw/  (every response cach
                   dashboard/app.py  (Streamlit; reads the processed tables only, no API calls)
 ```
 
-- **Daily refresh.** A Windows scheduled task runs [`scripts/daily_refresh.ps1`](scripts/daily_refresh.ps1) at 7am: it pulls last night's game, rebuilds everything, and pushes to `main` only if something new arrived. Streamlit Community Cloud redeploys from that push. It runs on my PC rather than in GitHub Actions because stats.nba.com blocks cloud servers.
+- **Daily refresh.** A Windows scheduled task runs [`scripts/daily_refresh.ps1`](scripts/daily_refresh.ps1) when I sign in and at 8:30am: it pulls last night's game and the latest injury report, rebuilds everything, and pushes to `main` only if something new arrived. Streamlit Community Cloud redeploys from that push. It runs on my PC rather than in GitHub Actions because stats.nba.com blocks cloud servers.
 - **Nothing typed by hand.** Verdicts, headlines, card text and even the list of injured players come from the data. Returning players are found from today's roster (missed a quarter of the games since joining, and played 10+ minutes a game in a recent season).
-- **Tested.** 244 tests run on recorded API responses and the committed tables, including a headless run of every page; CI runs them on every push.
+- **Tested.** 268 tests run on recorded API responses and the committed tables, including a headless run of every page; CI runs them on every push.
 
 ## Methodology
 
@@ -69,7 +69,8 @@ stats.nba.com ──► courtside pull ──► data/raw/  (every response cach
 - **Where the second-half points went:** the change in margin from first half to second half is split exactly (it adds up by construction) into shooting accuracy, turnovers, offensive rebounds, free throws and pace, for the Clippers and their opponents. The usual "points off turnovers + free-throw points + …" double counts, so I don't use it. Details: [`analysis/decompose.py`](src/courtside/analysis/decompose.py).
 - **Rules set before the results:** a factor *drives* the drop at 40%+ of it, *contributes* at 15–40%, and is *minor* below that. A league rank of 26–30 is "among the worst." Uncertainty comes from a bootstrap that resamples whole games.
 - **Garland's share:** his second-half turnovers above his own baseline, using whichever baseline gives the theory the most credit (his first-half rate this season, or his second-half rate last season), each valued at what a lost possession costs.
-- **Win chances:** net rating blended with last season's early on (`(games × this + 10 × last) / (games + 10)`), turned into an expected margin with 2 points of home court, and a normal spread of 12.5 points. It knows nothing about injuries or rest; simple models like this pick about two in three NBA games. Details: [`analysis/preview.py`](src/courtside/analysis/preview.py).
+- **Win chances:** net rating blended with last season's early on (`(games × this + 10 × last) / (games + 10)`), turned into an expected margin with 2 points of home court, and a normal spread of 12.5 points. Simple models like this pick about two in three NBA games. Details: [`analysis/preview.py`](src/courtside/analysis/preview.py).
+- **Injuries:** the morning refresh reads the NBA's official injury report. Each listed player is worth his on/off (team margin per 48 minutes with him on the floor minus off it, this season and last, shrunk toward zero) times the share of him already in his team's blended rating, so a player who's been out all season, or never played for the team, changes nothing. Out counts fully, Doubtful 75%, Questionable 50%; never negative, capped at 4 points a player and 8 a team. Late scratches after the morning refresh aren't caught. Details: [`analysis/availability.py`](src/courtside/analysis/availability.py).
 - **Colors** were checked with a palette validator for colorblind safety and 3:1 contrast on the light background: blue = better, orange = worse and the second half, gray = context.
 
 ## Run it yourself
@@ -78,8 +79,8 @@ Python 3.11+. With [uv](https://docs.astral.sh/uv/) (or plain `pip`):
 
 ```bash
 uv venv --python 3.12
-uv pip install -e ".[dashboard,dev]"
-pytest -q                 # 244 tests, offline
+uv pip install -e ".[dashboard,dev,pipeline]"
+pytest -q                 # 268 tests, offline
 
 courtside dashboard       # open the site on the committed data, no API calls
 ```
@@ -99,7 +100,8 @@ dashboard/app.py               the site's entry point: loads the data, sets up t
 src/courtside/
   cli.py                       courtside pull | build | analyze | report | all | dashboard
   nba_client.py                nba_api wrapper: browser headers, throttling, retries, disk cache
-  ingest/                      one module per stats.nba.com source (games, box scores, play-by-play, …)
+  ingest/                      one module per source: stats.nba.com (games, box scores, play-by-play, …)
+                               and the NBA's injury report (a PDF from official.nba.com)
   transform/                   play-by-play → halves, margins, leads, turnovers, stints, on/off
   analysis/                    hypotheses, decomposition, game reports, odds and game plans
   viz/                         dashboard data, story text, What now? rules, SVG graphics
@@ -114,7 +116,7 @@ tests/                         unit tests on recorded fixtures, plus headless pa
 
 ## What I'd do next
 
-- **Real injury status:** read the NBA's official injury report so the returning-players list knows *why* someone sat.
+- **Injury status for returning players:** use the injury report's reasons so the returning-players list knows *why* someone sat.
 - **Grade the odds:** track each game's predicted win chance against the result and show how well calibrated it is.
 - **Lineup-level odds:** use who's actually available tonight instead of team-wide ratings.
 

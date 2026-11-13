@@ -197,7 +197,7 @@ TOC_LABELS = {
     "whatif": "What if?", "stats": "Every stat", "minutes": "Minutes", "defense": "Defense & size",
     "returning": "Returning players", "garland": "Ball handling", "more": "More evidence", "runs": "How it played out", "decided": "What decided it",
     "players": "Who played well", "matchups": "Who guarded whom", "units": "Lineups", "who": "Losing the ball",
-    "sloppier": "Sloppier?", "one": "One player", "plan": "Game plan", "watch": "Their scorers",
+    "sloppier": "Sloppier?", "one": "One player", "plan": "Game plan", "out": "Who's out", "watch": "Their scorers",
     "tape": "Tale of the tape", "teams": "All 30 teams", "ranks": "Every rank",
 }
 
