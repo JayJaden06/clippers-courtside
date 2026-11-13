@@ -53,3 +53,22 @@ def test_league_table_on_the_real_data():
     assert len(t) == 30
     assert t["net"].mean() == pytest.approx(0.0, abs=0.6)  # every point scored is a point allowed
     assert t["net_rank"].between(1, 30).all()
+
+
+def test_each_scorer_gets_his_own_defender_and_the_best_goes_to_the_biggest_scorer():
+    season, opp = "2026-27", "OKC"
+    ps = pd.DataFrame({"season": season, "team_abbreviation": opp, "player_id": [1, 2, 3],
+                       "player_name": ["Star", "Second", "Third"], "gp": 10, "pts": [30.0, 18.0, 12.0],
+                       "reb": 4.0, "ast": 4.0, "min": 30.0})
+    bio = pd.DataFrame({"season": season, "player_id": [1, 2, 3], "height_in": [78, 76, 74],
+                        "weight_lb": [195, 190, 195]})
+    # one defender is best for everyone: before, he was suggested for all three
+    d = pd.DataFrame({"player_name": ["Stopper", "Wing", "Guard", "Bench"], "poss": [300, 250, 200, 40],
+                      "pts100": [18.0, 20.0, 23.0, 15.0], "own_ht": [77, 78, 75, 76],
+                      "own_wt": [205, 215, 190, 200]})
+    w = P.who_to_watch(ps, bio, season, opp, d)
+    assert list(w["guard_with"]) == ["Stopper", "Wing", "Guard"]  # each once, best first; 100+ before 30+
+    assert w["guard_with"].is_unique
+    # with only two regulars, the third scorer falls back to the 30+ possession player
+    w2 = P.who_to_watch(ps, bio, season, opp, d[d["player_name"] != "Guard"])
+    assert list(w2["guard_with"]) == ["Stopper", "Wing", "Bench"]
