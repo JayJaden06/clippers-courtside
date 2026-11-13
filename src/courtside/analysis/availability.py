@@ -53,7 +53,8 @@ def player_values(player_season: pd.DataFrame, league_periods: pd.DataFrame, sea
     seasons = [s for s in (season, prev_season) if s]
     ps = player_season[player_season["season"].isin(seasons)].copy()
     if ps.empty or league_periods.empty:
-        return pd.DataFrame(columns=["team_id", "team_name", "player_id", "player_name", "onoff", "baked", "worth"])
+        return pd.DataFrame(columns=["team_id", "team_name", "player_id", "player_name", "onoff", "baked", "worth",
+                                     "gp_now", "gp_prev", "team_games"])
     tt = _team_totals(league_periods[league_periods["season"].isin(seasons)])
     ps = ps.merge(tt, on=["season", "team_id"], how="inner")
     ps["on_min"] = ps["gp"] * ps["min"]
@@ -69,7 +70,8 @@ def player_values(player_season: pd.DataFrame, league_periods: pd.DataFrame, sea
     rows = []
     for (tid, tname), d in ps[ps["season"] == season].groupby(["team_id", "team_name"]):
         g = float(games_now.get(tid, 0))
-        prev = ps[(ps["season"] == prev_season) & (ps["team_id"] == tid)].set_index("player_id")["share"]
+        prev_rows = ps[(ps["season"] == prev_season) & (ps["team_id"] == tid)].set_index("player_id")
+        prev = prev_rows["share"]
         now = d.set_index("player_id")
         ids = set(now.index) | set(prev.index)
         for pid in ids:
@@ -80,7 +82,9 @@ def player_values(player_season: pd.DataFrame, league_periods: pd.DataFrame, sea
             name = now["player_name"].get(pid) if pid in now.index else \
                 ps.loc[ps["player_id"] == pid, "player_name"].iloc[0]
             rows.append({"team_id": int(tid), "team_name": tname, "player_id": int(pid), "player_name": name,
-                         "onoff": onoff, "baked": baked, "worth": min(max(baked * onoff, 0.0), PLAYER_CAP)})
+                         "onoff": onoff, "baked": baked, "worth": min(max(baked * onoff, 0.0), PLAYER_CAP),
+                         "gp_now": int(now["gp"].get(pid, 0)), "gp_prev": int(prev_rows["gp"].get(pid, 0)),
+                         "team_games": int(g)})
     return pd.DataFrame(rows)
 
 
@@ -88,7 +92,8 @@ def missing(injuries: pd.DataFrame, values: pd.DataFrame, game_date: pd.Timestam
             team_name: str) -> pd.DataFrame:
     """The team's players on the report for this game who may not play, with what each is worth (points a game,
     already weighted by how likely he is to sit). Players who haven't played for the team count zero."""
-    cols = ["player_name", "player_id", "status", "reason", "baked", "onoff", "worth", "expected"]
+    cols = ["player_name", "player_id", "status", "reason", "baked", "onoff", "worth", "expected", "gp_now",
+            "gp_prev", "team_games"]
     if injuries is None or injuries.empty:
         return pd.DataFrame(columns=cols)
     day = pd.Timestamp(game_date).normalize()
@@ -102,8 +107,32 @@ def missing(injuries: pd.DataFrame, values: pd.DataFrame, game_date: pd.Timestam
         worth = float(v["worth"].get(k, 0.0))
         out.append({"player_name": x.player_name, "player_id": v["player_id"].get(k), "status": x.status,
                     "reason": x.reason, "baked": float(v["baked"].get(k, 0.0)), "onoff": float(v["onoff"].get(k, 0.0)),
-                    "worth": worth, "expected": worth * STATUS_WEIGHT[x.status]})
+                    "worth": worth, "expected": worth * STATUS_WEIGHT[x.status],
+                    "gp_now": int(v["gp_now"].get(k, 0)), "gp_prev": int(v["gp_prev"].get(k, 0)),
+                    "team_games": int(v["team_games"].get(k, 0))})
     return pd.DataFrame(out, columns=cols).sort_values("expected", ascending=False).reset_index(drop=True)
+
+
+def explain(r) -> str:
+    """Why a missing player is worth what he is, in a sentence or two: how much of the season he's already missed
+    (that part is in his team's numbers), and how much better they are with him on the floor."""
+    if r.gp_now == 0 and r.gp_prev == 0:
+        return "Hasn't played for them yet, so their numbers already go without him."
+    if r.onoff >= 1:
+        floor = f"With him on the floor they're about {r.onoff:.1f} points per 48 minutes better."
+    elif r.onoff > -1:
+        floor = "Their margin has been about the same with him as without him."
+    else:
+        floor = "Their margin hasn't been better with him on the floor."
+    last = " Last season's numbers, which still count early on, have him." if r.gp_prev else ""
+    if r.gp_now == 0:
+        missed = "Hasn't played this season, so this season's numbers already go without him." + last
+    elif r.team_games and r.gp_now / r.team_games < 0.5:
+        missed = (f"Has played {r.gp_now} of their {r.team_games} games, so this season's numbers mostly go "
+                  "without him already." + last)
+    else:
+        missed = ""
+    return f"{missed} {floor}".strip()
 
 
 def has_report(injuries: pd.DataFrame, game_date: pd.Timestamp, matchup: str) -> bool:

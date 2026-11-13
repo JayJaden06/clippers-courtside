@@ -643,19 +643,16 @@ def _whos_out(pv, opp_id: int) -> None:
         rows = []
         for r in out.itertuples():
             reason = re.sub(r"^Injury/Illness\s*-\s*", "", r.reason or "").strip() or "Not given"
-            if r.baked < 0.02:
-                note = "already missing from their numbers"
-            elif r.worth < 0.1:
-                note = "little measurable effect"
-            else:
-                note = (f"worth {r.worth:.1f} pts" + (f", counted at {A.STATUS_WEIGHT[r.status]:.0%}"
-                                                     if r.status != "Out" else ""))
+            note = A.explain(r)
+            if r.expected >= 0.05:
+                note += (f" Worth {r.worth:.1f} pts" + (f", counted at {A.STATUS_WEIGHT[r.status]:.0%} because he's "
+                                                       f"{r.status.lower()}" if r.status != "Out" else "") + ".")
             pic = D.headshot_url(int(r.player_id), small=True) if pd.notna(r.player_id) else face(r.player_name)
             rows.append(
                 '<div class="sc-row">' + (f'<img src="{pic}" alt="">' if pic else '<span class="o-blank"></span>')
                 + f'<div class="who"><b>{r.player_name}</b> '
                 f'<span class="o-status o-{r.status.lower()}">{r.status}</span><br>'
-                f'<span style="opacity:.65">{reason} · {note}</span></div>'
+                f'<span style="opacity:.65">{reason}</span><br><span class="o-why">{note}</span></div>'
                 f'<div class="pts">{"−" + format(r.expected, ".1f") if r.expected >= 0.05 else ""}</div></div>')
         return (f'<div class="scard"><div class="o-top" style="--tc:{color};--td:{D.shade(color)}">'
                 f'<img src="{logo}" alt=""><span>{team}</span><b>{"−" + format(total, ".1f") + " pts" if total >= 0.05 else "no effect"}</b></div>'
