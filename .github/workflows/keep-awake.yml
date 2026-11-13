@@ -14,6 +14,10 @@ on:
   pull_request:
     paths: [.github/workflows/keep-awake.yml]
 
+# Read-only: these jobs only read the code; nothing they run can push or change the repo.
+permissions:
+  contents: read
+
 jobs:
   wake:
     if: ${{ vars.APP_URL != '' }}
@@ -22,10 +26,10 @@ jobs:
     env:
       APP_URL: ${{ vars.APP_URL }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
-      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - run: pip install playwright==1.64.1 && python -m playwright install --with-deps chromium
       - name: Visit the dashboard
         run: python scripts/wake_app.py
