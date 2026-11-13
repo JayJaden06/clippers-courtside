@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
+import re
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from courtside.analysis import availability as A
 from courtside.analysis import gameplan as GP
 from courtside.analysis import gamereport as R
 from courtside.analysis import preview as P
@@ -48,7 +50,20 @@ def _upcoming(season: str) -> tuple[pd.DataFrame, list, pd.DataFrame, float | No
     tid = settings.team_id
     up = data.schedule[((data.schedule["home_id"] == tid) | (data.schedule["away_id"] == tid))
                        & (data.schedule["status"] < 3)].sort_values("tipoff_utc").reset_index(drop=True)
-    return up, [P.preview(g, teams, tid, shooting) for _, g in up.iterrows()], teams, shooting
+    # the injury report: who may sit, and what it's worth (analysis.availability)
+    values = A.player_values(data.player_season, data.league_periods, season_now, season_prev)
+    names_ = teams.set_index("team_id")["team_name"]
+    previews = []
+    for _, g in up.iterrows():
+        opp_tid = int(g["away_id"] if int(g["home_id"]) == tid else g["home_id"])
+        day = g["tipoff_utc"].tz_convert("America/New_York").normalize().tz_localize(None)
+        matchup = f"{g['away']}@{g['home']}"
+        team_out = A.missing(data.injuries, values, day, matchup, names_.get(tid, ""))
+        opp_out = A.missing(data.injuries, values, day, matchup, names_.get(opp_tid, ""))
+        pv = P.preview(g, teams, tid, shooting, injury_edge=A.edge(team_out, opp_out))
+        pv.injury_report, pv.team_out, pv.opp_out = A.has_report(data.injuries, day, matchup), team_out, opp_out
+        previews.append(pv)
+    return up, previews, teams, shooting
 
 
 def _hide_intro() -> None:
@@ -611,6 +626,53 @@ def _rating_line(who: str, t: pd.Series) -> str:
             f"({P._ord(t['ortg_rank'])}) and allow {t['drtg']:.1f} ({P._ord(t['drtg_rank'])}).")
 
 
+def _whos_out(pv, opp_id: int) -> None:
+    """Both teams' players on the league's injury report for this game, with what each one's absence is worth."""
+    ctx = current()
+    tid = ctx.settings.team_id
+    section("Who's out", "out",
+            "From the NBA's official injury report. Each player's value is how much his team's scoring margin "
+            "changes when he sits, counting only the part of him already in the team's numbers.")
+    if not pv.injury_report:
+        st.info("The league hasn't posted an injury report for this game yet (it comes out the day before). Until "
+                "then the odds assume both teams at their usual strength.", icon=":material/schedule:")
+        return
+
+    def card(team: str, logo: str, color: str, out: pd.DataFrame) -> str:
+        total = min(float(out["expected"].sum()), A.TEAM_CAP) if len(out) else 0.0
+        rows = []
+        for r in out.itertuples():
+            reason = re.sub(r"^Injury/Illness\s*-\s*", "", r.reason or "").strip() or "Not given"
+            if r.baked < 0.02:
+                note = "already missing from their numbers"
+            elif r.worth < 0.1:
+                note = "little measurable effect"
+            else:
+                note = (f"worth {r.worth:.1f} pts" + (f", counted at {A.STATUS_WEIGHT[r.status]:.0%}"
+                                                     if r.status != "Out" else ""))
+            pic = D.headshot_url(int(r.player_id), small=True) if pd.notna(r.player_id) else face(r.player_name)
+            rows.append(
+                '<div class="sc-row">' + (f'<img src="{pic}" alt="">' if pic else '<span class="o-blank"></span>')
+                + f'<div class="who"><b>{r.player_name}</b> '
+                f'<span class="o-status o-{r.status.lower()}">{r.status}</span><br>'
+                f'<span style="opacity:.65">{reason} · {note}</span></div>'
+                f'<div class="pts">{"−" + format(r.expected, ".1f") if r.expected >= 0.05 else ""}</div></div>')
+        return (f'<div class="scard"><div class="o-top" style="--tc:{color};--td:{D.shade(color)}">'
+                f'<img src="{logo}" alt=""><span>{team}</span><b>{"−" + format(total, ".1f") + " pts" if total >= 0.05 else "no effect"}</b></div>'
+                + ("".join(rows) or '<div class="sc-foot">Nobody listed.</div>') + '<div class="sc-foot"></div></div>')
+
+    oc = D.team_color(opp_id)
+    st.markdown('<div class="scards" style="--cols:2">'
+                + card("Clippers", D.logo_url(tid, dark=True), "#1d428a", pv.team_out)
+                + card(pv.opponent_name, D.logo_url(opp_id, dark=not D.is_light(oc)), oc, pv.opp_out) + "</div>",
+                unsafe_allow_html=True)
+    st.caption(f"Out counts fully, Doubtful {A.STATUS_WEIGHT['Doubtful']:.0%}, Questionable "
+               f"{A.STATUS_WEIGHT['Questionable']:.0%}. Value: on/off (team margin per 48 minutes with him on the "
+               f"floor minus off it, this season and last, shrunk toward zero), times his share of the minutes "
+               f"already in the team rating; never negative, at most {A.PLAYER_CAP:.0f} points a player and "
+               f"{A.TEAM_CAP:.0f} a team. Late scratches after the morning update aren't included.")
+
+
 def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None) -> None:
     """An upcoming game: the odds, a checklist of keys that updates them, matchups, and the tale of the tape."""
     ctx = current()
@@ -654,6 +716,8 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                       f"{'won' if r.result == 'W' else 'lost'} {int(r.team_pts)}-{int(r.opp_pts)}"
                       for r in h2h.itertuples()) + ".", "info", "plan"))
 
+    _whos_out(pv, opp_id)
+
     section(f"How to beat the {pv.opponent_name.split(' ')[-1]}", "plan",
             "The keys to this game from both teams' season numbers. Switch them on and off: the odds above "
             "update.")
@@ -680,7 +744,11 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                            opp_logo=D.logo_url(opp_id, dark=False)), max_width="900px")
         st.markdown(f'<div class="odds-note">Today <b>{pv.chance:.0%}</b>'
                     + (f' → with {len(chosen)} key{"s" if len(chosen) != 1 else ""} below <b>{chance:.0%}</b>'
-                       if chosen else " · switch on keys below to see what they're worth") + "</div>",
+                       if chosen else " · switch on keys below to see what they're worth") + "</div>"
+                    + (f'<div class="odds-note">Injuries: {abs(pv.injury_edge):.1f} points in '
+                       f'{"the Clippers&#39;" if pv.injury_edge > 0 else pv.opponent + "&#39;s"} favor, already '
+                       f'included (both at full strength: {P.win_chance(pv.margin - pv.injury_edge):.0%}). '
+                       '<a href="#out">Who&#39;s out</a></div>' if abs(pv.injury_edge) >= 0.05 else ""),
                     unsafe_allow_html=True)
         answer_cards(tiles, link=False)
 
@@ -702,6 +770,9 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
         for r in watch.itertuples():
             size = (f"{G._ft_in(r.height_in)}, {r.weight_lb:.0f} lb · " if pd.notna(r.height_in)
                     and pd.notna(r.weight_lb) else "")
+            listed = pv.opp_out[pv.opp_out["player_name"].map(A.name_key) == A.name_key(r.player_name)]                 if len(pv.opp_out) else pv.opp_out
+            flag = (f'<span class="o-status o-{listed.iloc[0]["status"].lower()}" style="margin-left:.4rem">'
+                    f'{listed.iloc[0]["status"]} tonight</span>' if len(listed) else "")
             guard = ""
             if r.guard_with:
                 vs = (f"allows {r.guard_pts100:.0f} pts per 100 possessions (team average: {defenders.team_pts100:.0f})"
@@ -713,7 +784,7 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                 f'<img class="logo" src="{D.logo_url(opp_id, dark=not D.is_light(tc))}" alt="">'
                 f'<img class="face" src="{D.headshot_url(int(r.player_id))}" alt="">'
                 f'<div class="sc-name">{r.player_name}</div></div>'
-                f'<div class="sc-pts">{r.pts:.1f}<span>ppg</span></div>'
+                f'<div class="sc-pts">{r.pts:.1f}<span>ppg</span>{flag}</div>'
                 f'<div class="sc-foot" style="padding-top:.1rem">{size}{r.reb:.1f} reb, {r.ast:.1f} ast in '
                 f'{r.min:.0f} min</div>{guard}<div class="sc-foot"></div></div>')
         st.markdown(f'<div class="scards" style="--cols:{min(len(cards), 3)}">{"".join(cards)}</div>',

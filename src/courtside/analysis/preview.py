@@ -97,13 +97,20 @@ class Preview:
     lac: pd.Series
     opp: pd.Series
     levers: list[Lever] = field(default_factory=list)
+    # the injury report's effect, already in ``margin`` and ``chance`` (see ``analysis.availability``)
+    injury_edge: float = 0.0
+    injury_report: bool = False  # whether the league's report covers this game yet
+    team_out: pd.DataFrame = field(default_factory=pd.DataFrame)
+    opp_out: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
-def preview(game: pd.Series, teams: pd.DataFrame, team_id: int, shooting_per_game: float | None = None) -> Preview:
+def preview(game: pd.Series, teams: pd.DataFrame, team_id: int, shooting_per_game: float | None = None,
+            injury_edge: float = 0.0) -> Preview:
     """Odds for one scheduled game. ``teams``: ``blended(team_table(...))`` for the current season.
 
     ``shooting_per_game``: the season's second-half shooting cost in points a game (negative), from
     the halftime breakdown; it becomes the "shoot as well after halftime as before it" lever.
+    ``injury_edge``: points the injury report moves the margin, from the team's side.
     """
     t = teams.set_index("team_id")
     home = int(game["home_id"]) == team_id
@@ -111,10 +118,10 @@ def preview(game: pd.Series, teams: pd.DataFrame, team_id: int, shooting_per_gam
     lac, opp = t.loc[team_id], t.loc[opp_id]
     pace = (lac["pace"] + opp["pace"]) / 2
     edge = 0.0 if game["neutral"] else (HOME_POINTS if home else -HOME_POINTS)
-    margin = (lac["blend_net"] - opp["blend_net"]) * pace / 100 + edge
+    margin = (lac["blend_net"] - opp["blend_net"]) * pace / 100 + edge + injury_edge
     p = Preview(game["away"] if home else game["home"], opp.name if isinstance(opp.name, str) else str(opp["team_name"]),
                 home, bool(game["neutral"]), game["tipoff_utc"], game.get("arena", ""), float(margin),
-                win_chance(margin), lac, opp)
+                win_chance(margin), lac, opp, injury_edge=injury_edge)
     p.opponent_name = str(opp["team_name"])
     lg = teams.mean(numeric_only=True)
     ppp = lac["pts"] / (lac["poss"] - lac["tov"])  # points per possession that doesn't end in a turnover

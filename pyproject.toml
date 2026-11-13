@@ -27,7 +27,9 @@ dependencies = [
 courtside = "courtside.cli:app"
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "pdfplumber>=0.11"]
+# reads the NBA's injury report (a PDF) during `courtside pull`/`build`; the website doesn't need it
+pipeline = ["pdfplumber>=0.11"]
 dashboard = ["streamlit>=1.67"]
 
 [tool.hatch.build.targets.wheel]

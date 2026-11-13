@@ -10,8 +10,9 @@ that push. It runs on this PC rather than on GitHub because stats.nba.com blocks
 
 It is careful with your work:
 - it skips (and logs why) if the repo isn't on main or has uncommitted changes;
-- it commits only when there's a new game, newly published tracking data, or new results
-  elsewhere in the league (for the next-game odds), and otherwise throws away the date-only
+- it commits only when there's a new game, newly published tracking data, new results
+  elsewhere in the league (for the next-game odds) or a change to the injury report for a
+  Clippers game, and otherwise throws away the date-only
   changes the rerun makes;
 - -DryRun does everything except commit and push, then puts the files back.
 
@@ -68,10 +69,12 @@ try {
     Invoke-Step "courtside all" $courtside @("all") | Out-Null
 
     # New Clippers games or tracking, other teams' results (league table, schedule) for the next-game odds,
-    # or roster moves (trades and signings happen on days without games too).
+    # roster moves (trades and signings happen on days without games too), or a change to who's on the injury
+    # report for a Clippers game (the file is only rewritten when a player or status changes).
     $news = git status --porcelain -- data/processed/games.parquet data/processed/matchups.parquet `
         data/processed/league_periods.parquet data/processed/schedule.parquet `
-        data/processed/roster.parquet data/processed/shots.parquet data/processed/player_history_halves.parquet
+        data/processed/roster.parquet data/processed/shots.parquet data/processed/player_history_halves.parquet `
+        data/processed/injuries.parquet
     if (-not $news) {
         Write-Log "No new games, tracking or league results; discarding the rerun's date-only changes."
         Restore-Data
