@@ -241,3 +241,15 @@ h1, .hero {font-weight: 800 !important}
 [data-testid="stHeadingWithActionElements"] h1::after, .hero::after {
   content: ""; display: block; width: 64px; height: 4px; margin-top: .45rem; border-radius: 2px;
   background: linear-gradient(90deg, #c8102e 0 50%, #1d428a 50% 100%)}
+
+/* the outscored five-man units, one row each, inside a dark "what decided it" card */
+.u-row {display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: .5rem; padding: .45rem 0;
+        border-top: 1px solid rgba(240, 239, 236, .14)}
+.u-row:first-child {border-top: 0; padding-top: .2rem}
+.u-faces {display: flex}
+.u-faces img {width: 26px; height: 26px; border-radius: 50%; object-fit: cover; object-position: top;
+              background: #3a4766; border: 1.5px solid #1b2440; margin-left: -7px}
+.u-faces img:first-child {margin-left: 0}
+.u-pm {font-weight: 800; font-size: 1.05rem; color: #f08a5d !important; text-align: right}
+.u-min {font-size: .78rem; opacity: .7; text-align: right}
+.u-who {grid-column: 1 / -1; font-size: .8rem; opacity: .8; margin-top: .2rem}

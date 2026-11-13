@@ -177,6 +177,19 @@ def next_up(box, up: pd.DataFrame, previews: list, teams: pd.DataFrame, shooting
                   on_click=_set_game, args=(f"pick_{season_now}", _future_label(t, pv, 0)))
 
 
+def _unit_rows(units, names: dict) -> str:
+    """The outscored five-man units as rows (faces, the five names, the score and minutes) instead of one run-on
+    sentence."""
+    ids = {v: k for k, v in names.items()}
+    return "".join(
+        '<div class="u-row"><div class="u-faces">'
+        + "".join(f'<img src="{D.headshot_url(ids[n], small=True)}" alt="" title="{n}" loading="lazy">'
+                  for n in unit if n in ids)
+        + f'</div><div class="u-pm">{signed(pm, 0)}</div><div class="u-min">{mins:.0f} min</div>'
+        f'<div class="u-who">{", ".join(short(n) for n in unit)}</div></div>'
+        for unit, pm, mins in units)
+
+
 def page_replay() -> None:
     ctx = current()
     data = ctx.data
@@ -465,7 +478,8 @@ def page_replay() -> None:
                    "worse add up to the difference between the two margins (plus a little the bookkeeping can't place).")
         if not won and lvs:
             st.markdown("**The fixes, biggest first**")
-            answer_cards([W.Verdict(lv.title, f"{lv.points:.0f} pts", "; ".join(lv.suggestions) or "—",
+            answer_cards([W.Verdict(lv.title, f"{lv.points:.0f} pts",
+                                    _unit_rows(lv.units, names) if lv.units else "; ".join(lv.suggestions) or "—",
                                     "bad", "decided") for lv in lvs], link=False, big_size="1.5rem")
 
     # ---- who played
@@ -656,22 +670,39 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
         answer_cards(tiles, link=False)
 
     # ---- matchups
-    defenders = W.defenders(data.matchups, data.hustle, data.bio, season_now, "LAC") if len(data.matchups) else None
+    # 30+ tracked possessions, so there are enough Clippers to give each scorer his own (the biggest scorer picks
+    # first from the 100+ group; see who_to_watch)
+    defenders = W.defenders(data.matchups, data.hustle, data.bio, season_now, "LAC",
+                            min_poss=30) if len(data.matchups) else None
     watch = P.who_to_watch(data.player_season, data.bio, season_now, pv.opponent,
                            defenders.table if defenders is not None else None)
     longs = P.long_rotation(data.player_season, data.bio, season_now, pv.opponent)
     if len(watch):
         section("Matchups: who guards their scorers", "watch",
-                f"{pv.opponent}'s top scorers this season, and the Clipper best suited to guard each (closest in size, "
-                "fewest points allowed per possession from player tracking).")
-        ids = data.player_season.set_index("player_name")["player_id"].to_dict()
-        answer_cards([W.Verdict(
-            r.player_name, f"{r.pts:.1f} ppg",
-            (f"{G._ft_in(r.height_in)}, {r.weight_lb:.0f} lb. " if pd.notna(r.height_in) and pd.notna(r.weight_lb)
-             else "") + f"{r.reb:.1f} reb, {r.ast:.1f} ast in {r.min:.0f} min. "
-            + (f"Guard him with: {r.guard_with.rstrip('.')}." if r.guard_with else ""), "warn", "watch",
-            image=D.headshot_url(ids[r.player_name]) if r.player_name in ids else None)
-            for r in watch.itertuples()], link=False)
+                f"{pv.opponent}'s top scorers this season, and a different Clipper for each: the best defender goes "
+                "to the biggest scorer, each one close in size and allowing the fewest points per possession "
+                "(player tracking).")
+        tc = D.team_color(opp_id)
+        cards = []
+        for r in watch.itertuples():
+            size = (f"{G._ft_in(r.height_in)}, {r.weight_lb:.0f} lb · " if pd.notna(r.height_in)
+                    and pd.notna(r.weight_lb) else "")
+            guard = ""
+            if r.guard_with:
+                vs = (f"allows {r.guard_pts100:.0f} pts per 100 possessions (team average: {defenders.team_pts100:.0f})"
+                      if pd.notna(r.guard_pts100) and defenders is not None else "")
+                guard = (f'<div class="sc-row"><img src="{face(r.guard_with) or ""}" alt=""><div class="who">'
+                         f'Guard him with <b>{r.guard_with}</b><br><span style="opacity:.65">{vs}</span></div></div>')
+            cards.append(
+                f'<div class="scard"><div class="sc-top" style="--tc:{tc};--td:{D.shade(tc)}">'
+                f'<img class="logo" src="{D.logo_url(opp_id, dark=not D.is_light(tc))}" alt="">'
+                f'<img class="face" src="{D.headshot_url(int(r.player_id))}" alt="">'
+                f'<div class="sc-name">{r.player_name}</div></div>'
+                f'<div class="sc-pts">{r.pts:.1f}<span>ppg</span></div>'
+                f'<div class="sc-foot" style="padding-top:.1rem">{size}{r.reb:.1f} reb, {r.ast:.1f} ast in '
+                f'{r.min:.0f} min</div>{guard}<div class="sc-foot"></div></div>')
+        st.markdown(f'<div class="scards" style="--cols:{min(len(cards), 3)}">{"".join(cards)}</div>',
+                    unsafe_allow_html=True)
         if len(longs) >= P.LONG_ROTATION:
             st.warning(f"{pv.opponent} plays {len(longs)} players between 6'6\" and 6'10\" in its top eight "
                        f"({', '.join(longs)}). {focus_last} turns it over about twice as often against defenders "

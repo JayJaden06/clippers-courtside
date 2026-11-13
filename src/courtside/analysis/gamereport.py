@@ -239,6 +239,8 @@ class Lever:
     title: str
     points: float  # points lost against a normal night (positive number)
     suggestions: list[str]
+    # for the five-man units entry: (the five names, plus-minus, minutes), worst first, so the page can draw rows
+    units: list[tuple[tuple[str, ...], int, float]] = field(default_factory=list)
 
 
 def _short(name: str) -> str:
@@ -311,7 +313,8 @@ def levers(factors: pd.DataFrame, lines: pd.DataFrame, season_box: pd.DataFrame,
         title = "A five-man unit that got outscored" if len(bad) == 1 else f"{len(bad)} five-man units that got outscored"
         out.append(Lever("unit", title, float(-bad["plus_minus"].sum()),
                          [f"{', '.join(_short(n) for n in u.unit)}: {u.plus_minus:+d} in {u.minutes:.0f} min"
-                          for u in bad.itertuples()]))
+                          for u in bad.itertuples()],
+                         [(tuple(u.unit), int(u.plus_minus), float(u.minutes)) for u in bad.itertuples()]))
     return out
 
 

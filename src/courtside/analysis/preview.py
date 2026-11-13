@@ -156,25 +156,32 @@ def who_to_watch(player_season: pd.DataFrame, bio: pd.DataFrame, season: str, op
 
     Suggested defender: among Clippers with 100+ tracked possessions on defense, the one allowing the
     fewest points per 100 possessions guarded whose height is within 3 inches of the scorer's (or the
-    tallest available if none is). Anyone who would give up 25+ lb is skipped.
+    tallest available if none is). Anyone who would give up 25+ lb is skipped. One Clipper can't guard
+    two players at once, so the biggest scorer picks first and each defender is used once; if the
+    100-possession pool runs out, anyone with 30+ is considered.
     """
     ps = player_season[(player_season["season"] == season) & (player_season["team_abbreviation"] == opp)]
     ps = ps[ps["gp"] >= max(1, ps["gp"].max() // 3)].sort_values("pts", ascending=False).head(top)
     b = bio.sort_values("season").drop_duplicates("player_id", keep="last").set_index("player_id")
-    rows = []
-    for r in ps.itertuples():
+    rows, used = [], set()
+    for r in ps.itertuples():  # biggest scorer first, so he gets the best defender
         ht, wt = b["height_in"].get(r.player_id), b["weight_lb"].get(r.player_id)
-        pick = None
+        pick, pick_pts = None, None
         if defenders is not None and len(defenders) and pd.notna(ht):
-            d = defenders[defenders["poss"] >= 100]
-            if pd.notna(wt):
-                d = d[(wt - d["own_wt"]) < 25]
-            close = d[(d["own_ht"] - ht).abs() <= 3]
-            pool = close if len(close) else d.sort_values("own_ht", ascending=False).head(3)
-            if len(pool):
-                pick = pool.sort_values("pts100").iloc[0]["player_name"]
-        rows.append({"player_name": r.player_name, "pts": r.pts, "reb": r.reb, "ast": r.ast, "min": r.min,
-                     "height_in": ht, "weight_lb": wt, "guard_with": pick})
+            for min_poss in (100, 30):
+                d = defenders[(defenders["poss"] >= min_poss) & ~defenders["player_name"].isin(used)]
+                if pd.notna(wt):
+                    d = d[(wt - d["own_wt"]) < 25]
+                close = d[(d["own_ht"] - ht).abs() <= 3]
+                pool = close if len(close) else d.sort_values("own_ht", ascending=False).head(3)
+                if len(pool):
+                    best = pool.sort_values("pts100").iloc[0]
+                    pick, pick_pts = best["player_name"], float(best["pts100"])
+                    used.add(pick)
+                    break
+        rows.append({"player_name": r.player_name, "player_id": r.player_id, "pts": r.pts, "reb": r.reb,
+                     "ast": r.ast, "min": r.min, "height_in": ht, "weight_lb": wt, "guard_with": pick,
+                     "guard_pts100": pick_pts})
     return pd.DataFrame(rows)
 
 
