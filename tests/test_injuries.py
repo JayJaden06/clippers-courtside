@@ -81,3 +81,15 @@ def test_values_count_only_what_is_already_in_the_team_rating():
 def test_team_total_is_capped():
     big = pd.DataFrame({"expected": [A.PLAYER_CAP] * 4})
     assert A.edge(big.iloc[0:0], big) == A.TEAM_CAP
+
+
+def test_explain_says_why_a_player_counts_little():
+    from types import SimpleNamespace as R
+    new = A.explain(R(gp_now=0, gp_prev=0, team_games=12, onoff=0.0))
+    assert "Hasn't played for them yet" in new
+    hurt = A.explain(R(gp_now=3, gp_prev=33, team_games=12, onoff=0.3))
+    assert "3 of their 12 games" in hurt and "Last season" in hurt and "about the same" in hurt
+    star = A.explain(R(gp_now=12, gp_prev=70, team_games=12, onoff=7.0))
+    assert star == "With him on the floor they're about 7.0 points per 48 minutes better."
+    gone = A.explain(R(gp_now=0, gp_prev=60, team_games=12, onoff=-1.2))
+    assert "Hasn't played this season" in gone and "hasn't been better" in gone
