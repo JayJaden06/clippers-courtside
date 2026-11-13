@@ -216,3 +216,23 @@ def test_games_missing_spots_a_refresh_that_hasnt_run():
     # the Nov 9 game finished a day ago and isn't in; tonight's game and preseason don't count
     assert list(missing["game_id"]) == ["0022600002"]
     assert D.games_missing(sched, pd.DataFrame({"game_id": ["0022600001", "0022600002"]}), lac, now).empty
+
+
+def test_text_from_the_data_cannot_become_markup():
+    import pandas as pd
+
+    df = D.clean_frame(pd.DataFrame({"player_name": ["Darius Garland", '<img src=x onerror="alert(1)">',
+                                                     "De'Aaron Fox"],
+                                     "unit": [("A", "<b>B</b>"), ("C",), ("D",)], "pts": [1, 2, 3]}))
+    for v in list(df["player_name"]) + [x for u in df["unit"] for x in u]:
+        assert not set(v) & set('<>"`')
+    assert df["player_name"].iloc[2] == "De'Aaron Fox" and df["pts"].tolist() == [1, 2, 3]
+    assert D.clean_text({"a": ["<x>", 1]}) == {"a": ["x", 1]}
+
+
+def test_loaded_data_has_no_markup_characters(data):
+    for name in ("player_box", "games", "schedule", "matchups"):
+        df = getattr(data, name)
+        for col in df.columns:
+            if df[col].dtype == object or str(df[col].dtype) in ("str", "string"):
+                assert not df[col].astype(str).str.contains('[<>"`]', regex=True).any(), (name, col)
