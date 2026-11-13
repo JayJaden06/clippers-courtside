@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from courtside.names import short_names
 from courtside.analysis.decompose import FACTOR_LABELS, FACTORS, decompose_frame
 from courtside.transform.halves import summarize
 from courtside.transform.league_context import METRICS
@@ -370,9 +371,8 @@ def last_names(player_box: pd.DataFrame, season: str, team: str) -> dict[str, in
     """Last name -> player id for one team's players this season, leaving out last names two of them share."""
     pb = player_box[(player_box["season"] == season) & (player_box["team_abbreviation"] == team)]
     roster = pb.drop_duplicates("player_id")[["player_name", "player_id"]]
-    last = roster["player_name"].str.split(" ", n=1).str[-1]
-    keep = ~last.duplicated(keep=False)
-    return dict(zip(last[keep], roster.loc[keep, "player_id"].astype(int)))
+    shorts = short_names(roster["player_name"])  # unique last names, or "B. Miller" when two share one
+    return {shorts[n]: int(pid) for n, pid in zip(roster["player_name"], roster["player_id"])}
 
 
 def names_in(text: str, full: dict[str, int], last: dict[str, int]) -> list[int]:
