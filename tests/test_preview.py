@@ -8,7 +8,6 @@ import pandas as pd
 import pytest
 
 from courtside.analysis import preview as P
-from courtside.ingest.schedule import next_game
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
@@ -45,18 +44,6 @@ def test_ratings_blend_and_home_court():
     away = P.preview(pd.Series(game.to_dict() | {"home_id": 2, "away_id": 1, "home": "PHX", "away": "LAC"}),
                      t.reset_index(), 1)
     assert away.margin == pytest.approx(100 * 10 / 100 - P.HOME_POINTS) and not away.home
-
-
-def test_next_game_skips_finished_games():
-    now = pd.Timestamp("2026-11-09 12:00", tz="UTC")
-    s = pd.DataFrame([
-        {"game_id": "a", "status": 3, "tipoff_utc": pd.Timestamp("2026-11-08 03:00", tz="UTC"), "home_id": 1, "away_id": 2},
-        {"game_id": "b", "status": 1, "tipoff_utc": pd.Timestamp("2026-11-11 02:00", tz="UTC"), "home_id": 3, "away_id": 1},
-        {"game_id": "c", "status": 1, "tipoff_utc": pd.Timestamp("2026-11-13 03:00", tz="UTC"), "home_id": 1, "away_id": 4},
-        {"game_id": "d", "status": 1, "tipoff_utc": pd.Timestamp("2026-11-10 03:00", tz="UTC"), "home_id": 5, "away_id": 6},
-    ])
-    assert next_game(s, 1, now)["game_id"] == "b"
-    assert next_game(s[s["game_id"] == "a"], 1, now) is None
 
 
 @pytest.mark.skipif(not (PROCESSED / "league_periods.parquet").exists(), reason="run courtside build")

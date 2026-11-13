@@ -484,34 +484,3 @@ def scoreboard(team: str, opp: str, team_q: list[int], opp_q: list[int], won: bo
                 f"{'Won' if won else 'Lost'}.")
 
 
-# ------------------------------------------------------------------ 1 in N, as basketballs
-
-def _ball(cx: float, cy: float, r: float, fill: str, line: str) -> str:
-    return (f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="{fill}"/>'
-            f'<path d="M{cx - r:.1f} {cy:.1f} H{cx + r:.1f} M{cx:.1f} {cy - r:.1f} V{cy + r:.1f}" '
-            f'stroke="{line}" stroke-width="1.2" fill="none"/>')
-
-
-def ball_ladder(rows: list[tuple[str, float, float]], c: Ink = PAGE, max_balls: int = 25) -> str:
-    """One row per player: N basketballs, one orange, for '1 turnover every N plays' after halftime.
-
-    ``rows``: (name, plays per turnover before halftime, plays per turnover after halftime).
-    """
-    r, step, x0, row_h = 9.5, 23, 190, 44
-    body = [_text(x0, 22, "After halftime: one turnover every … plays", 15, c.muted, 700, anchor="start"),
-            _text(x0 + step * max_balls + 40, 22, "Before halftime", 15, c.muted, 700, anchor="start")]
-    for i, (name, before, after) in enumerate(rows):
-        y = 58 + i * row_h
-        n = max(1, round(after))
-        body.append(_text(x0 - 16, y + 6, name, 17, c.ink, 700, anchor="end"))
-        for k in range(min(n, max_balls)):
-            body.append(_ball(x0 + r + k * step, y, r, c.bad if k == 0 else c.empty, "#1a1a19" if k == 0 else c.gray))
-        label = f"{n}" + ("+" if n > max_balls else "")
-        body.append(_text(x0 + min(n, max_balls) * step + 8, y + 6, label, 17, c.bad if n <= 5 else c.ink, 800,
-                          anchor="start"))
-        b = f"every {before:.0f}" if before == before and before > 0 else "no turnovers"
-        body.append(_text(x0 + step * max_balls + 40, y + 6, b, 16, c.muted, anchor="start"))
-    width = x0 + step * max_balls + 180
-    return _svg(width, 40 + row_h * len(rows), "".join(body),
-                "How often each player's second-half plays end in a turnover: "
-                + "; ".join(f"{name} one in {after:.0f}" for name, _, after in rows))

@@ -36,14 +36,6 @@ def load_schedule(client: NBAClient, season: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def next_game(schedule: pd.DataFrame, team_id: int, now: pd.Timestamp | None = None) -> pd.Series | None:
-    """The team's next game that hasn't finished (status 1 or 2), or None at the end of the season."""
-    now = now or pd.Timestamp.now(tz="UTC")
-    mine = schedule[((schedule["home_id"] == team_id) | (schedule["away_id"] == team_id)) & (schedule["status"] < 3)]
-    mine = mine[mine["tipoff_utc"] >= now - pd.Timedelta(hours=4)].sort_values("tipoff_utc")
-    return mine.iloc[0] if len(mine) else None
-
-
 def load_player_season(client: NBAClient, season: str, season_type: str) -> pd.DataFrame:
     raw = client.get(LeagueDashPlayerStats, season=season, season_type_all_star=season_type,
                      per_mode_detailed="PerGame")

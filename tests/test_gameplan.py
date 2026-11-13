@@ -62,5 +62,3 @@ def test_turnover_key_follows_how_much_they_force():
     assert "turnovers" in keys and keys["turnovers"].chance > 0.5
     pv, keys2 = _plan(_teams(lac_kw={"tov": 190}, opp_kw={"opp_tov": 190}))
     assert keys2["turnovers"].points > keys["turnovers"].points  # worse at home, worse against them
-    pts, chance = GP.plan_ceiling(pv, list(keys2.values()))
-    assert chance >= keys2["turnovers"].chance

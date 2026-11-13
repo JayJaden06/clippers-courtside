@@ -170,7 +170,3 @@ def game_plan(pv: Preview, teams: pd.DataFrame, misc: pd.DataFrame, players: pd.
     return sorted(keys, key=lambda k: -k.points)
 
 
-def plan_ceiling(pv: Preview, keys: list[Key], n: int = 3) -> tuple[float, float]:
-    """Points and win chance if the top ``n`` keys all happen (an optimistic ceiling: keys overlap)."""
-    pts = sum(k.points for k in keys[:n])
-    return pts, win_chance(pv.margin + pts)
