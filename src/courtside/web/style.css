@@ -1,0 +1,243 @@
+/* Clippers Courtside styles. Loaded once per run by courtside.web.ui.inject_style(). */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap');
+
+.kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .65; margin-bottom: .2rem}
+.hero {font-size: clamp(1.9rem, 4vw, 3rem); font-weight: 800; line-height: 1.08; margin: 0 0 .6rem 0}
+.lede {font-size: 1.15rem; opacity: .85; max-width: 52rem; margin-bottom: 1.2rem}
+.story {font-size: 1.12rem; line-height: 1.55}
+.big-q {font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem}
+.rank {font-size: 2.4rem; font-weight: 800; line-height: 1; text-align: center; opacity: .8}
+div[data-testid="stMetricValue"] {font-size: 1.9rem}
+.jump {display: flex; flex-wrap: wrap; gap: .45rem; margin: .4rem 0 1.4rem 0}
+.jump a {text-decoration: none; font-size: .9rem; padding: .3rem .8rem; border-radius: 999px;
+         border: 1px solid rgba(137,135,129,.45); color: inherit}
+.jump a:hover {border-color: #3987e5; color: #3987e5}
+.tldr {border-left: 4px solid #d95926; padding: .2rem 0 .2rem 1rem; margin: .6rem 0 .4rem 0}
+.tldr li {margin-bottom: .35rem; font-size: 1.05rem}
+.vcards {display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: .8rem; margin: .4rem 0 1rem 0}
+[data-testid="stMainBlockContainer"] {padding-top: 60px}  /* every page opens with a band, right under the menu */
+/* the style-only blocks take no room (their styles still apply) */
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] style) {display: none}
+.vcard {display: flex; flex-direction: column; gap: .15rem; text-decoration: none !important; color: #f0efec !important;
+        background: linear-gradient(160deg, #1f3364 0%, #14213f 62%); box-shadow: 0 6px 18px rgba(19,33,63,.16); border: 1px solid #2c2c29; border-radius: 14px;
+        padding: .9rem 1rem .85rem 1rem; transition: transform .12s, border-color .12s}
+a.vcard:hover {transform: translateY(-2px); border-color: #4a5a85}
+.vcard :is(div, span, p) {color: #f0efec}
+.nextup, .pcard, .scard .sc-top {color: #f0efec}
+.v-title {font-weight: 650; font-size: .9rem; line-height: 1.25; opacity: .8}
+.v-dot {display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-right: .4rem;
+        vertical-align: .08rem}
+.v-big {font-size: 1.95rem; font-weight: 800; line-height: 1.1; margin: .15rem 0 .1rem 0; letter-spacing: -.01em}
+.v-mini svg {width: 100%; max-width: 280px; height: 46px; display: block; margin: .15rem 0 .25rem 0}
+.v-small {font-size: .84rem; opacity: .7; line-height: 1.32}
+.v-img {width: 74px; height: 54px; object-fit: cover; object-position: top; border-radius: 10px;
+         background: #2c2c29; margin-bottom: .35rem}
+.vcard:has(.v-img) .v-big {font-size: 1.6rem}
+[data-testid="stHeaderLogo"] {height: 2.4rem; max-height: 2.4rem}
+.vcards.intro {grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))}
+#games-list {scroll-margin-top: 4rem}
+[data-testid="stLayoutWrapper"]:has(> .st-key-gamebar) {position: sticky; top: 3.6rem; z-index: 60}
+.st-key-gamebar {background: #f6f5f1; padding: .35rem 0 .55rem 0; border-bottom: 1px solid #dedbd2}
+.lineup {display: flex; align-items: center; gap: .9rem; padding: .55rem .2rem; border-bottom: 1px solid #e3e0d8}
+.lineup .faces {display: flex}
+.lineup .faces img {width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: top;
+                    background: #e3e0d8; border: 2px solid #f6f5f1; margin-left: -10px}
+.lineup .faces img:first-child {margin-left: 0}
+.v-faces {display: flex; margin-bottom: .4rem}
+.v-faces img {width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: top;
+              background: #2c2c29; border: 2px solid #1e1e1c; margin-left: -12px}
+.v-faces img:first-child {margin-left: 0}
+.lineup .who {flex: 1; font-size: .92rem; opacity: .85}
+.lineup .pm {font-size: 1.35rem; font-weight: 800; min-width: 4.5rem; text-align: right}
+.lineup .min {font-size: .82rem; opacity: .6; min-width: 3.5rem}
+[class*="st-key-gcard_"] {padding: .55rem .6rem !important; gap: .25rem}
+.st-key-gcard_sel {border-color: #d95926 !important; background: #fbefe8}
+.gc {padding-bottom: .9rem}
+/* ---- matchup cards: Clippers navy and the opponent's color, split on a diagonal */
+.gm {position: relative; height: 62px; border-radius: 10px; overflow: hidden; margin: -.1rem 0 1rem 0;
+     background: linear-gradient(115deg, #1d428a 0 48%, #f0efec 48% 50%, var(--opp) 50% 100%)}
+.gm img {position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; object-fit: contain;
+         filter: drop-shadow(0 1px 3px rgba(0,0,0,.45))}
+.gm .lac {left: 11%} .gm .opp {right: 11%}
+/* ---- color bands, after the team site: a light band for each page's header, a navy band for its key cards */
+/* bands fill the full width with border-image (paints outside the box without widening the page), and
+   fade into the page color at their edges so sections ease into each other */
+[class*="st-key-band_"] {position: relative; padding: 1.8rem 0 1.9rem 0; margin: 0}
+/* bands that follow each other touch (no strip of page color between them) */
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-band_"]) + [data-testid="stLayoutWrapper"]:has(> [class*="st-key-band_"]) {
+  margin-top: -16px}
+[class*="st-key-band_light"] {border-image: linear-gradient(180deg, #ffffff 0%, #ffffff 72%, #f6f5f1 100%)
+                               fill 0 // 0 100vmax}
+[class*="st-key-band_navy"] {border-image: linear-gradient(180deg, #f6f5f1 0, #e6ebf5 56px, #e6ebf5 calc(100% - 56px),
+                                                       #f6f5f1 100%) fill 0 // 0 100vmax}
+h1, .hero {color: #13213f}
+[class*="st-key-band_light"] .kicker {opacity: .7}
+[class*="st-key-band_light"] .page-sub, [class*="st-key-band_light"] .lede {opacity: .85}
+
+/* ---- Next up: the next game as the page's banner, over a faint drawn court */
+.nextup {position: relative; overflow: hidden; border-radius: 18px; padding: 1.3rem 1.6rem 1.2rem 1.6rem;
+         margin: .4rem 0 1.2rem 0; border: 1px solid #2c3550;
+         background: radial-gradient(70% 140% at 100% 50%, color-mix(in srgb, var(--opp) 42%, transparent) 0%,
+                                     transparent 70%),
+                     radial-gradient(120% 140% at 0% 0%, #1d2a4a 0%, #141a2b 45%, #141413 100%)}
+.nextup::before {content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--opp)}
+.nextup .court {position: absolute; right: -40px; top: -10px; width: 560px; opacity: .10; pointer-events: none}
+.nu-kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .75}
+.nu-row {display: flex; align-items: center; gap: 1.1rem; margin: .5rem 0 .35rem 0; position: relative}
+.nu-row img {width: 74px; height: 74px; object-fit: contain}
+.nu-at {font-size: 1.6rem; opacity: .6; font-weight: 700}
+.nu-name {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2.3rem; line-height: 1}
+.nu-chance {margin-left: auto; text-align: right}
+.nu-chance b {font-family: 'Barlow Condensed', sans-serif; font-size: 3.2rem; line-height: 1; display: block}
+.nu-chance span {font-size: .85rem; opacity: .75}
+.nu-key {position: relative; font-size: 1.02rem; opacity: .92; max-width: 46rem}
+.nu-key b {color: #f0efec}
+/* ---- player cards: trading-card style, one row that scrolls sideways */
+.pcards {display: flex; gap: .8rem; overflow-x: auto; padding: .2rem .1rem .8rem .1rem; margin-bottom: .6rem}
+.pcard {flex: 0 0 172px; border-radius: 14px; overflow: hidden; border: 1px solid #2c2c29; background: #1b1b19}
+.pc-top {position: relative; height: 128px; background: linear-gradient(160deg, #1d428a 0%, #26335a 55%, #c8102e 140%)}
+.pc-top img {position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 118px}
+.pc-num {position: absolute; z-index: 1; top: .4rem; left: .6rem; font-family: 'Barlow Condensed', sans-serif;
+         font-weight: 800; font-size: 1.7rem; line-height: 1; color: #f0efec; text-shadow: 0 1px 6px rgba(0,0,0,.6)}
+.pc-pos {position: absolute; top: .55rem; right: .6rem; font-size: .72rem; letter-spacing: .08em; opacity: .8}
+.pc-body {padding: .55rem .7rem .7rem .7rem}
+.pc-name {font-weight: 700; font-size: .95rem; line-height: 1.15}
+.pc-stats {display: flex; gap: .9rem; margin-top: .35rem}
+.pc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; display: block; line-height: 1}
+.pc-stats span {font-size: .72rem; opacity: .7; line-height: 1.15; display: block}
+/* ---- opposing scorers: photo on their team's color, defenders listed underneath */
+.scards {display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: .9rem; margin: .4rem 0 1rem 0}
+.scard {border-radius: 14px; overflow: hidden; background: #ffffff; border: 1px solid #e3e0d8;
+        box-shadow: 0 6px 18px rgba(19,33,63,.08); animation: rise .45s ease-out both}
+.sc-top {position: relative; height: 118px; background: linear-gradient(150deg, var(--tc) 0%, var(--td) 100%)}
+.sc-top img.face {position: absolute; bottom: 0; right: .6rem; height: 112px}
+.sc-top img.logo {position: absolute; top: .6rem; left: .7rem; width: 34px; height: 34px; object-fit: contain}
+.sc-name {position: absolute; left: .8rem; bottom: .55rem; font-weight: 800; font-size: 1.05rem; line-height: 1.1;
+          text-shadow: 0 1px 6px rgba(0,0,0,.45); max-width: 55%}
+.sc-pts {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2rem; padding: .5rem .9rem 0 .9rem}
+.sc-pts span {font-family: inherit; font-size: .95rem; font-weight: 600; opacity: .6; margin-left: .25rem}
+.sc-row {display: flex; align-items: center; gap: .55rem; padding: .35rem .9rem; border-top: 1px solid #f0ede6}
+.sc-row img {width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: top; background: #e3e0d8}
+.sc-row .who {flex: 1; font-size: .88rem}
+.sc-row .pts {font-weight: 800}
+.sc-foot {font-size: .78rem; opacity: .65; padding: .4rem .9rem .7rem .9rem}
+/* ---- returning players: the trading card, with what they'd bring as colored chips */
+.rcards {display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: .9rem; margin: .6rem 0 1rem 0}
+.rcards .pcard {flex: none}
+.rcards .pc-top {height: 140px}
+.rcards .pc-top img {height: 132px}
+.pc-status {font-size: .78rem; opacity: .75; margin-top: .15rem}
+.chips {display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem}
+.chip {font-size: .74rem; font-weight: 700; padding: .14rem .55rem; border-radius: 999px; color: #fff}
+/* ---- one player: a wide card with his numbers */
+.hero-card {display: grid; grid-template-columns: 220px 1fr; border-radius: 16px; overflow: hidden; margin: .4rem 0 1rem 0;
+            background: #ffffff; border: 1px solid #e3e0d8; box-shadow: 0 6px 18px rgba(19,33,63,.08)}
+.hc-photo {position: relative; background: linear-gradient(160deg, #1d428a 0%, #26335a 55%, #c8102e 150%); min-height: 170px}
+.hc-photo img {position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 160px}
+.hc-photo .pc-num {font-size: 2rem}
+.hc-body {padding: 1rem 1.3rem}
+.hc-name {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2rem; line-height: 1; color: #13213f}
+.hc-stats {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-top: .8rem}
+.hc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; display: block; line-height: 1}
+.hc-stats span {font-size: .8rem; opacity: .7; line-height: 1.2; display: block; margin-top: .2rem}
+.hc-up {color: #d95926} .hc-down {color: #3987e5}
+/* ---- white panels on the off-white page: every chart and drawing sits on its own card */
+/* the panel goes on the chart's wrapper, so the chart sizes itself to the inside of the panel */
+[data-testid="stElementContainer"]:has(.stPlotlyChart) {background: #ffffff; border-radius: 16px;
+  padding: .7rem .9rem .35rem .9rem; box-shadow: 0 4px 16px rgba(19,33,63,.07)}
+.gfx {background: #ffffff; border-radius: 16px; padding: 1rem 1.2rem; box-shadow: 0 4px 16px rgba(19,33,63,.07);
+      margin-bottom: .6rem}
+.gfx.bare {background: none; box-shadow: none; padding: 0}
+/* ---- side panels: the numbers that go with a drawing, beside it */
+.cmp {background: #ffffff; border-radius: 16px; padding: 1rem 1.2rem .6rem 1.2rem;
+      box-shadow: 0 4px 16px rgba(19,33,63,.07)}
+.cmp h4 {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.35rem; margin: 0 0 .25rem 0;
+         color: #13213f; padding: 0}
+.cmp-row {padding: .6rem 0 .45rem 0; border-top: 1px solid #f0ede6}
+.cmp-top {display: flex; justify-content: space-between; align-items: baseline; gap: .6rem}
+.cmp-label {font-weight: 650; font-size: .92rem}
+.cmp-vals {font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; font-weight: 800; white-space: nowrap}
+.cmp-vals .b {color: #7f7d77; font-weight: 600}
+.cmp-sub {font-size: .78rem; opacity: .7; margin-top: .1rem}
+.trk {position: relative; height: 14px; margin: .35rem 0 .1rem 0}
+.trk::before {content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: #ebe8e1;
+              border-radius: 2px}
+.trk .ln {position: absolute; top: 6px; height: 2px; opacity: .6}
+.trk .dot {position: absolute; top: 1px; width: 12px; height: 12px; border-radius: 50%; transform: translateX(-50%)}
+.who-row {display: flex; align-items: center; gap: .65rem; padding: .5rem 0; border-top: 1px solid #f0ede6}
+.who-row img {width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top;
+              background: #e3e0d8}
+.who-row .nm {flex: 1; font-size: .92rem; line-height: 1.2}
+.who-row .nm span {font-size: .78rem; opacity: .65}
+.who-row .n {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.5rem; color: #d95926}
+/* ---- who gets sloppier: one row per player, before (gray) to after (colored), two columns */
+.slop {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1rem; margin: .4rem 0 1rem 0}
+.slop-row {display: grid; grid-template-columns: 52px 1fr auto; gap: .2rem .8rem; align-items: center;
+           background: #ffffff; border-radius: 14px; padding: .7rem .9rem; box-shadow: 0 4px 16px rgba(19,33,63,.07)}
+.slop-row img {grid-row: span 2; width: 52px; height: 52px; border-radius: 50%; object-fit: cover;
+               object-position: top; background: #e3e0d8}
+.slop-row .nm {font-weight: 700}
+.slop-row .vals {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 800; text-align: right}
+.slop-row .vals .b {color: #7f7d77; font-weight: 600}
+.slop-row .trk {grid-column: 2 / 4; margin: 0}
+.chip.sm {font-size: .7rem; padding: .08rem .45rem; margin-left: .4rem; vertical-align: .1rem}
+/* ---- On this page: section pills that stay under the menu and light up as you scroll */
+[data-testid="stLayoutWrapper"]:has(> [class*="st-key-toc_"]) {position: sticky; top: 60px; z-index: 55}
+[class*="st-key-toc_"]:has(nav.toc) {background: rgba(246,245,241,.95); backdrop-filter: blur(6px);
+                                     padding: .45rem 0 .5rem 0; border-bottom: 1px solid #e3e0d8}
+nav.toc {display: flex; flex-wrap: wrap; align-items: center; gap: .4rem}
+nav.toc .lbl {font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; opacity: .6; margin-right: .3rem}
+nav.toc a {text-decoration: none; font-size: .85rem; font-weight: 600; padding: .25rem .75rem; border-radius: 999px;
+           color: #13213f; background: #ffffff; border: 1px solid #e3e0d8; transition: all .15s}
+nav.toc a:hover {border-color: #1d428a}
+nav.toc a.on {background: #13213f; color: #ffffff; border-color: #13213f}
+.st-key-gamebar nav.toc {margin-top: .45rem}
+h2, h3 {scroll-margin-top: 150px}
+/* ---- the data is behind: a game finished but the morning refresh hasn't brought it in */
+.behind {margin: .6rem 0 0 0; padding: .55rem .9rem; border-radius: 10px; background: #fff3e8; color: #8a3a12;
+         border: 1px solid #f3c9a8; font-size: .9rem}
+/* ---- small motion: cards rise in, mini-charts draw left to right, cards lift on hover */
+@keyframes rise {from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none}}
+@keyframes draw {from {clip-path: inset(0 100% 0 0)} to {clip-path: inset(0 0 0 0)}}
+.vcard, .pcard, .nextup {animation: rise .45s ease-out both}
+.vcard:nth-child(2), .pcard:nth-child(2) {animation-delay: .05s}
+.vcard:nth-child(3), .pcard:nth-child(3) {animation-delay: .10s}
+.vcard:nth-child(4), .pcard:nth-child(4) {animation-delay: .15s}
+.vcard:nth-child(n+5), .pcard:nth-child(n+5) {animation-delay: .20s}
+.v-mini svg {animation: draw .8s ease-out .2s both}
+.pcard {transition: transform .12s, border-color .12s}
+.pcard:hover {transform: translateY(-3px); border-color: #4a4a45}
+@media (prefers-reduced-motion: reduce) {.vcard, .pcard, .nextup, .v-mini svg {animation: none}}
+.gc-date {font-size: .78rem; opacity: .7}
+.gc-opp {font-weight: 750; font-size: 1.02rem}
+.gc-status {font-weight: 700; font-size: .9rem}
+.ledger-sum {font-size: 1.25rem; margin: .2rem 0 .8rem 0}
+.ledger {background: #ffffff; border: 1px solid #e3e0d8; border-radius: 14px; padding: .8rem 1rem}
+.ledger .lhead {font-weight: 750; margin-bottom: .45rem}
+.ledger-row {display: grid; grid-template-columns: 1.6fr 1fr auto; gap: .7rem; align-items: center;
+             padding: .38rem 0; border-top: 1px solid #eeebe4}
+.ledger .lname {font-size: .95rem}
+.ledger .lbar {height: 10px; background: #ebe8e1; border-radius: 6px; overflow: hidden}
+.ledger .lbar span {display: block; height: 100%; border-radius: 6px}
+.ledger .lval {font-weight: 800; font-size: 1.1rem; min-width: 3.4rem; text-align: right}
+.ledger .lempty {opacity: .6; font-size: .9rem}
+.kval {font-weight: 800; font-size: 1.05rem; color: #3987e5; margin-top: .3rem}
+.kval span {font-weight: 500; font-size: .82rem; color: inherit; opacity: .75}
+.kwhy {font-size: .9rem; opacity: .85; line-height: 1.4}
+.lean {display: flex; gap: .55rem; align-items: center; margin: .2rem 0}
+.lean img {width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top;
+           background: #2c2c29}
+.lean span {font-size: .8rem; opacity: .7}
+.odds-note {text-align: center; font-size: 1.1rem; margin: -.2rem 0 .8rem 0}
+.takeaway {font-size: 1.18rem; margin: .2rem 0 .8rem 0}
+.page-sub {opacity: .75; font-size: 1.05rem; margin-top: -.6rem; margin-bottom: .8rem}
+
+/* ---- headlines and big numbers in a condensed sports face; body text keeps the theme font */
+h1, h2, h3, .hero, .v-big, .rank, .gc-opp, .ledger-sum b, div[data-testid="stMetricValue"] {
+  font-family: 'Barlow Condensed', 'Source Sans Pro', sans-serif !important; letter-spacing: .005em}
+h1, .hero {font-weight: 800 !important}
+.hero {font-size: clamp(2.2rem, 4.6vw, 3.4rem)}
+.v-big {font-size: 2.2rem}
+[data-testid="stHeadingWithActionElements"] h1::after, .hero::after {
+  content: ""; display: block; width: 64px; height: 4px; margin-top: .45rem; border-radius: 2px;
+  background: linear-gradient(90deg, #c8102e 0 50%, #1d428a 50% 100%)}
