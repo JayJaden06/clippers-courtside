@@ -6,18 +6,49 @@ Run with ``courtside dashboard`` (or ``streamlit run dashboard/app.py``). Reads 
 This script runs once per visitor interaction. It loads the data (cached until a refresh lands), builds the run's
 context (``courtside.web.context``), sets up the menu and draws the page. The pages live in ``courtside.web.views``,
 the pieces they share in ``courtside.web.ui``, and the styling in ``courtside/web/style.css``.
+
+If anything fails, visitors get a friendly "come back later" message and the full error goes to the logs
+(Streamlit Cloud: Manage app -> Logs). Tests, and anyone who sets COURTSIDE_SHOW_ERRORS=1, see the real error.
 """
 
 from __future__ import annotations
 
+import logging
+import os
+
 import streamlit as st
 
-from courtside.config import get_settings
-from courtside.names import set_team, short
-from courtside.viz import dashboard_data as D
-from courtside.web import ui
-from courtside.web.context import Ctx, use
-from courtside.web.views import blown_leads, games, league, players, what_now
+log = logging.getLogger("courtside.web")
+SHOW_ERRORS = os.environ.get("COURTSIDE_SHOW_ERRORS") == "1"
+
+
+def sorry() -> None:
+    """What a visitor sees when the site can't draw a page. Needs nothing but Streamlit, so it works even if the
+    rest of the site failed to load (say, mid-update)."""
+    st.markdown(
+        '<div style="max-width:40rem;margin:4rem auto;padding:2rem 2.2rem;border-radius:18px;background:#ffffff;'
+        'box-shadow:0 6px 18px rgba(19,33,63,.10);text-align:center">'
+        '<div style="font-size:2.6rem;line-height:1">🏀</div>'
+        '<h2 style="margin:.6rem 0 .4rem 0;color:#13213f">Sorry, this page isn\'t loading right now</h2>'
+        '<p style="font-size:1.05rem;opacity:.8;margin:0">The site may be updating with the latest game, which only '
+        "takes a minute or two. Please try again shortly.</p></div>", unsafe_allow_html=True)
+    if st.button("Try again", icon=":material/refresh:"):
+        st.rerun()
+
+
+try:  # if the site's own code can't load (an update landing mid-visit), still say something friendly
+    from courtside.config import get_settings
+    from courtside.names import set_team, short
+    from courtside.viz import dashboard_data as D
+    from courtside.web import ui
+    from courtside.web.context import Ctx, use
+    from courtside.web.views import blown_leads, games, league, players, what_now
+except Exception:
+    if SHOW_ERRORS:
+        raise
+    log.exception("the site failed to load")
+    sorry()
+    st.stop()
 
 settings = get_settings()
 st.set_page_config(page_title="Clippers Courtside", page_icon=D.logo_url(settings.team_id), layout="wide",
@@ -40,10 +71,15 @@ def load(stamp: tuple[float, int]) -> D.DashboardData:
     return D.load(settings.processed_dir, settings.reports_dir / "analysis.json")
 
 
+# Tests run a specific page by setting this in session state (AppTest can't change the URL); they want real errors.
+forced = st.session_state.get("_dashboard_page")
 try:
     data = load(data_stamp())
-except FileNotFoundError as e:
-    st.error(f"Processed data not found ({e.filename}). Run `courtside build` and `courtside analyze` first.")
+except Exception:
+    if SHOW_ERRORS or forced:
+        raise
+    log.exception("the data failed to load (run `courtside build` and `courtside analyze`?)")
+    sorry()
     st.stop()
 
 meta = data.analysis.get("meta", {})
@@ -73,10 +109,21 @@ ctx.pages.update({
 # The default page lives at "/"; this hidden twin makes a shared /games link work too.
 games_link = st.Page(games.page_replay, title="Games", url_path="games", visibility="hidden")
 nav = st.navigation(list(ctx.pages.values()) + [games_link], position="top")
-ui.behind_notice()
-# Tests run a specific page by setting this in session state (AppTest can't change the URL).
-forced = st.session_state.get("_dashboard_page")
-if forced in RENDER:
-    RENDER[forced]()
-else:
-    nav.run()
+
+# The page draws into one slot, so a failure partway through can clear what was drawn and show the apology instead.
+# (Streamlit's own reruns and stops aren't Exceptions, so they pass straight through.)
+slot = st.empty()
+try:
+    with slot.container():
+        ui.behind_notice()
+        # (statements, not one conditional expression: Streamlit "magic" would print a bare expression's value)
+        if forced in RENDER:
+            RENDER[forced]()
+        else:
+            nav.run()
+except Exception:
+    if SHOW_ERRORS or forced:
+        raise
+    log.exception("page %s failed", forced or "from the menu")
+    slot.empty()
+    sorry()

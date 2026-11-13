@@ -754,7 +754,7 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
                            + (f"; {_names([f'{_last(c.name)} {c.fg3_pct:.0%}' for c in others])}" if others else "")
                            + f". The Clippers shoot {sd.team_fg3_h2:.0%} now.", "good", "returning",
                            ("pair", sd.team_fg3_h2, max(c.fg3_pct for c in shooters), "LAC now",
-                            _last(max(shooters, key=lambda c: c.fg3_pct).name)[:9])))
+                            _last(max(shooters, key=lambda c: c.fg3_pct).name)[:10])))
     if gl is not None and gl.worse:
         out.append(Verdict("Finish possessions with a rebound", f"{gl.opp_oreb_h2:.0%}",
                            f"of their own missed shots the other team rebounds after halftime. Last season it was "
@@ -769,7 +769,7 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
             out.append(Verdict(f"{who} gets out-muscled", f"{r['own_wt']:.0f} vs {r['opp_wt']:.0f} lb",
                                f"{who}'s weight vs the average weight of the players {who} guards. They shoot "
                                f"{r['fg_pct']:.0%} against {who}.",
-                               "warn", "defense", ("pair", r["own_wt"], r["opp_wt"], who[:9], "guards")))
+                               "warn", "defense", ("pair", r["own_wt"], r["opp_wt"], who[:10], "guards")))
     if rot is not None and len(rot):
         more = rot[rot["earned"]]
         less = rot[rot["struggling"]]
@@ -782,7 +782,7 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
                                                      zip(m["player_name"].iloc[1:], m["h2_on_off"].iloc[1:]))
                                + ". Small samples.",
                                "good", "minutes", ("diverge", tuple(more["h2_on_off"]),
-                                                   tuple(_last(x)[:8] for x in more["player_name"]))))
+                                                   tuple(_last(x)[:10] for x in more["player_name"]))))
         if len(less):
             l_ = less.sort_values("h2_pm_pg")
             out.append(Verdict("Fewer late minutes: " + ", ".join(_last(x) for x in less["player_name"]),
@@ -791,5 +791,5 @@ def verdicts(sf: StartingFive | None, bl: BallLoad | None, cands: list[Candidate
                                + "".join(f"; {_last(x)} {v:+.0f}" for x, v in
                                          zip(l_["player_name"].iloc[1:], l_["h2_pm_pg"].iloc[1:])) + ".",
                                "bad", "minutes", ("diverge", tuple(less["h2_pm_pg"]),
-                                                  tuple(_last(x)[:8] for x in less["player_name"]))))
+                                                  tuple(_last(x)[:10] for x in less["player_name"]))))
     return out

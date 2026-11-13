@@ -236,3 +236,21 @@ def test_loaded_data_has_no_markup_characters(data):
         for col in df.columns:
             if df[col].dtype == object or str(df[col].dtype) in ("str", "string"):
                 assert not df[col].astype(str).str.contains('[<>"`]', regex=True).any(), (name, col)
+
+
+def test_a_failing_page_shows_an_apology_not_an_error(monkeypatch):
+    testing = pytest.importorskip("streamlit.testing.v1")
+    from courtside.web.views import games
+
+    def broken():
+        import streamlit as st
+        st.markdown("half-drawn content")
+        raise RuntimeError("something broke")
+
+    monkeypatch.setattr(games, "page_replay", broken)
+    at = testing.AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=120)
+    at.run()  # a visitor: no forced page, no COURTSIDE_SHOW_ERRORS
+    assert not at.exception
+    text = " ".join(m.value for m in at.markdown)
+    assert "isn't loading right now" in text and "half-drawn content" not in text
+    assert any(b.label == "Try again" for b in at.button)

@@ -303,6 +303,15 @@ def page_answer() -> None:
             fix_g = st.toggle(f"{focus_last}'s turnovers back to his last-season rate (about {signed(g_pts)} per game)",
                               key="fix_garland", disabled="turnovers" in fixed,
                               help="Already included if you fix all turnovers.")
+            # why a part that costs points has no switch: putting it back to last season changes nothing.
+            # Names like "Turnovers, Clippers vs opponents" are cut to "turnovers" so the list reads cleanly.
+            same = [n if n.startswith("Clippers") else n[0].lower() + n[1:]
+                    for n in (r.name.split(",")[0] for r in hurts if r not in fixable)]
+            if same:
+                listed = same[0] if len(same) == 1 else ", ".join(same[:-1]) + " and " + same[-1]
+                st.caption(f"No switch for {listed}: "
+                           f"{'it costs' if len(same) == 1 else 'they cost'} about the same as last season, "
+                           "so going back changes nothing.")
         new_h2 = S.what_if(hl["h2_per_game"], reasons, fixed, g_pts, fix_g)
         with right:
             st.metric("Second halves, per game", signed(new_h2), border=True,
