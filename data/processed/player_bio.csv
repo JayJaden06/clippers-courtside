@@ -837,7 +837,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630551,Justin Champagnie,WAS,25.0,78,206.0,Undrafted,False
 2026-27,1642348,Justin Edwards,PHI,22.0,79,217.0,Undrafted,False
 2026-27,1643510,Karim López,MEM,19.0,80,210.0,2026,True
-2026-27,1626157,Karl-Anthony Towns,NYK,30.0,84,248.0,2015,False
+2026-27,1626157,Karl-Anthony Towns,NYK,31.0,84,248.0,2015,False
 2026-27,1631255,Karlo Matković,NOP,25.0,83,255.0,2022,False
 2026-27,1642857,Kasparas Jakučionis,MIL,20.0,77,200.0,2025,False
 2026-27,202695,Kawhi Leonard,TOR,35.0,79,225.0,2011,False
@@ -849,6 +849,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629026,Kenrich Williams,OKC,31.0,79,210.0,Undrafted,False
 2026-27,203484,Kentavious Caldwell-Pope,PHI,33.0,77,204.0,2013,False
 2026-27,1631165,Keon Ellis,BKN,26.0,76,180.0,Undrafted,False
+2026-27,1642352,Keshad Johnson,MIA,25.0,78,230.0,Undrafted,False
 2026-27,201142,Kevin Durant,HOU,38.0,83,234.0,2007,False
 2026-27,1628989,Kevin Huerter,DET,28.0,78,190.0,2018,False
 2026-27,1626172,Kevon Looney,LAL,30.0,81,222.0,2015,False
@@ -1012,6 +1013,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1641739,Toumani Camara,POR,26.0,79,230.0,2023,False
 2026-27,1629027,Trae Young,WAS,28.0,73,164.0,2018,False
 2026-27,1631218,Trayce Jackson-Davis,TOR,26.0,81,245.0,2023,False
+2026-27,1643621,Tre Donaldson,MIA,22.0,73,200.0,Undrafted,False
 2026-27,1642848,Tre Johnson,WAS,20.0,77,190.0,2025,False
 2026-27,1630200,Tre Jones,CHI,26.0,73,190.0,2020,False
 2026-27,1630544,Tre Mann,WAS,25.0,76,178.0,2021,False
