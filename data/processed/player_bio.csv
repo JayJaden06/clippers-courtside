@@ -685,7 +685,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629655,Daniel Gafford,DAL,28.0,82,265.0,2019,False
 2026-27,1642450,Daniss Jenkins,DET,25.0,76,165.0,Undrafted,False
 2026-27,1642874,Danny Wolf,BKN,22.0,83,256.0,2025,False
-2026-27,1643411,Darius Acuff Jr.,SAC,19.0,74,190.0,2026,True
+2026-27,1643411,Darius Acuff Jr.,SAC,20.0,74,190.0,2026,True
 2026-27,1629636,Darius Garland,LAC,26.0,73,192.0,2019,False
 2026-27,1643408,Darryn Peterson,UTA,19.0,78,205.0,2026,True
 2026-27,1642357,David Jones Garcia,SAS,24.0,76,210.0,Undrafted,False
@@ -706,6 +706,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1628401,Derrick White,BOS,32.0,76,200.0,2017,False
 2026-27,1630217,Desmond Bane,ORL,28.0,78,215.0,2020,False
 2026-27,1626164,Devin Booker,PHX,30.0,77,206.0,2015,False
+2026-27,1642269,Devin Carter,BOS,24.0,74,199.0,2024,False
 2026-27,1630170,Devin Vassell,SAS,26.0,77,200.0,2020,False
 2026-27,1628415,Dillon Brooks,PHX,30.0,79,225.0,2017,False
 2026-27,1641759,Dillon Mitchell,BOS,23.0,78,200.0,2026,True
@@ -889,11 +890,12 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1642502,Malevy Leons,GSW,27.0,81,206.0,Undrafted,False
 2026-27,1643738,Malik Dia,NOP,22.0,81,256.0,Undrafted,False
 2026-27,1628370,Malik Monk,SAC,28.0,75,200.0,2017,False
-2026-27,1643576,Maliq Brown,SAS,22.0,80,225.0,2026,True
+2026-27,1643576,Maliq Brown,SAS,23.0,80,225.0,2026,True
 2026-27,1631204,Marcus Sasser,DAL,26.0,74,195.0,2023,False
 2026-27,203935,Marcus Smart,HOU,32.0,75,220.0,2014,False
 2026-27,1626209,Mario Hezonja,CLE,31.0,80,255.0,2015,False
 2026-27,1628963,Marvin Bagley III,DEN,27.0,82,235.0,2018,False
+2026-27,203486,Mason Plumlee,SAC,36.0,84,254.0,2013,False
 2026-27,1641824,Matas Buzelis,CHI,22.0,81,196.0,2024,False
 2026-27,1629680,Matisse Thybulle,LAL,29.0,77,202.0,2019,False
 2026-27,1631108,Max Christie,DAL,23.0,77,190.0,2022,False

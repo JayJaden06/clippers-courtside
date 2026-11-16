@@ -1,8 +1,8 @@
 factor,label,points,per_game,share_of_swing
-shooting,Clippers shooting (eFG%),-31.6572,-2.8779,0.519
-opp_shooting,Opponent shooting (eFG%),-16.4619,-1.4965,0.2699
-turnovers,Turnovers (shots lost / gained),-14.8694,-1.3518,0.2438
-residual,Unattributed (possession-accounting residual),6.3253,0.575,-0.1037
-free_throws,"Free throws (made FTs, net of trips)",-2.4486,-0.2226,0.0401
-pace,Pace (possessions),-1.6048,-0.1459,0.0263
-rebounding,Offensive rebounding,-0.2833,-0.0258,0.0046
+opp_shooting,Opponent shooting (eFG%),-24.4521,-2.0377,0.4795
+shooting,Clippers shooting (eFG%),-21.5868,-1.7989,0.4233
+turnovers,Turnovers (shots lost / gained),-17.9491,-1.4958,0.3519
+rebounding,Offensive rebounding,13.3338,1.1112,-0.2614
+residual,Unattributed (possession-accounting residual),4.3728,0.3644,-0.0857
+free_throws,"Free throws (made FTs, net of trips)",-3.7904,-0.3159,0.0743
+pace,Pace (possessions),-0.9281,-0.0773,0.0182
