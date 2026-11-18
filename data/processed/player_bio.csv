@@ -771,7 +771,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1631222,Jake LaRavia,LAL,25.0,80,235.0,2022,False
 2026-27,1627751,Jakob Poeltl,TOR,31.0,84,253.0,2016,False
 2026-27,1628973,Jalen Brunson,NYK,30.0,74,190.0,2018,False
-2026-27,1631105,Jalen Duren,DET,22.0,82,250.0,2022,False
+2026-27,1631105,Jalen Duren,DET,23.0,82,250.0,2022,False
 2026-27,1630224,Jalen Green,PHX,24.0,76,186.0,2021,False
 2026-27,1630552,Jalen Johnson,ATL,24.0,80,219.0,2021,False
 2026-27,1629618,Jalen Pickett,LAC,27.0,74,202.0,2023,False
@@ -826,7 +826,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630631,Jose Alvarado,NYK,28.0,72,179.0,Undrafted,False
 2026-27,1643717,Josh Dix,OKC,22.0,77,210.0,Undrafted,False
 2026-27,1630581,Josh Giddey,CHI,24.0,80,214.0,2021,False
-2026-27,1630182,Josh Green,UTA,25.0,78,200.0,2020,False
+2026-27,1630182,Josh Green,UTA,26.0,78,200.0,2020,False
 2026-27,1628404,Josh Hart,NYK,31.0,77,215.0,2017,False
 2026-27,1631169,Josh Minott,BKN,23.0,81,215.0,2022,False
 2026-27,1629006,Josh Okogie,UTA,28.0,76,213.0,2018,False
