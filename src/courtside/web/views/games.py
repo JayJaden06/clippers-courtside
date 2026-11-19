@@ -81,6 +81,7 @@ def _intro() -> None:
     ctx = current()
     data = ctx.data
     season_now = ctx.season_now
+    settings = ctx.settings
     g = data.games[data.games["season"] == season_now]
     wins, losses = int((g["result"] == "W").sum()), int((g["result"] == "L").sum())
     last = pd.to_datetime(g["game_date"]).max()
@@ -99,7 +100,8 @@ def _intro() -> None:
               None, None, "info")]
     if leads:
         tiles.append(("answer", "Blown leads", f"{blown} of {leads}",
-                      "early leads they let slip. Why the second half goes wrong.", ("dots", blown, leads), None,
+                      f"games they led by {settings.lead_threshold}+ early and still lost. Why the second half goes "
+                      "wrong.", ("dots", blown, leads), None,
                       "bad" if blown * 2 >= leads else "info"))
     if not np.isnan(h2):
         tiles.append(("what-now", "What now?", f"{signed(h2)} per game",
@@ -493,8 +495,18 @@ def page_replay() -> None:
                    "worse add up to the difference between the two margins (plus a little the bookkeeping can't place).")
         if not won and lvs:
             st.markdown("**The fixes, biggest first**")
-            answer_cards([W.Verdict(lv.title, f"{lv.points:.0f} pts",
-                                    _unit_rows(lv.units, names) if lv.units else "; ".join(lv.suggestions) or "—",
+            st.markdown('<div class="takeaway">Each number is how many points that part of the game cost them '
+                        "compared with their average game this season, not the points scored. The five-man units "
+                        "are different: the score while each group was on the floor.</div>", unsafe_allow_html=True)
+            this_, normal_ = factors.attrs.get("this", {}), factors.attrs.get("normal", {})
+
+            def fix_text(lv) -> str:
+                if lv.units:
+                    return _unit_rows(lv.units, names)
+                parts = [R.stat_line(lv.factor, this_, normal_, opp)] + lv.suggestions
+                return ". ".join(p for p in parts if p) + "." if any(parts) else "—"
+
+            answer_cards([W.Verdict(lv.title, f"−{lv.points:.0f}" + ("" if lv.units else " pts"), fix_text(lv),
                                     "bad", "decided") for lv in lvs], link=False, big_size="1.5rem")
 
     # ---- who was out, then who played
