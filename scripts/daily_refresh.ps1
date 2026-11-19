@@ -15,10 +15,12 @@ It is careful with your work:
   Clippers game, and otherwise throws away the date-only
   changes the rerun makes;
 - -DryRun does everything except commit and push, then puts the files back.
+- it waits up to 3 minutes for the internet after the PC wakes, and skips a run that starts
+  within 30 minutes of the last full one (-Force runs anyway).
 
 Each run writes logs\refresh-YYYY-MM-DD.log.
 #>
-param([switch]$DryRun)
+param([switch]$DryRun, [switch]$Force)
 
 # Native commands write progress to stderr; with "Stop", Windows PowerShell would treat that as
 # a failure. Exit codes are checked explicitly instead.
@@ -64,9 +66,25 @@ try {
         Write-Log "Skipped: there are uncommitted changes. Nothing changed."
         exit 0
     }
+    $stamp = Join-Path $logDir ".last-run"
+    if (-not $Force -and (Test-Path $stamp) -and ((Get-Date) - (Get-Item $stamp).LastWriteTime).TotalMinutes -lt 30) {
+        Write-Log "Skipped: the last refresh finished under 30 minutes ago (run with -Force to go anyway)."
+        exit 0
+    }
+    # Just after waking or signing in, Wi-Fi can take a moment: wait for GitHub to answer (up to 3 minutes).
+    $online = $false
+    foreach ($i in 1..18) {
+        try { Invoke-WebRequest -Uri "https://github.com" -Method Head -UseBasicParsing -TimeoutSec 10 | Out-Null; $online = $true; break }
+        catch { Start-Sleep -Seconds 10 }
+    }
+    if (-not $online) {
+        Write-Log "Skipped: no internet connection after 3 minutes. The next sign-in, unlock or 8:30am run will retry."
+        exit 0
+    }
     if (-not $DryRun) { Invoke-Step "git pull" "git" @("pull", "--ff-only") | Out-Null }
 
     Invoke-Step "courtside all" $courtside @("all") | Out-Null
+    if (-not $DryRun) { Set-Content -Path $stamp -Value (Get-Date -Format o) -Encoding utf8 }
 
     # New Clippers games or tracking, other teams' results (league table, schedule) for the next-game odds,
     # roster moves (trades and signings happen on days without games too), or a change to who's on the injury

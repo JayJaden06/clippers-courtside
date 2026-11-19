@@ -94,7 +94,35 @@ def vs_normal(game_halves: pd.DataFrame, game_id: str) -> pd.DataFrame:
     out = pd.DataFrame(rows)
     out.attrs["margin"] = float(this["pts"] - this["opp_pts"])
     out.attrs["normal_margin"] = float(avg["pts"] - avg["opp_pts"])
+    cols = [c for c in STAT_COLS if c in this.index]
+    out.attrs["this"] = {c: float(this[c]) for c in cols}  # for the plain-numbers line on each fix
+    out.attrs["normal"] = {c: float(avg[c]) for c in cols}
     return out
+
+
+STAT_COLS = ("efg_pct", "opp_efg_pct", "tov", "opp_tov", "oreb", "opp_oreb", "fta", "opp_fta")
+
+
+def stat_line(factor: str, this: dict, normal: dict, opp: str) -> str:
+    """The plain numbers behind a factor's points: this game against their average game this season."""
+    t, n = this, normal
+    try:
+        if factor == "shooting":
+            return f"They shot {t['efg_pct']:.0%} eFG; their usual is {n['efg_pct']:.0%}"
+        if factor == "opp_shooting":
+            return f"{opp} shot {t['opp_efg_pct']:.0%} eFG; opponents usually shoot {n['opp_efg_pct']:.0%} against them"
+        if factor == "turnovers":
+            return (f"{t['tov']:.0f} turnovers to {opp}'s {t['opp_tov']:.0f}; usually {n['tov']:.0f} to "
+                    f"{n['opp_tov']:.0f}")
+        if factor == "rebounding":
+            return (f"Offensive rebounds {t['oreb']:.0f} to {opp}'s {t['opp_oreb']:.0f}; usually {n['oreb']:.0f} to "
+                    f"{n['opp_oreb']:.0f}")
+        if factor == "free_throws":
+            return (f"Free throws attempted {t['fta']:.0f} to {opp}'s {t['opp_fta']:.0f}; usually {n['fta']:.0f} to "
+                    f"{n['opp_fta']:.0f}")
+    except KeyError:
+        pass
+    return ""
 
 
 # ------------------------------------------------------------------ who guarded whom
