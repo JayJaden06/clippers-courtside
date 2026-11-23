@@ -595,7 +595,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,201143,Al Horford,GSW,40.0,80,260.0,2007,False
 2026-27,1627936,Alex Caruso,OKC,32.0,77,186.0,Undrafted,False
 2026-27,1642284,Alex Karaban,SAC,24.0,79,220.0,2026,True
-2026-27,1631457,Alex Morales,ORL,28.0,78,195.0,Undrafted,False
+2026-27,1631457,Alex Morales,ORL,29.0,78,195.0,Undrafted,False
 2026-27,1642259,Alex Sarr,WAS,21.0,84,205.0,2024,False
 2026-27,1642918,Alijah Martin,TOR,24.0,74,210.0,2025,False
 2026-27,1643512,Allen Graves,TOR,20.0,80,225.0,2026,True
@@ -630,8 +630,8 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1643552,Braden Smith,IND,23.0,71,170.0,2026,True
 2026-27,1642382,Branden Carlson,POR,27.0,84,220.0,Undrafted,False
 2026-27,1641764,Brandin Podziemski,GSW,23.0,76,208.0,2023,False
-2026-27,1641706,Brandon Miller,CHA,23.0,79,210.0,2023,False
-2026-27,1630314,Brandon Williams,GSW,26.0,73,185.0,Undrafted,False
+2026-27,1641706,Brandon Miller,CHA,24.0,79,210.0,2023,False
+2026-27,1630314,Brandon Williams,GSW,27.0,73,185.0,Undrafted,False
 2026-27,1643415,Brayden Burries,MIL,21.0,76,205.0,2026,True
 2026-27,1641729,Brice Sensabaugh,UTA,23.0,78,225.0,2023,False
 2026-27,1642355,Bronny James,LAL,22.0,74,210.0,2024,False
@@ -669,7 +669,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1631128,Christian Braun,DEN,25.0,78,220.0,2022,False
 2026-27,203991,Clint Capela,HOU,32.0,82,256.0,2014,False
 2026-27,1629632,Coby White,CHA,26.0,77,206.0,2019,False
-2026-27,1642262,Cody Williams,MIN,21.0,79,190.0,2024,False
+2026-27,1642262,Cody Williams,MIN,22.0,79,190.0,2024,False
 2026-27,1630658,Colin Castleton,ORL,26.0,83,250.0,Undrafted,False
 2026-27,1631221,Collin Gillespie,PHX,27.0,73,195.0,Undrafted,False
 2026-27,1642867,Collin Murray-Boyles,TOR,21.0,79,245.0,2025,False
@@ -697,7 +697,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629001,De'Anthony Melton,GSW,28.0,74,199.0,2018,False
 2026-27,201599,DeAndre Jordan,NOP,38.0,83,280.0,2008,False
 2026-27,201942,DeMar DeRozan,DEN,37.0,78,220.0,2009,False
-2026-27,1629731,Dean Wade,PHI,29.0,81,228.0,Undrafted,False
+2026-27,1629731,Dean Wade,PHI,30.0,81,228.0,Undrafted,False
 2026-27,1629028,Deandre Ayton,WAS,28.0,84,252.0,2018,False
 2026-27,1627749,Dejounte Murray,NOP,30.0,76,188.0,2016,False
 2026-27,1630166,Deni Avdija,POR,25.0,80,228.0,2020,False
@@ -712,6 +712,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1628415,Dillon Brooks,PHX,30.0,79,225.0,2017,False
 2026-27,1641759,Dillon Mitchell,BOS,23.0,78,200.0,2026,True
 2026-27,1627734,Domantas Sabonis,SAC,30.0,82,240.0,2016,False
+2026-27,1631230,Dominick Barlow,PHI,23.0,81,224.0,Undrafted,False
 2026-27,1642270,Donovan Clingan,POR,22.0,86,280.0,2024,False
 2026-27,1628378,Donovan Mitchell,CLE,30.0,74,228.0,2017,False
 2026-27,1627827,Dorian Finney-Smith,ATL,33.0,79,220.0,Undrafted,False
@@ -737,7 +738,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1627777,Georges Niang,GSW,33.0,79,245.0,2016,False
 2026-27,203507,Giannis Antetokounmpo,MIA,31.0,83,250.0,2013,False
 2026-27,1629048,Goga Bitadze,ORL,27.0,83,235.0,2019,False
-2026-27,1641711,Gradey Dick,LAC,22.0,79,200.0,2023,False
+2026-27,1641711,Gradey Dick,LAC,23.0,79,200.0,2023,False
 2026-27,1643633,Graham Ike,GSW,24.0,82,245.0,Undrafted,False
 2026-27,1629684,Grant Williams,CHA,27.0,79,236.0,2019,False
 2026-27,1628960,Grayson Allen,CHA,31.0,76,218.0,2018,False
@@ -831,7 +832,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1628404,Josh Hart,NYK,31.0,77,215.0,2017,False
 2026-27,1631169,Josh Minott,BKN,23.0,81,215.0,2022,False
 2026-27,1629006,Josh Okogie,UTA,28.0,76,213.0,2018,False
-2026-27,1643538,Joshua Jefferson,BKN,22.0,80,250.0,2026,True
+2026-27,1643538,Joshua Jefferson,BKN,23.0,80,250.0,2026,True
 2026-27,201950,Jrue Holiday,POR,36.0,76,220.0,2009,False
 2026-27,1630577,Julian Champagnie,SAS,25.0,79,217.0,Undrafted,False
 2026-27,1642882,Julian Reese,NOP,23.0,83,230.0,Undrafted,False
@@ -1003,7 +1004,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1631106,Tari Eason,HOU,25.0,80,229.0,2022,False
 2026-27,1643542,Tarris Reed Jr.,SAS,23.0,82,265.0,2026,True
 2026-27,1627752,Taurean Prince,DET,32.0,78,218.0,2016,False
-2026-27,1641707,Taylor Hendricks,MEM,22.0,81,215.0,2023,False
+2026-27,1641707,Taylor Hendricks,MEM,23.0,81,215.0,2023,False
 2026-27,1629611,Terance Mann,BKN,30.0,77,220.0,2019,False
 2026-27,1630545,Terrence Shannon Jr,MIN,26.0,78,215.0,2024,False
 2026-27,1628418,Thomas Bryant,CLE,29.0,81,260.0,2017,False
@@ -1042,10 +1043,11 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1642954,Will Richard,GSW,23.0,75,210.0,2025,False
 2026-27,1642860,Will Riley,WAS,20.0,81,180.0,2025,False
 2026-27,1642905,Yang Hansen,POR,21.0,85,270.0,2025,False
+2026-27,1642949,Yanic Konan Niederhäuser,LAC,23.0,83,242.0,2025,False
 2026-27,1642865,Yaxel Lendeborg,GSW,24.0,81,247.0,2026,True
 2026-27,1642274,Yves Missi,NOP,22.0,83,236.0,2024,False
 2026-27,1642258,Zaccharie Risacher,DAL,21.0,80,200.0,2024,False
-2026-27,1628380,Zach Collins,CHI,28.0,81,240.0,2017,False
+2026-27,1628380,Zach Collins,CHI,29.0,81,240.0,2017,False
 2026-27,1641744,Zach Edey,MEM,24.0,88,305.0,2024,False
 2026-27,203897,Zach LaVine,SAC,31.0,77,200.0,2014,False
 2026-27,1630192,Zeke Nnaji,DEN,25.0,82,240.0,2020,False
