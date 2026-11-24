@@ -625,7 +625,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1631104,Blake Wesley,LAC,23.0,76,190.0,2022,False
 2026-27,1626171,Bobby Portis Jr.,MIA,31.0,82,250.0,2015,False
 2026-27,203992,Bogdan Bogdanović,HOU,34.0,77,231.0,2014,False
-2026-27,1642881,Bogoljub Markovic,MIL,21.0,82,210.0,2025,False
+2026-27,1642881,Bogoljub Marković,MIL,21.0,82,210.0,2025,False
 2026-27,1630538,Bones Hyland,MIN,26.0,74,169.0,2021,False
 2026-27,1643552,Braden Smith,IND,23.0,71,170.0,2026,True
 2026-27,1642382,Branden Carlson,POR,27.0,84,220.0,Undrafted,False
@@ -734,6 +734,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630532,Franz Wagner,ORL,25.0,82,230.0,2021,False
 2026-27,1627832,Fred VanVleet,HOU,32.0,72,213.0,Undrafted,False
 2026-27,1641713,GG Jackson,MEM,21.0,81,210.0,2023,False
+2026-27,1629216,Gabe Vincent,SAC,30.0,74,200.0,Undrafted,False
 2026-27,1627780,Gary Payton II,GSW,33.0,74,192.0,Undrafted,False
 2026-27,1629018,Gary Trent Jr.,MIL,27.0,76,204.0,2018,False
 2026-27,1627777,Georges Niang,GSW,33.0,79,245.0,2016,False
@@ -747,6 +748,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630611,Gui Santos,GSW,24.0,79,225.0,2022,False
 2026-27,1643419,Hannes Steinbach,CHA,20.0,82,248.0,2026,True
 2026-27,203084,Harrison Barnes,SAS,34.0,79,225.0,2012,False
+2026-27,1631127,Harrison Ingram,UTA,23.0,77,230.0,2024,False
 2026-27,1630529,Herbert Jones,NOP,28.0,79,210.0,2021,False
 2026-27,1642864,Hugo González,BOS,20.0,78,200.0,2025,False
 2026-27,1630193,Immanuel Quickley,TOR,27.0,75,190.0,2020,False
@@ -820,6 +822,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1628381,John Collins,DET,29.0,81,226.0,2017,False
 2026-27,1642910,John Tonje,POR,25.0,76,218.0,2025,False
 2026-27,1641780,Johni Broome,MIN,24.0,81,244.0,2025,False
+2026-27,1643265,Jonas Aidoo,UTA,23.0,83,240.0,Undrafted,False
 2026-27,1630228,Jonathan Kuminga,MIN,24.0,79,225.0,2021,False
 2026-27,1642367,Jonathan Mogbo,SAC,25.0,79,225.0,2024,False
 2026-27,203903,Jordan Clarkson,NYK,34.0,77,194.0,2014,False
@@ -866,6 +869,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,202691,Klay Thompson,MIA,36.0,77,200.0,2011,False
 2026-27,1643520,Koa Peat,PHX,19.0,80,235.0,2026,True
 2026-27,1641738,Kobe Brown,IND,26.0,79,250.0,2023,False
+2026-27,1641723,Kobe Bufkin,UTA,23.0,77,195.0,2023,False
 2026-27,1642920,Kobe Sanders,LAC,24.0,80,207.0,2025,False
 2026-27,1642851,Kon Knueppel,CHA,21.0,78,230.0,2025,False
 2026-27,1627739,Kris Dunn,LAC,32.0,75,205.0,2016,False
