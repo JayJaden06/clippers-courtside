@@ -26,7 +26,7 @@ Through 15 games of 2026-27, the Clippers are -0.8 per 100 possessions in first 
 
 **Answer: Probably.**
 
-Probably: net rating goes from -0.8 in first halves to -12.0 in second halves, a change of -11.3 per 100 possessions. That ranks 26th of 30 (league average change -0.1, so most teams barely move), and second halves were worse in 8 of 15 games. Some of it is regression: first-half eFG% was 0.555 (10th in the league, +0.014 vs the league's first-half average). But the second half (0.539, 16th) is +0.005 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.552 first-half eFG% vs a league average of 0.541; 3P% 0.383) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 15 games (30 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -25.7 to +2.9, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.
+Probably: net rating goes from -0.8 in first halves to -12.0 in second halves, a change of -11.3 per 100 possessions. That ranks 26th of 30 (league average change -0.1, so most teams barely move), and second halves were worse in 8 of 15 games. Some of it is regression: first-half eFG% was 0.555 (10th in the league, +0.014 vs the league's first-half average). But the second half (0.539, 16th) is +0.005 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.552 first-half eFG% vs a league average of 0.542; 3P% 0.383) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 15 games (30 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -25.7 to +2.9, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.
 
 ![margin_small_multiples.png](figures/margin_small_multiples.png)
 
@@ -48,8 +48,8 @@ Probably: net rating goes from -0.8 in first halves to -12.0 in second halves, a
 
 | half | clippers_efg | league_avg_efg | clippers_minus_league | clippers_prior_season_efg |
 |---|---|---|---|---|
-| H1 | 0.555 | 0.541 | 0.014 | 0.549 |
-| H2 | 0.539 | 0.534 | 0.005 | 0.569 |
+| H1 | 0.555 | 0.542 | 0.014 | 0.549 |
+| H2 | 0.539 | 0.533 | 0.005 | 0.569 |
 
 ## H2. Turnovers drive it
 
@@ -150,7 +150,7 @@ Fouling is a minor part of the collapse on the scoreboard, and it is a chronic h
 
 **Answer: Mostly yes, but it is the Clippers' shooting, not the opponents'.**
 
-Mostly yes, but it is the Clippers' shooting, not the opponents'. Clippers eFG% falls from 0.555 to 0.539 (-0.017; 90% interval -0.069 to +0.030), the 12th-largest drop in the league, and 3P% from 0.407 to 0.368. Opponents shoot better after halftime (0.552 -> 0.577; interval -0.024 to +0.077), so the answer to 'do opponents just shoot better after halftime?' is yes. In the decomposition, Clippers shooting accounts for -20.9 of the -84-point swing; the other factors roughly cancel (opponent shooting -33.3, turnovers -26.1, rebounding +5.4, free throws -9.5, unattributed +1.0). Offensive rebounds allowed rise (0.274 -> 0.304, change ranked 20th), worth +5.4 points net; pace barely moves (100.7 -> 99.0). Last season the same shooting factor was +1.6 points per game; this season it is -1.4. Sample: 15 games (30 halves), so treat every number here as a lead, not a settled rate.
+Mostly yes, but it is the Clippers' shooting, not the opponents'. Clippers eFG% falls from 0.555 to 0.539 (-0.017; 90% interval -0.069 to +0.030), the 14th-largest drop in the league, and 3P% from 0.407 to 0.368. Opponents shoot better after halftime (0.552 -> 0.577; interval -0.024 to +0.077), so the answer to 'do opponents just shoot better after halftime?' is yes. In the decomposition, Clippers shooting accounts for -20.9 of the -84-point swing; the other factors roughly cancel (opponent shooting -33.3, turnovers -26.1, rebounding +5.4, free throws -9.5, unattributed +1.0). Offensive rebounds allowed rise (0.274 -> 0.304, change ranked 20th), worth +5.4 points net; pace barely moves (100.7 -> 99.0). Last season the same shooting factor was +1.6 points per game; this season it is -1.4. Sample: 15 games (30 halves), so treat every number here as a lead, not a settled rate.
 
 ![half_team_stats.png](figures/half_team_stats.png)
 
@@ -226,7 +226,7 @@ Last season the Clippers were essentially even after halftime (+0.5 per game in 
 
 ## Methodology
 
-- **Data.** Every 2026-27 and 2025-26 Clippers regular-season game from stats.nba.com via `nba_api`: game logs, box scores filtered to each half (`BoxScoreTraditionalV3`, `AdvancedV3`, `MiscV3`), play-by-play, on/off and lineup dashboards by period, and league-wide team dashboards by period for ranks. 2026-27 data through 2026-11-21; analyzed on 2026-11-22.
+- **Data.** Every 2026-27 and 2025-26 Clippers regular-season game from stats.nba.com via `nba_api`: game logs, box scores filtered to each half (`BoxScoreTraditionalV3`, `AdvancedV3`, `MiscV3`), play-by-play, on/off and lineup dashboards by period, and league-wide team dashboards by period for ranks. 2026-27 data through 2026-11-21; analyzed on 2026-11-23.
 - **Halves.** Period filters on the V3 box-score endpoints are only honoured with `range_type=1`; without it they silently return the full game. Every pull checks that H1 + H2 (+ OT) equals the full-game box score, that play-by-play final scores match, and that the halftime margin from play-by-play matches the H1 box score. Overtime is kept separate and excluded from 1H vs 2H comparisons.
 - **Rates.** All rates (eFG%, TOV%, FT rate, ratings) are recomputed from summed counts, never averaged across games. Possessions follow the NBA's box-score estimate.
 - **Attribution.** Points = 2 x eFG% x FGA + FTM for each side, and the change from first to second half is split exactly with the midpoint rule; shot volume is then split with FGA = possessions + OREB - TOV - free-throw trips. The factors sum exactly to the change in margin. What can't be placed is reported as "unattributed" rather than folded into another factor. It describes where the points went, not why.

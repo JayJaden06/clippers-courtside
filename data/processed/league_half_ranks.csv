@@ -989,366 +989,366 @@ season,team_id,team_name,split,metric,value,rank,is_team,league_mean
 2025-26,1610612738,Boston Celtics,change,tov_pct,2.024,28,False,0.5364
 2025-26,1610612751,Brooklyn Nets,change,tov_pct,2.1062,29,False,0.5364
 2025-26,1610612756,Phoenix Suns,change,tov_pct,2.1848,30,False,0.5364
-2026-27,1610612738,Boston Celtics,H1,drtg,99.1566,1,False,113.0811
-2026-27,1610612745,Houston Rockets,H1,drtg,102.6159,2,False,113.0811
-2026-27,1610612752,New York Knicks,H1,drtg,104.0195,3,False,113.0811
-2026-27,1610612750,Minnesota Timberwolves,H1,drtg,104.9769,4,False,113.0811
-2026-27,1610612760,Oklahoma City Thunder,H1,drtg,106.0465,5,False,113.0811
-2026-27,1610612759,San Antonio Spurs,H1,drtg,108.3726,6,False,113.0811
-2026-27,1610612744,Golden State Warriors,H1,drtg,109.9291,7,False,113.0811
-2026-27,1610612765,Detroit Pistons,H1,drtg,110.2372,8,False,113.0811
-2026-27,1610612737,Atlanta Hawks,H1,drtg,110.9865,9,False,113.0811
-2026-27,1610612746,LA Clippers,H1,drtg,111.2583,10,True,113.0811
-2026-27,1610612757,Portland Trail Blazers,H1,drtg,111.9018,11,False,113.0811
-2026-27,1610612739,Cleveland Cavaliers,H1,drtg,112.4709,12,False,113.0811
-2026-27,1610612766,Charlotte Hornets,H1,drtg,112.7891,13,False,113.0811
-2026-27,1610612755,Philadelphia 76ers,H1,drtg,113.6416,14,False,113.0811
-2026-27,1610612743,Denver Nuggets,H1,drtg,113.9257,15,False,113.0811
-2026-27,1610612747,Los Angeles Lakers,H1,drtg,114.2357,16,False,113.0811
-2026-27,1610612761,Toronto Raptors,H1,drtg,114.359,17,False,113.0811
-2026-27,1610612754,Indiana Pacers,H1,drtg,114.4495,18,False,113.0811
-2026-27,1610612748,Miami Heat,H1,drtg,114.5103,19,False,113.0811
-2026-27,1610612763,Memphis Grizzlies,H1,drtg,114.7332,20,False,113.0811
-2026-27,1610612740,New Orleans Pelicans,H1,drtg,115.1351,21,False,113.0811
-2026-27,1610612742,Dallas Mavericks,H1,drtg,116.0798,22,False,113.0811
-2026-27,1610612753,Orlando Magic,H1,drtg,117.1137,23,False,113.0811
-2026-27,1610612749,Milwaukee Bucks,H1,drtg,117.1329,24,False,113.0811
-2026-27,1610612762,Utah Jazz,H1,drtg,117.1617,25,False,113.0811
-2026-27,1610612756,Phoenix Suns,H1,drtg,117.4324,26,False,113.0811
-2026-27,1610612764,Washington Wizards,H1,drtg,118.3537,27,False,113.0811
-2026-27,1610612741,Chicago Bulls,H1,drtg,119.2771,28,False,113.0811
-2026-27,1610612758,Sacramento Kings,H1,drtg,125.031,29,False,113.0811
-2026-27,1610612751,Brooklyn Nets,H1,drtg,125.1007,30,False,113.0811
-2026-27,1610612750,Minnesota Timberwolves,H2,drtg,102.4823,1,False,113.8025
-2026-27,1610612759,San Antonio Spurs,H2,drtg,104.3373,2,False,113.8025
-2026-27,1610612763,Memphis Grizzlies,H2,drtg,106.8019,3,False,113.8025
-2026-27,1610612737,Atlanta Hawks,H2,drtg,107.9254,4,False,113.8025
-2026-27,1610612765,Detroit Pistons,H2,drtg,108.0207,5,False,113.8025
-2026-27,1610612757,Portland Trail Blazers,H2,drtg,108.2487,6,False,113.8025
-2026-27,1610612742,Dallas Mavericks,H2,drtg,109.4899,7,False,113.8025
-2026-27,1610612762,Utah Jazz,H2,drtg,111.1111,8,False,113.8025
-2026-27,1610612755,Philadelphia 76ers,H2,drtg,111.3636,9,False,113.8025
-2026-27,1610612752,New York Knicks,H2,drtg,111.4178,10,False,113.8025
-2026-27,1610612738,Boston Celtics,H2,drtg,112.4069,11,False,113.8025
-2026-27,1610612761,Toronto Raptors,H2,drtg,112.5,12,False,113.8025
-2026-27,1610612764,Washington Wizards,H2,drtg,112.5,12,False,113.8025
-2026-27,1610612751,Brooklyn Nets,H2,drtg,112.7175,14,False,113.8025
-2026-27,1610612753,Orlando Magic,H2,drtg,113.0829,15,False,113.8025
-2026-27,1610612758,Sacramento Kings,H2,drtg,113.1148,16,False,113.8025
-2026-27,1610612747,Los Angeles Lakers,H2,drtg,113.5876,17,False,113.8025
-2026-27,1610612754,Indiana Pacers,H2,drtg,114.0662,18,False,113.8025
-2026-27,1610612760,Oklahoma City Thunder,H2,drtg,114.234,19,False,113.8025
-2026-27,1610612756,Phoenix Suns,H2,drtg,115.6038,20,False,113.8025
-2026-27,1610612766,Charlotte Hornets,H2,drtg,115.7969,21,False,113.8025
-2026-27,1610612744,Golden State Warriors,H2,drtg,116.3855,22,False,113.8025
-2026-27,1610612743,Denver Nuggets,H2,drtg,117.0124,23,False,113.8025
-2026-27,1610612748,Miami Heat,H2,drtg,117.9012,24,False,113.8025
-2026-27,1610612739,Cleveland Cavaliers,H2,drtg,118.2783,25,False,113.8025
-2026-27,1610612741,Chicago Bulls,H2,drtg,119.3154,26,False,113.8025
-2026-27,1610612746,LA Clippers,H2,drtg,123.1806,27,True,113.8025
-2026-27,1610612740,New Orleans Pelicans,H2,drtg,123.4375,28,False,113.8025
-2026-27,1610612749,Milwaukee Bucks,H2,drtg,123.5772,29,False,113.8025
-2026-27,1610612745,Houston Rockets,H2,drtg,124.1758,30,False,113.8025
-2026-27,1610612751,Brooklyn Nets,change,drtg,-12.3831,1,False,0.7213
-2026-27,1610612758,Sacramento Kings,change,drtg,-11.9162,2,False,0.7213
-2026-27,1610612763,Memphis Grizzlies,change,drtg,-7.9313,3,False,0.7213
-2026-27,1610612742,Dallas Mavericks,change,drtg,-6.5899,4,False,0.7213
-2026-27,1610612762,Utah Jazz,change,drtg,-6.0506,5,False,0.7213
-2026-27,1610612764,Washington Wizards,change,drtg,-5.8537,6,False,0.7213
-2026-27,1610612759,San Antonio Spurs,change,drtg,-4.0353,7,False,0.7213
-2026-27,1610612753,Orlando Magic,change,drtg,-4.0308,8,False,0.7213
-2026-27,1610612757,Portland Trail Blazers,change,drtg,-3.6531,9,False,0.7213
-2026-27,1610612737,Atlanta Hawks,change,drtg,-3.0611,10,False,0.7213
-2026-27,1610612750,Minnesota Timberwolves,change,drtg,-2.4946,11,False,0.7213
-2026-27,1610612755,Philadelphia 76ers,change,drtg,-2.278,12,False,0.7213
-2026-27,1610612765,Detroit Pistons,change,drtg,-2.2165,13,False,0.7213
-2026-27,1610612761,Toronto Raptors,change,drtg,-1.859,14,False,0.7213
-2026-27,1610612756,Phoenix Suns,change,drtg,-1.8286,15,False,0.7213
-2026-27,1610612747,Los Angeles Lakers,change,drtg,-0.6481,16,False,0.7213
-2026-27,1610612754,Indiana Pacers,change,drtg,-0.3833,17,False,0.7213
-2026-27,1610612741,Chicago Bulls,change,drtg,0.0383,18,False,0.7213
-2026-27,1610612766,Charlotte Hornets,change,drtg,3.0078,19,False,0.7213
-2026-27,1610612743,Denver Nuggets,change,drtg,3.0867,20,False,0.7213
-2026-27,1610612748,Miami Heat,change,drtg,3.391,21,False,0.7213
-2026-27,1610612739,Cleveland Cavaliers,change,drtg,5.8074,22,False,0.7213
-2026-27,1610612749,Milwaukee Bucks,change,drtg,6.4444,23,False,0.7213
-2026-27,1610612744,Golden State Warriors,change,drtg,6.4565,24,False,0.7213
-2026-27,1610612752,New York Knicks,change,drtg,7.3983,25,False,0.7213
-2026-27,1610612760,Oklahoma City Thunder,change,drtg,8.1875,26,False,0.7213
-2026-27,1610612740,New Orleans Pelicans,change,drtg,8.3024,27,False,0.7213
-2026-27,1610612746,LA Clippers,change,drtg,11.9223,28,True,0.7213
-2026-27,1610612738,Boston Celtics,change,drtg,13.2503,29,False,0.7213
-2026-27,1610612745,Houston Rockets,change,drtg,21.5599,30,False,0.7213
-2026-27,1610612747,Los Angeles Lakers,H1,efg_pct,0.5845,1,False,0.541
-2026-27,1610612748,Miami Heat,H1,efg_pct,0.576,2,False,0.541
-2026-27,1610612763,Memphis Grizzlies,H1,efg_pct,0.5699,3,False,0.541
-2026-27,1610612743,Denver Nuggets,H1,efg_pct,0.5626,4,False,0.541
-2026-27,1610612739,Cleveland Cavaliers,H1,efg_pct,0.5625,5,False,0.541
-2026-27,1610612753,Orlando Magic,H1,efg_pct,0.5605,6,False,0.541
-2026-27,1610612759,San Antonio Spurs,H1,efg_pct,0.5603,7,False,0.541
-2026-27,1610612756,Phoenix Suns,H1,efg_pct,0.5559,8,False,0.541
-2026-27,1610612758,Sacramento Kings,H1,efg_pct,0.5553,9,False,0.541
-2026-27,1610612746,LA Clippers,H1,efg_pct,0.5552,10,True,0.541
-2026-27,1610612745,Houston Rockets,H1,efg_pct,0.5523,11,False,0.541
-2026-27,1610612750,Minnesota Timberwolves,H1,efg_pct,0.551,12,False,0.541
-2026-27,1610612738,Boston Celtics,H1,efg_pct,0.5421,13,False,0.541
-2026-27,1610612737,Atlanta Hawks,H1,efg_pct,0.5411,14,False,0.541
-2026-27,1610612755,Philadelphia 76ers,H1,efg_pct,0.5395,15,False,0.541
-2026-27,1610612741,Chicago Bulls,H1,efg_pct,0.5392,16,False,0.541
-2026-27,1610612752,New York Knicks,H1,efg_pct,0.5358,17,False,0.541
-2026-27,1610612757,Portland Trail Blazers,H1,efg_pct,0.5355,18,False,0.541
-2026-27,1610612764,Washington Wizards,H1,efg_pct,0.5319,19,False,0.541
-2026-27,1610612751,Brooklyn Nets,H1,efg_pct,0.5318,20,False,0.541
-2026-27,1610612761,Toronto Raptors,H1,efg_pct,0.5313,21,False,0.541
-2026-27,1610612762,Utah Jazz,H1,efg_pct,0.5302,22,False,0.541
-2026-27,1610612754,Indiana Pacers,H1,efg_pct,0.5301,23,False,0.541
-2026-27,1610612760,Oklahoma City Thunder,H1,efg_pct,0.5274,24,False,0.541
-2026-27,1610612740,New Orleans Pelicans,H1,efg_pct,0.5262,25,False,0.541
-2026-27,1610612742,Dallas Mavericks,H1,efg_pct,0.5242,26,False,0.541
-2026-27,1610612765,Detroit Pistons,H1,efg_pct,0.5241,27,False,0.541
-2026-27,1610612766,Charlotte Hornets,H1,efg_pct,0.5132,28,False,0.541
-2026-27,1610612744,Golden State Warriors,H1,efg_pct,0.51,29,False,0.541
-2026-27,1610612749,Milwaukee Bucks,H1,efg_pct,0.4703,30,False,0.541
-2026-27,1610612749,Milwaukee Bucks,H2,efg_pct,0.5676,1,False,0.5337
-2026-27,1610612745,Houston Rockets,H2,efg_pct,0.5656,2,False,0.5337
-2026-27,1610612757,Portland Trail Blazers,H2,efg_pct,0.5641,3,False,0.5337
-2026-27,1610612747,Los Angeles Lakers,H2,efg_pct,0.5628,4,False,0.5337
-2026-27,1610612763,Memphis Grizzlies,H2,efg_pct,0.5606,5,False,0.5337
-2026-27,1610612765,Detroit Pistons,H2,efg_pct,0.5596,6,False,0.5337
-2026-27,1610612739,Cleveland Cavaliers,H2,efg_pct,0.5571,7,False,0.5337
-2026-27,1610612750,Minnesota Timberwolves,H2,efg_pct,0.5556,8,False,0.5337
-2026-27,1610612744,Golden State Warriors,H2,efg_pct,0.5494,9,False,0.5337
-2026-27,1610612742,Dallas Mavericks,H2,efg_pct,0.5478,10,False,0.5337
-2026-27,1610612756,Phoenix Suns,H2,efg_pct,0.5457,11,False,0.5337
-2026-27,1610612754,Indiana Pacers,H2,efg_pct,0.5423,12,False,0.5337
-2026-27,1610612743,Denver Nuggets,H2,efg_pct,0.5397,13,False,0.5337
-2026-27,1610612751,Brooklyn Nets,H2,efg_pct,0.5394,14,False,0.5337
-2026-27,1610612748,Miami Heat,H2,efg_pct,0.5388,15,False,0.5337
-2026-27,1610612746,LA Clippers,H2,efg_pct,0.5386,16,True,0.5337
-2026-27,1610612755,Philadelphia 76ers,H2,efg_pct,0.5316,17,False,0.5337
-2026-27,1610612760,Oklahoma City Thunder,H2,efg_pct,0.5291,18,False,0.5337
-2026-27,1610612738,Boston Celtics,H2,efg_pct,0.5262,19,False,0.5337
-2026-27,1610612741,Chicago Bulls,H2,efg_pct,0.5214,20,False,0.5337
-2026-27,1610612753,Orlando Magic,H2,efg_pct,0.5209,21,False,0.5337
-2026-27,1610612762,Utah Jazz,H2,efg_pct,0.5206,22,False,0.5337
-2026-27,1610612764,Washington Wizards,H2,efg_pct,0.5187,23,False,0.5337
-2026-27,1610612761,Toronto Raptors,H2,efg_pct,0.5165,24,False,0.5337
-2026-27,1610612737,Atlanta Hawks,H2,efg_pct,0.513,25,False,0.5337
-2026-27,1610612752,New York Knicks,H2,efg_pct,0.5116,26,False,0.5337
-2026-27,1610612759,San Antonio Spurs,H2,efg_pct,0.5098,27,False,0.5337
-2026-27,1610612740,New Orleans Pelicans,H2,efg_pct,0.5073,28,False,0.5337
-2026-27,1610612758,Sacramento Kings,H2,efg_pct,0.4927,29,False,0.5337
-2026-27,1610612766,Charlotte Hornets,H2,efg_pct,0.4567,30,False,0.5337
-2026-27,1610612749,Milwaukee Bucks,change,efg_pct,0.0974,1,False,-0.0073
-2026-27,1610612744,Golden State Warriors,change,efg_pct,0.0395,2,False,-0.0073
-2026-27,1610612765,Detroit Pistons,change,efg_pct,0.0355,3,False,-0.0073
-2026-27,1610612757,Portland Trail Blazers,change,efg_pct,0.0286,4,False,-0.0073
-2026-27,1610612742,Dallas Mavericks,change,efg_pct,0.0237,5,False,-0.0073
-2026-27,1610612745,Houston Rockets,change,efg_pct,0.0133,6,False,-0.0073
-2026-27,1610612754,Indiana Pacers,change,efg_pct,0.0122,7,False,-0.0073
-2026-27,1610612751,Brooklyn Nets,change,efg_pct,0.0076,8,False,-0.0073
-2026-27,1610612750,Minnesota Timberwolves,change,efg_pct,0.0046,9,False,-0.0073
-2026-27,1610612760,Oklahoma City Thunder,change,efg_pct,0.0018,10,False,-0.0073
-2026-27,1610612739,Cleveland Cavaliers,change,efg_pct,-0.0054,11,False,-0.0073
-2026-27,1610612755,Philadelphia 76ers,change,efg_pct,-0.0079,12,False,-0.0073
-2026-27,1610612763,Memphis Grizzlies,change,efg_pct,-0.0093,13,False,-0.0073
-2026-27,1610612762,Utah Jazz,change,efg_pct,-0.0096,14,False,-0.0073
-2026-27,1610612756,Phoenix Suns,change,efg_pct,-0.0102,15,False,-0.0073
-2026-27,1610612764,Washington Wizards,change,efg_pct,-0.0132,16,False,-0.0073
-2026-27,1610612761,Toronto Raptors,change,efg_pct,-0.0148,17,False,-0.0073
-2026-27,1610612738,Boston Celtics,change,efg_pct,-0.0159,18,False,-0.0073
-2026-27,1610612746,LA Clippers,change,efg_pct,-0.0166,19,True,-0.0073
-2026-27,1610612741,Chicago Bulls,change,efg_pct,-0.0178,20,False,-0.0073
-2026-27,1610612740,New Orleans Pelicans,change,efg_pct,-0.0189,21,False,-0.0073
-2026-27,1610612747,Los Angeles Lakers,change,efg_pct,-0.0217,22,False,-0.0073
-2026-27,1610612743,Denver Nuggets,change,efg_pct,-0.0229,23,False,-0.0073
-2026-27,1610612752,New York Knicks,change,efg_pct,-0.0242,24,False,-0.0073
-2026-27,1610612737,Atlanta Hawks,change,efg_pct,-0.0281,25,False,-0.0073
-2026-27,1610612748,Miami Heat,change,efg_pct,-0.0372,26,False,-0.0073
-2026-27,1610612753,Orlando Magic,change,efg_pct,-0.0397,27,False,-0.0073
-2026-27,1610612759,San Antonio Spurs,change,efg_pct,-0.0505,28,False,-0.0073
-2026-27,1610612766,Charlotte Hornets,change,efg_pct,-0.0565,29,False,-0.0073
-2026-27,1610612758,Sacramento Kings,change,efg_pct,-0.0626,30,False,-0.0073
-2026-27,1610612738,Boston Celtics,H1,net_rtg,19.3976,1,False,-0.0203
-2026-27,1610612745,Houston Rockets,H1,net_rtg,16.0523,2,False,-0.0203
-2026-27,1610612759,San Antonio Spurs,H1,net_rtg,14.033,3,False,-0.0203
-2026-27,1610612752,New York Knicks,H1,net_rtg,12.3021,4,False,-0.0203
-2026-27,1610612747,Los Angeles Lakers,H1,net_rtg,10.1517,5,False,-0.0203
-2026-27,1610612750,Minnesota Timberwolves,H1,net_rtg,6.5972,6,False,-0.0203
-2026-27,1610612748,Miami Heat,H1,net_rtg,5.5623,7,False,-0.0203
-2026-27,1610612760,Oklahoma City Thunder,H1,net_rtg,4.6512,8,False,-0.0203
-2026-27,1610612739,Cleveland Cavaliers,H1,net_rtg,4.0793,9,False,-0.0203
-2026-27,1610612763,Memphis Grizzlies,H1,net_rtg,3.4803,10,False,-0.0203
-2026-27,1610612757,Portland Trail Blazers,H1,net_rtg,2.9448,11,False,-0.0203
-2026-27,1610612743,Denver Nuggets,H1,net_rtg,2.7851,12,False,-0.0203
-2026-27,1610612737,Atlanta Hawks,H1,net_rtg,2.0179,13,False,-0.0203
-2026-27,1610612755,Philadelphia 76ers,H1,net_rtg,1.0405,14,False,-0.0203
-2026-27,1610612765,Detroit Pistons,H1,net_rtg,0.2497,15,False,-0.0203
-2026-27,1610612761,Toronto Raptors,H1,net_rtg,0.0,16,False,-0.0203
-2026-27,1610612746,LA Clippers,H1,net_rtg,-0.7947,17,True,-0.0203
-2026-27,1610612766,Charlotte Hornets,H1,net_rtg,-2.3129,18,False,-0.0203
-2026-27,1610612756,Phoenix Suns,H1,net_rtg,-3.5135,19,False,-0.0203
-2026-27,1610612744,Golden State Warriors,H1,net_rtg,-4.1371,20,False,-0.0203
-2026-27,1610612740,New Orleans Pelicans,H1,net_rtg,-4.6486,21,False,-0.0203
-2026-27,1610612753,Orlando Magic,H1,net_rtg,-4.7254,22,False,-0.0203
-2026-27,1610612741,Chicago Bulls,H1,net_rtg,-5.3012,23,False,-0.0203
-2026-27,1610612742,Dallas Mavericks,H1,net_rtg,-5.7512,24,False,-0.0203
-2026-27,1610612764,Washington Wizards,H1,net_rtg,-7.564,25,False,-0.0203
-2026-27,1610612754,Indiana Pacers,H1,net_rtg,-8.6009,26,False,-0.0203
-2026-27,1610612762,Utah Jazz,H1,net_rtg,-10.6711,27,False,-0.0203
-2026-27,1610612751,Brooklyn Nets,H1,net_rtg,-13.8255,28,False,-0.0203
-2026-27,1610612758,Sacramento Kings,H1,net_rtg,-14.9938,29,False,-0.0203
-2026-27,1610612749,Milwaukee Bucks,H1,net_rtg,-19.1142,30,False,-0.0203
-2026-27,1610612763,Memphis Grizzlies,H2,net_rtg,14.9165,1,False,-0.1105
-2026-27,1610612750,Minnesota Timberwolves,H2,net_rtg,13.0024,2,False,-0.1105
-2026-27,1610612759,San Antonio Spurs,H2,net_rtg,9.3976,3,False,-0.1105
-2026-27,1610612765,Detroit Pistons,H2,net_rtg,9.185,4,False,-0.1105
-2026-27,1610612757,Portland Trail Blazers,H2,net_rtg,8.7563,5,False,-0.1105
-2026-27,1610612742,Dallas Mavericks,H2,net_rtg,5.694,6,False,-0.1105
-2026-27,1610612737,Atlanta Hawks,H2,net_rtg,5.0117,7,False,-0.1105
-2026-27,1610612755,Philadelphia 76ers,H2,net_rtg,4.9043,8,False,-0.1105
-2026-27,1610612760,Oklahoma City Thunder,H2,net_rtg,2.6538,9,False,-0.1105
-2026-27,1610612756,Phoenix Suns,H2,net_rtg,1.7639,10,False,-0.1105
-2026-27,1610612744,Golden State Warriors,H2,net_rtg,1.6867,11,False,-0.1105
-2026-27,1610612747,Los Angeles Lakers,H2,net_rtg,1.6687,12,False,-0.1105
-2026-27,1610612754,Indiana Pacers,H2,net_rtg,1.182,13,False,-0.1105
-2026-27,1610612761,Toronto Raptors,H2,net_rtg,0.9021,14,False,-0.1105
-2026-27,1610612739,Cleveland Cavaliers,H2,net_rtg,0.3538,15,False,-0.1105
-2026-27,1610612745,Houston Rockets,H2,net_rtg,-0.6105,16,False,-0.1105
-2026-27,1610612743,Denver Nuggets,H2,net_rtg,-0.8299,17,False,-0.1105
-2026-27,1610612738,Boston Celtics,H2,net_rtg,-0.8685,18,False,-0.1105
-2026-27,1610612752,New York Knicks,H2,net_rtg,-1.0038,19,False,-0.1105
-2026-27,1610612751,Brooklyn Nets,H2,net_rtg,-2.008,20,False,-0.1105
-2026-27,1610612762,Utah Jazz,H2,net_rtg,-2.0202,21,False,-0.1105
-2026-27,1610612764,Washington Wizards,H2,net_rtg,-2.1591,22,False,-0.1105
-2026-27,1610612753,Orlando Magic,H2,net_rtg,-2.8497,23,False,-0.1105
-2026-27,1610612748,Miami Heat,H2,net_rtg,-3.3333,24,False,-0.1105
-2026-27,1610612749,Milwaukee Bucks,H2,net_rtg,-5.3426,25,False,-0.1105
-2026-27,1610612758,Sacramento Kings,H2,net_rtg,-9.5839,26,False,-0.1105
-2026-27,1610612741,Chicago Bulls,H2,net_rtg,-10.3912,27,False,-0.1105
-2026-27,1610612740,New Orleans Pelicans,H2,net_rtg,-11.942,28,False,-0.1105
-2026-27,1610612746,LA Clippers,H2,net_rtg,-12.1294,29,True,-0.1105
-2026-27,1610612766,Charlotte Hornets,H2,net_rtg,-19.323,30,False,-0.1105
-2026-27,1610612749,Milwaukee Bucks,change,net_rtg,13.7716,1,False,-0.0902
-2026-27,1610612751,Brooklyn Nets,change,net_rtg,11.8175,2,False,-0.0902
-2026-27,1610612742,Dallas Mavericks,change,net_rtg,11.4451,3,False,-0.0902
-2026-27,1610612763,Memphis Grizzlies,change,net_rtg,11.4362,4,False,-0.0902
-2026-27,1610612754,Indiana Pacers,change,net_rtg,9.783,5,False,-0.0902
-2026-27,1610612765,Detroit Pistons,change,net_rtg,8.9353,6,False,-0.0902
-2026-27,1610612762,Utah Jazz,change,net_rtg,8.6509,7,False,-0.0902
-2026-27,1610612750,Minnesota Timberwolves,change,net_rtg,6.4051,8,False,-0.0902
-2026-27,1610612744,Golden State Warriors,change,net_rtg,5.8239,9,False,-0.0902
-2026-27,1610612757,Portland Trail Blazers,change,net_rtg,5.8116,10,False,-0.0902
-2026-27,1610612758,Sacramento Kings,change,net_rtg,5.4099,11,False,-0.0902
-2026-27,1610612764,Washington Wizards,change,net_rtg,5.4049,12,False,-0.0902
-2026-27,1610612756,Phoenix Suns,change,net_rtg,5.2774,13,False,-0.0902
-2026-27,1610612755,Philadelphia 76ers,change,net_rtg,3.8638,14,False,-0.0902
-2026-27,1610612737,Atlanta Hawks,change,net_rtg,2.9937,15,False,-0.0902
-2026-27,1610612753,Orlando Magic,change,net_rtg,1.8757,16,False,-0.0902
-2026-27,1610612761,Toronto Raptors,change,net_rtg,0.9021,17,False,-0.0902
-2026-27,1610612760,Oklahoma City Thunder,change,net_rtg,-1.9974,18,False,-0.0902
-2026-27,1610612743,Denver Nuggets,change,net_rtg,-3.615,19,False,-0.0902
-2026-27,1610612739,Cleveland Cavaliers,change,net_rtg,-3.7255,20,False,-0.0902
-2026-27,1610612759,San Antonio Spurs,change,net_rtg,-4.6354,21,False,-0.0902
-2026-27,1610612741,Chicago Bulls,change,net_rtg,-5.09,22,False,-0.0902
-2026-27,1610612740,New Orleans Pelicans,change,net_rtg,-7.2933,23,False,-0.0902
-2026-27,1610612747,Los Angeles Lakers,change,net_rtg,-8.483,24,False,-0.0902
-2026-27,1610612748,Miami Heat,change,net_rtg,-8.8956,25,False,-0.0902
-2026-27,1610612746,LA Clippers,change,net_rtg,-11.3347,26,True,-0.0902
-2026-27,1610612752,New York Knicks,change,net_rtg,-13.3058,27,False,-0.0902
-2026-27,1610612745,Houston Rockets,change,net_rtg,-16.6628,28,False,-0.0902
-2026-27,1610612766,Charlotte Hornets,change,net_rtg,-17.0101,29,False,-0.0902
-2026-27,1610612738,Boston Celtics,change,net_rtg,-20.2661,30,False,-0.0902
-2026-27,1610612738,Boston Celtics,H1,opp_efg_pct,0.4737,1,False,0.5412
-2026-27,1610612752,New York Knicks,H1,opp_efg_pct,0.5,2,False,0.5412
-2026-27,1610612760,Oklahoma City Thunder,H1,opp_efg_pct,0.5006,3,False,0.5412
-2026-27,1610612765,Detroit Pistons,H1,opp_efg_pct,0.51,4,False,0.5412
-2026-27,1610612757,Portland Trail Blazers,H1,opp_efg_pct,0.5113,5,False,0.5412
-2026-27,1610612745,Houston Rockets,H1,opp_efg_pct,0.5115,6,False,0.5412
-2026-27,1610612759,San Antonio Spurs,H1,opp_efg_pct,0.5148,7,False,0.5412
-2026-27,1610612750,Minnesota Timberwolves,H1,opp_efg_pct,0.5151,8,False,0.5412
-2026-27,1610612762,Utah Jazz,H1,opp_efg_pct,0.5326,9,False,0.5412
-2026-27,1610612755,Philadelphia 76ers,H1,opp_efg_pct,0.5329,10,False,0.5412
-2026-27,1610612739,Cleveland Cavaliers,H1,opp_efg_pct,0.5368,11,False,0.5412
-2026-27,1610612753,Orlando Magic,H1,opp_efg_pct,0.537,12,False,0.5412
-2026-27,1610612764,Washington Wizards,H1,opp_efg_pct,0.5373,13,False,0.5412
-2026-27,1610612749,Milwaukee Bucks,H1,opp_efg_pct,0.5398,14,False,0.5412
-2026-27,1610612744,Golden State Warriors,H1,opp_efg_pct,0.5412,15,False,0.5412
-2026-27,1610612763,Memphis Grizzlies,H1,opp_efg_pct,0.5499,16,False,0.5412
-2026-27,1610612741,Chicago Bulls,H1,opp_efg_pct,0.5516,17,False,0.5412
-2026-27,1610612746,LA Clippers,H1,opp_efg_pct,0.5518,18,True,0.5412
-2026-27,1610612754,Indiana Pacers,H1,opp_efg_pct,0.5541,19,False,0.5412
-2026-27,1610612737,Atlanta Hawks,H1,opp_efg_pct,0.5544,20,False,0.5412
-2026-27,1610612756,Phoenix Suns,H1,opp_efg_pct,0.5552,21,False,0.5412
-2026-27,1610612766,Charlotte Hornets,H1,opp_efg_pct,0.5563,22,False,0.5412
-2026-27,1610612742,Dallas Mavericks,H1,opp_efg_pct,0.5566,23,False,0.5412
-2026-27,1610612761,Toronto Raptors,H1,opp_efg_pct,0.5584,24,False,0.5412
-2026-27,1610612743,Denver Nuggets,H1,opp_efg_pct,0.5618,25,False,0.5412
-2026-27,1610612748,Miami Heat,H1,opp_efg_pct,0.5663,26,False,0.5412
-2026-27,1610612740,New Orleans Pelicans,H1,opp_efg_pct,0.5694,27,False,0.5412
-2026-27,1610612747,Los Angeles Lakers,H1,opp_efg_pct,0.576,28,False,0.5412
-2026-27,1610612758,Sacramento Kings,H1,opp_efg_pct,0.5799,29,False,0.5412
-2026-27,1610612751,Brooklyn Nets,H1,opp_efg_pct,0.5989,30,False,0.5412
-2026-27,1610612750,Minnesota Timberwolves,H2,opp_efg_pct,0.4735,1,False,0.5344
-2026-27,1610612763,Memphis Grizzlies,H2,opp_efg_pct,0.4993,2,False,0.5344
-2026-27,1610612759,San Antonio Spurs,H2,opp_efg_pct,0.5007,3,False,0.5344
-2026-27,1610612762,Utah Jazz,H2,opp_efg_pct,0.5092,4,False,0.5344
-2026-27,1610612757,Portland Trail Blazers,H2,opp_efg_pct,0.5132,5,False,0.5344
-2026-27,1610612765,Detroit Pistons,H2,opp_efg_pct,0.5134,6,False,0.5344
-2026-27,1610612764,Washington Wizards,H2,opp_efg_pct,0.5137,7,False,0.5344
-2026-27,1610612747,Los Angeles Lakers,H2,opp_efg_pct,0.517,8,False,0.5344
-2026-27,1610612742,Dallas Mavericks,H2,opp_efg_pct,0.5225,9,False,0.5344
-2026-27,1610612752,New York Knicks,H2,opp_efg_pct,0.5226,10,False,0.5344
-2026-27,1610612760,Oklahoma City Thunder,H2,opp_efg_pct,0.5282,11,False,0.5344
-2026-27,1610612737,Atlanta Hawks,H2,opp_efg_pct,0.5292,12,False,0.5344
-2026-27,1610612739,Cleveland Cavaliers,H2,opp_efg_pct,0.53,13,False,0.5344
-2026-27,1610612754,Indiana Pacers,H2,opp_efg_pct,0.5327,14,False,0.5344
-2026-27,1610612744,Golden State Warriors,H2,opp_efg_pct,0.534,15,False,0.5344
-2026-27,1610612751,Brooklyn Nets,H2,opp_efg_pct,0.5341,16,False,0.5344
-2026-27,1610612738,Boston Celtics,H2,opp_efg_pct,0.5344,17,False,0.5344
-2026-27,1610612756,Phoenix Suns,H2,opp_efg_pct,0.5346,18,False,0.5344
-2026-27,1610612743,Denver Nuggets,H2,opp_efg_pct,0.5405,19,False,0.5344
-2026-27,1610612755,Philadelphia 76ers,H2,opp_efg_pct,0.5424,20,False,0.5344
-2026-27,1610612761,Toronto Raptors,H2,opp_efg_pct,0.5425,21,False,0.5344
-2026-27,1610612758,Sacramento Kings,H2,opp_efg_pct,0.5508,22,False,0.5344
-2026-27,1610612741,Chicago Bulls,H2,opp_efg_pct,0.5533,23,False,0.5344
-2026-27,1610612748,Miami Heat,H2,opp_efg_pct,0.5582,24,False,0.5344
-2026-27,1610612745,Houston Rockets,H2,opp_efg_pct,0.5607,25,False,0.5344
-2026-27,1610612749,Milwaukee Bucks,H2,opp_efg_pct,0.5632,26,False,0.5344
-2026-27,1610612740,New Orleans Pelicans,H2,opp_efg_pct,0.5635,27,False,0.5344
-2026-27,1610612753,Orlando Magic,H2,opp_efg_pct,0.5679,28,False,0.5344
-2026-27,1610612766,Charlotte Hornets,H2,opp_efg_pct,0.5707,29,False,0.5344
-2026-27,1610612746,LA Clippers,H2,opp_efg_pct,0.5772,30,True,0.5344
-2026-27,1610612751,Brooklyn Nets,change,opp_efg_pct,-0.0648,1,False,-0.0067
-2026-27,1610612747,Los Angeles Lakers,change,opp_efg_pct,-0.059,2,False,-0.0067
-2026-27,1610612763,Memphis Grizzlies,change,opp_efg_pct,-0.0505,3,False,-0.0067
-2026-27,1610612750,Minnesota Timberwolves,change,opp_efg_pct,-0.0417,4,False,-0.0067
-2026-27,1610612742,Dallas Mavericks,change,opp_efg_pct,-0.0341,5,False,-0.0067
-2026-27,1610612758,Sacramento Kings,change,opp_efg_pct,-0.029,6,False,-0.0067
-2026-27,1610612737,Atlanta Hawks,change,opp_efg_pct,-0.0251,7,False,-0.0067
-2026-27,1610612764,Washington Wizards,change,opp_efg_pct,-0.0236,8,False,-0.0067
-2026-27,1610612762,Utah Jazz,change,opp_efg_pct,-0.0234,9,False,-0.0067
-2026-27,1610612754,Indiana Pacers,change,opp_efg_pct,-0.0215,10,False,-0.0067
-2026-27,1610612743,Denver Nuggets,change,opp_efg_pct,-0.0214,11,False,-0.0067
-2026-27,1610612756,Phoenix Suns,change,opp_efg_pct,-0.0206,12,False,-0.0067
-2026-27,1610612761,Toronto Raptors,change,opp_efg_pct,-0.0159,13,False,-0.0067
-2026-27,1610612759,San Antonio Spurs,change,opp_efg_pct,-0.0141,14,False,-0.0067
-2026-27,1610612748,Miami Heat,change,opp_efg_pct,-0.0082,15,False,-0.0067
-2026-27,1610612744,Golden State Warriors,change,opp_efg_pct,-0.0071,16,False,-0.0067
-2026-27,1610612739,Cleveland Cavaliers,change,opp_efg_pct,-0.0068,17,False,-0.0067
-2026-27,1610612740,New Orleans Pelicans,change,opp_efg_pct,-0.0059,18,False,-0.0067
-2026-27,1610612741,Chicago Bulls,change,opp_efg_pct,0.0017,19,False,-0.0067
-2026-27,1610612757,Portland Trail Blazers,change,opp_efg_pct,0.002,20,False,-0.0067
-2026-27,1610612765,Detroit Pistons,change,opp_efg_pct,0.0034,21,False,-0.0067
-2026-27,1610612755,Philadelphia 76ers,change,opp_efg_pct,0.0096,22,False,-0.0067
-2026-27,1610612766,Charlotte Hornets,change,opp_efg_pct,0.0144,23,False,-0.0067
-2026-27,1610612752,New York Knicks,change,opp_efg_pct,0.0226,24,False,-0.0067
-2026-27,1610612749,Milwaukee Bucks,change,opp_efg_pct,0.0234,25,False,-0.0067
-2026-27,1610612746,LA Clippers,change,opp_efg_pct,0.0254,26,True,-0.0067
-2026-27,1610612760,Oklahoma City Thunder,change,opp_efg_pct,0.0275,27,False,-0.0067
-2026-27,1610612753,Orlando Magic,change,opp_efg_pct,0.0309,28,False,-0.0067
-2026-27,1610612745,Houston Rockets,change,opp_efg_pct,0.0493,29,False,-0.0067
-2026-27,1610612738,Boston Celtics,change,opp_efg_pct,0.0607,30,False,-0.0067
+2026-27,1610612738,Boston Celtics,H1,drtg,99.1566,1,False,113.2583
+2026-27,1610612745,Houston Rockets,H1,drtg,102.6159,2,False,113.2583
+2026-27,1610612752,New York Knicks,H1,drtg,104.0195,3,False,113.2583
+2026-27,1610612750,Minnesota Timberwolves,H1,drtg,104.9769,4,False,113.2583
+2026-27,1610612760,Oklahoma City Thunder,H1,drtg,106.0465,5,False,113.2583
+2026-27,1610612759,San Antonio Spurs,H1,drtg,108.3726,6,False,113.2583
+2026-27,1610612744,Golden State Warriors,H1,drtg,109.9291,7,False,113.2583
+2026-27,1610612765,Detroit Pistons,H1,drtg,110.2372,8,False,113.2583
+2026-27,1610612737,Atlanta Hawks,H1,drtg,110.9865,9,False,113.2583
+2026-27,1610612746,LA Clippers,H1,drtg,111.2583,10,True,113.2583
+2026-27,1610612739,Cleveland Cavaliers,H1,drtg,112.4709,11,False,113.2583
+2026-27,1610612757,Portland Trail Blazers,H1,drtg,113.5417,12,False,113.2583
+2026-27,1610612743,Denver Nuggets,H1,drtg,113.9257,13,False,113.2583
+2026-27,1610612766,Charlotte Hornets,H1,drtg,114.0845,14,False,113.2583
+2026-27,1610612747,Los Angeles Lakers,H1,drtg,114.2357,15,False,113.2583
+2026-27,1610612761,Toronto Raptors,H1,drtg,114.359,16,False,113.2583
+2026-27,1610612754,Indiana Pacers,H1,drtg,114.4495,17,False,113.2583
+2026-27,1610612748,Miami Heat,H1,drtg,114.5103,18,False,113.2583
+2026-27,1610612740,New Orleans Pelicans,H1,drtg,115.1351,19,False,113.2583
+2026-27,1610612755,Philadelphia 76ers,H1,drtg,115.2245,20,False,113.2583
+2026-27,1610612763,Memphis Grizzlies,H1,drtg,115.5286,21,False,113.2583
+2026-27,1610612742,Dallas Mavericks,H1,drtg,116.0798,22,False,113.2583
+2026-27,1610612753,Orlando Magic,H1,drtg,117.1137,23,False,113.2583
+2026-27,1610612749,Milwaukee Bucks,H1,drtg,117.1329,24,False,113.2583
+2026-27,1610612762,Utah Jazz,H1,drtg,117.1617,25,False,113.2583
+2026-27,1610612756,Phoenix Suns,H1,drtg,117.4324,26,False,113.2583
+2026-27,1610612764,Washington Wizards,H1,drtg,118.3537,27,False,113.2583
+2026-27,1610612741,Chicago Bulls,H1,drtg,119.2771,28,False,113.2583
+2026-27,1610612758,Sacramento Kings,H1,drtg,125.031,29,False,113.2583
+2026-27,1610612751,Brooklyn Nets,H1,drtg,125.1007,30,False,113.2583
+2026-27,1610612750,Minnesota Timberwolves,H2,drtg,102.4823,1,False,113.7761
+2026-27,1610612759,San Antonio Spurs,H2,drtg,104.3373,2,False,113.7761
+2026-27,1610612763,Memphis Grizzlies,H2,drtg,106.6516,3,False,113.7761
+2026-27,1610612757,Portland Trail Blazers,H2,drtg,107.0574,4,False,113.7761
+2026-27,1610612737,Atlanta Hawks,H2,drtg,107.9254,5,False,113.7761
+2026-27,1610612765,Detroit Pistons,H2,drtg,108.0207,6,False,113.7761
+2026-27,1610612742,Dallas Mavericks,H2,drtg,109.4899,7,False,113.7761
+2026-27,1610612762,Utah Jazz,H2,drtg,111.1111,8,False,113.7761
+2026-27,1610612752,New York Knicks,H2,drtg,111.4178,9,False,113.7761
+2026-27,1610612755,Philadelphia 76ers,H2,drtg,111.991,10,False,113.7761
+2026-27,1610612738,Boston Celtics,H2,drtg,112.4069,11,False,113.7761
+2026-27,1610612761,Toronto Raptors,H2,drtg,112.5,12,False,113.7761
+2026-27,1610612764,Washington Wizards,H2,drtg,112.5,12,False,113.7761
+2026-27,1610612751,Brooklyn Nets,H2,drtg,112.7175,14,False,113.7761
+2026-27,1610612753,Orlando Magic,H2,drtg,113.0829,15,False,113.7761
+2026-27,1610612758,Sacramento Kings,H2,drtg,113.1148,16,False,113.7761
+2026-27,1610612747,Los Angeles Lakers,H2,drtg,113.5876,17,False,113.7761
+2026-27,1610612754,Indiana Pacers,H2,drtg,114.0662,18,False,113.7761
+2026-27,1610612760,Oklahoma City Thunder,H2,drtg,114.234,19,False,113.7761
+2026-27,1610612756,Phoenix Suns,H2,drtg,115.6038,20,False,113.7761
+2026-27,1610612766,Charlotte Hornets,H2,drtg,115.7199,21,False,113.7761
+2026-27,1610612744,Golden State Warriors,H2,drtg,116.3855,22,False,113.7761
+2026-27,1610612743,Denver Nuggets,H2,drtg,117.0124,23,False,113.7761
+2026-27,1610612748,Miami Heat,H2,drtg,117.9012,24,False,113.7761
+2026-27,1610612739,Cleveland Cavaliers,H2,drtg,118.2783,25,False,113.7761
+2026-27,1610612741,Chicago Bulls,H2,drtg,119.3154,26,False,113.7761
+2026-27,1610612746,LA Clippers,H2,drtg,123.1806,27,True,113.7761
+2026-27,1610612740,New Orleans Pelicans,H2,drtg,123.4375,28,False,113.7761
+2026-27,1610612749,Milwaukee Bucks,H2,drtg,123.5772,29,False,113.7761
+2026-27,1610612745,Houston Rockets,H2,drtg,124.1758,30,False,113.7761
+2026-27,1610612751,Brooklyn Nets,change,drtg,-12.3831,1,False,0.5178
+2026-27,1610612758,Sacramento Kings,change,drtg,-11.9162,2,False,0.5178
+2026-27,1610612763,Memphis Grizzlies,change,drtg,-8.877,3,False,0.5178
+2026-27,1610612742,Dallas Mavericks,change,drtg,-6.5899,4,False,0.5178
+2026-27,1610612757,Portland Trail Blazers,change,drtg,-6.4843,5,False,0.5178
+2026-27,1610612762,Utah Jazz,change,drtg,-6.0506,6,False,0.5178
+2026-27,1610612764,Washington Wizards,change,drtg,-5.8537,7,False,0.5178
+2026-27,1610612759,San Antonio Spurs,change,drtg,-4.0353,8,False,0.5178
+2026-27,1610612753,Orlando Magic,change,drtg,-4.0308,9,False,0.5178
+2026-27,1610612755,Philadelphia 76ers,change,drtg,-3.2336,10,False,0.5178
+2026-27,1610612737,Atlanta Hawks,change,drtg,-3.0611,11,False,0.5178
+2026-27,1610612750,Minnesota Timberwolves,change,drtg,-2.4946,12,False,0.5178
+2026-27,1610612765,Detroit Pistons,change,drtg,-2.2165,13,False,0.5178
+2026-27,1610612761,Toronto Raptors,change,drtg,-1.859,14,False,0.5178
+2026-27,1610612756,Phoenix Suns,change,drtg,-1.8286,15,False,0.5178
+2026-27,1610612747,Los Angeles Lakers,change,drtg,-0.6481,16,False,0.5178
+2026-27,1610612754,Indiana Pacers,change,drtg,-0.3833,17,False,0.5178
+2026-27,1610612741,Chicago Bulls,change,drtg,0.0383,18,False,0.5178
+2026-27,1610612766,Charlotte Hornets,change,drtg,1.6354,19,False,0.5178
+2026-27,1610612743,Denver Nuggets,change,drtg,3.0867,20,False,0.5178
+2026-27,1610612748,Miami Heat,change,drtg,3.391,21,False,0.5178
+2026-27,1610612739,Cleveland Cavaliers,change,drtg,5.8074,22,False,0.5178
+2026-27,1610612749,Milwaukee Bucks,change,drtg,6.4444,23,False,0.5178
+2026-27,1610612744,Golden State Warriors,change,drtg,6.4565,24,False,0.5178
+2026-27,1610612752,New York Knicks,change,drtg,7.3983,25,False,0.5178
+2026-27,1610612760,Oklahoma City Thunder,change,drtg,8.1875,26,False,0.5178
+2026-27,1610612740,New Orleans Pelicans,change,drtg,8.3024,27,False,0.5178
+2026-27,1610612746,LA Clippers,change,drtg,11.9223,28,True,0.5178
+2026-27,1610612738,Boston Celtics,change,drtg,13.2503,29,False,0.5178
+2026-27,1610612745,Houston Rockets,change,drtg,21.5599,30,False,0.5178
+2026-27,1610612747,Los Angeles Lakers,H1,efg_pct,0.5845,1,False,0.5416
+2026-27,1610612748,Miami Heat,H1,efg_pct,0.576,2,False,0.5416
+2026-27,1610612763,Memphis Grizzlies,H1,efg_pct,0.5758,3,False,0.5416
+2026-27,1610612743,Denver Nuggets,H1,efg_pct,0.5626,4,False,0.5416
+2026-27,1610612739,Cleveland Cavaliers,H1,efg_pct,0.5625,5,False,0.5416
+2026-27,1610612753,Orlando Magic,H1,efg_pct,0.5605,6,False,0.5416
+2026-27,1610612759,San Antonio Spurs,H1,efg_pct,0.5603,7,False,0.5416
+2026-27,1610612756,Phoenix Suns,H1,efg_pct,0.5559,8,False,0.5416
+2026-27,1610612758,Sacramento Kings,H1,efg_pct,0.5553,9,False,0.5416
+2026-27,1610612746,LA Clippers,H1,efg_pct,0.5552,10,True,0.5416
+2026-27,1610612745,Houston Rockets,H1,efg_pct,0.5523,11,False,0.5416
+2026-27,1610612750,Minnesota Timberwolves,H1,efg_pct,0.551,12,False,0.5416
+2026-27,1610612755,Philadelphia 76ers,H1,efg_pct,0.5454,13,False,0.5416
+2026-27,1610612738,Boston Celtics,H1,efg_pct,0.5421,14,False,0.5416
+2026-27,1610612757,Portland Trail Blazers,H1,efg_pct,0.5417,15,False,0.5416
+2026-27,1610612737,Atlanta Hawks,H1,efg_pct,0.5411,16,False,0.5416
+2026-27,1610612741,Chicago Bulls,H1,efg_pct,0.5392,17,False,0.5416
+2026-27,1610612752,New York Knicks,H1,efg_pct,0.5358,18,False,0.5416
+2026-27,1610612764,Washington Wizards,H1,efg_pct,0.5319,19,False,0.5416
+2026-27,1610612751,Brooklyn Nets,H1,efg_pct,0.5318,20,False,0.5416
+2026-27,1610612761,Toronto Raptors,H1,efg_pct,0.5313,21,False,0.5416
+2026-27,1610612762,Utah Jazz,H1,efg_pct,0.5302,22,False,0.5416
+2026-27,1610612754,Indiana Pacers,H1,efg_pct,0.5301,23,False,0.5416
+2026-27,1610612760,Oklahoma City Thunder,H1,efg_pct,0.5274,24,False,0.5416
+2026-27,1610612740,New Orleans Pelicans,H1,efg_pct,0.5262,25,False,0.5416
+2026-27,1610612742,Dallas Mavericks,H1,efg_pct,0.5242,26,False,0.5416
+2026-27,1610612765,Detroit Pistons,H1,efg_pct,0.5241,27,False,0.5416
+2026-27,1610612766,Charlotte Hornets,H1,efg_pct,0.513,28,False,0.5416
+2026-27,1610612744,Golden State Warriors,H1,efg_pct,0.51,29,False,0.5416
+2026-27,1610612749,Milwaukee Bucks,H1,efg_pct,0.4703,30,False,0.5416
+2026-27,1610612749,Milwaukee Bucks,H2,efg_pct,0.5676,1,False,0.5335
+2026-27,1610612757,Portland Trail Blazers,H2,efg_pct,0.566,2,False,0.5335
+2026-27,1610612745,Houston Rockets,H2,efg_pct,0.5656,3,False,0.5335
+2026-27,1610612747,Los Angeles Lakers,H2,efg_pct,0.5628,4,False,0.5335
+2026-27,1610612765,Detroit Pistons,H2,efg_pct,0.5596,5,False,0.5335
+2026-27,1610612739,Cleveland Cavaliers,H2,efg_pct,0.5571,6,False,0.5335
+2026-27,1610612750,Minnesota Timberwolves,H2,efg_pct,0.5556,7,False,0.5335
+2026-27,1610612763,Memphis Grizzlies,H2,efg_pct,0.5556,8,False,0.5335
+2026-27,1610612744,Golden State Warriors,H2,efg_pct,0.5494,9,False,0.5335
+2026-27,1610612742,Dallas Mavericks,H2,efg_pct,0.5478,10,False,0.5335
+2026-27,1610612756,Phoenix Suns,H2,efg_pct,0.5457,11,False,0.5335
+2026-27,1610612754,Indiana Pacers,H2,efg_pct,0.5423,12,False,0.5335
+2026-27,1610612743,Denver Nuggets,H2,efg_pct,0.5397,13,False,0.5335
+2026-27,1610612751,Brooklyn Nets,H2,efg_pct,0.5394,14,False,0.5335
+2026-27,1610612748,Miami Heat,H2,efg_pct,0.5388,15,False,0.5335
+2026-27,1610612746,LA Clippers,H2,efg_pct,0.5386,16,True,0.5335
+2026-27,1610612760,Oklahoma City Thunder,H2,efg_pct,0.5291,17,False,0.5335
+2026-27,1610612738,Boston Celtics,H2,efg_pct,0.5262,18,False,0.5335
+2026-27,1610612755,Philadelphia 76ers,H2,efg_pct,0.524,19,False,0.5335
+2026-27,1610612741,Chicago Bulls,H2,efg_pct,0.5214,20,False,0.5335
+2026-27,1610612753,Orlando Magic,H2,efg_pct,0.5209,21,False,0.5335
+2026-27,1610612762,Utah Jazz,H2,efg_pct,0.5206,22,False,0.5335
+2026-27,1610612764,Washington Wizards,H2,efg_pct,0.5187,23,False,0.5335
+2026-27,1610612761,Toronto Raptors,H2,efg_pct,0.5165,24,False,0.5335
+2026-27,1610612737,Atlanta Hawks,H2,efg_pct,0.513,25,False,0.5335
+2026-27,1610612752,New York Knicks,H2,efg_pct,0.5116,26,False,0.5335
+2026-27,1610612759,San Antonio Spurs,H2,efg_pct,0.5098,27,False,0.5335
+2026-27,1610612740,New Orleans Pelicans,H2,efg_pct,0.5073,28,False,0.5335
+2026-27,1610612758,Sacramento Kings,H2,efg_pct,0.4927,29,False,0.5335
+2026-27,1610612766,Charlotte Hornets,H2,efg_pct,0.4602,30,False,0.5335
+2026-27,1610612749,Milwaukee Bucks,change,efg_pct,0.0974,1,False,-0.0081
+2026-27,1610612744,Golden State Warriors,change,efg_pct,0.0395,2,False,-0.0081
+2026-27,1610612765,Detroit Pistons,change,efg_pct,0.0355,3,False,-0.0081
+2026-27,1610612757,Portland Trail Blazers,change,efg_pct,0.0244,4,False,-0.0081
+2026-27,1610612742,Dallas Mavericks,change,efg_pct,0.0237,5,False,-0.0081
+2026-27,1610612745,Houston Rockets,change,efg_pct,0.0133,6,False,-0.0081
+2026-27,1610612754,Indiana Pacers,change,efg_pct,0.0122,7,False,-0.0081
+2026-27,1610612751,Brooklyn Nets,change,efg_pct,0.0076,8,False,-0.0081
+2026-27,1610612750,Minnesota Timberwolves,change,efg_pct,0.0046,9,False,-0.0081
+2026-27,1610612760,Oklahoma City Thunder,change,efg_pct,0.0018,10,False,-0.0081
+2026-27,1610612739,Cleveland Cavaliers,change,efg_pct,-0.0054,11,False,-0.0081
+2026-27,1610612762,Utah Jazz,change,efg_pct,-0.0096,12,False,-0.0081
+2026-27,1610612756,Phoenix Suns,change,efg_pct,-0.0102,13,False,-0.0081
+2026-27,1610612764,Washington Wizards,change,efg_pct,-0.0132,14,False,-0.0081
+2026-27,1610612761,Toronto Raptors,change,efg_pct,-0.0148,15,False,-0.0081
+2026-27,1610612738,Boston Celtics,change,efg_pct,-0.0159,16,False,-0.0081
+2026-27,1610612746,LA Clippers,change,efg_pct,-0.0166,17,True,-0.0081
+2026-27,1610612741,Chicago Bulls,change,efg_pct,-0.0178,18,False,-0.0081
+2026-27,1610612740,New Orleans Pelicans,change,efg_pct,-0.0189,19,False,-0.0081
+2026-27,1610612763,Memphis Grizzlies,change,efg_pct,-0.0202,20,False,-0.0081
+2026-27,1610612755,Philadelphia 76ers,change,efg_pct,-0.0214,21,False,-0.0081
+2026-27,1610612747,Los Angeles Lakers,change,efg_pct,-0.0217,22,False,-0.0081
+2026-27,1610612743,Denver Nuggets,change,efg_pct,-0.0229,23,False,-0.0081
+2026-27,1610612752,New York Knicks,change,efg_pct,-0.0242,24,False,-0.0081
+2026-27,1610612737,Atlanta Hawks,change,efg_pct,-0.0281,25,False,-0.0081
+2026-27,1610612748,Miami Heat,change,efg_pct,-0.0372,26,False,-0.0081
+2026-27,1610612753,Orlando Magic,change,efg_pct,-0.0397,27,False,-0.0081
+2026-27,1610612759,San Antonio Spurs,change,efg_pct,-0.0505,28,False,-0.0081
+2026-27,1610612766,Charlotte Hornets,change,efg_pct,-0.0528,29,False,-0.0081
+2026-27,1610612758,Sacramento Kings,change,efg_pct,-0.0626,30,False,-0.0081
+2026-27,1610612738,Boston Celtics,H1,net_rtg,19.3976,1,False,-0.0302
+2026-27,1610612745,Houston Rockets,H1,net_rtg,16.0523,2,False,-0.0302
+2026-27,1610612759,San Antonio Spurs,H1,net_rtg,14.033,3,False,-0.0302
+2026-27,1610612752,New York Knicks,H1,net_rtg,12.3021,4,False,-0.0302
+2026-27,1610612747,Los Angeles Lakers,H1,net_rtg,10.1517,5,False,-0.0302
+2026-27,1610612750,Minnesota Timberwolves,H1,net_rtg,6.5972,6,False,-0.0302
+2026-27,1610612748,Miami Heat,H1,net_rtg,5.5623,7,False,-0.0302
+2026-27,1610612760,Oklahoma City Thunder,H1,net_rtg,4.6512,8,False,-0.0302
+2026-27,1610612739,Cleveland Cavaliers,H1,net_rtg,4.0793,9,False,-0.0302
+2026-27,1610612763,Memphis Grizzlies,H1,net_rtg,3.5242,10,False,-0.0302
+2026-27,1610612743,Denver Nuggets,H1,net_rtg,2.7851,11,False,-0.0302
+2026-27,1610612757,Portland Trail Blazers,H1,net_rtg,2.7778,12,False,-0.0302
+2026-27,1610612737,Atlanta Hawks,H1,net_rtg,2.0179,13,False,-0.0302
+2026-27,1610612755,Philadelphia 76ers,H1,net_rtg,0.9858,14,False,-0.0302
+2026-27,1610612765,Detroit Pistons,H1,net_rtg,0.2497,15,False,-0.0302
+2026-27,1610612761,Toronto Raptors,H1,net_rtg,0.0,16,False,-0.0302
+2026-27,1610612746,LA Clippers,H1,net_rtg,-0.7947,17,True,-0.0302
+2026-27,1610612766,Charlotte Hornets,H1,net_rtg,-2.4328,18,False,-0.0302
+2026-27,1610612756,Phoenix Suns,H1,net_rtg,-3.5135,19,False,-0.0302
+2026-27,1610612744,Golden State Warriors,H1,net_rtg,-4.1371,20,False,-0.0302
+2026-27,1610612740,New Orleans Pelicans,H1,net_rtg,-4.6486,21,False,-0.0302
+2026-27,1610612753,Orlando Magic,H1,net_rtg,-4.7254,22,False,-0.0302
+2026-27,1610612741,Chicago Bulls,H1,net_rtg,-5.3012,23,False,-0.0302
+2026-27,1610612742,Dallas Mavericks,H1,net_rtg,-5.7512,24,False,-0.0302
+2026-27,1610612764,Washington Wizards,H1,net_rtg,-7.564,25,False,-0.0302
+2026-27,1610612754,Indiana Pacers,H1,net_rtg,-8.6009,26,False,-0.0302
+2026-27,1610612762,Utah Jazz,H1,net_rtg,-10.6711,27,False,-0.0302
+2026-27,1610612751,Brooklyn Nets,H1,net_rtg,-13.8255,28,False,-0.0302
+2026-27,1610612758,Sacramento Kings,H1,net_rtg,-14.9938,29,False,-0.0302
+2026-27,1610612749,Milwaukee Bucks,H1,net_rtg,-19.1142,30,False,-0.0302
+2026-27,1610612763,Memphis Grizzlies,H2,net_rtg,14.5434,1,False,-0.1217
+2026-27,1610612750,Minnesota Timberwolves,H2,net_rtg,13.0024,2,False,-0.1217
+2026-27,1610612757,Portland Trail Blazers,H2,net_rtg,10.2871,3,False,-0.1217
+2026-27,1610612759,San Antonio Spurs,H2,net_rtg,9.3976,4,False,-0.1217
+2026-27,1610612765,Detroit Pistons,H2,net_rtg,9.185,5,False,-0.1217
+2026-27,1610612742,Dallas Mavericks,H2,net_rtg,5.694,6,False,-0.1217
+2026-27,1610612737,Atlanta Hawks,H2,net_rtg,5.0117,7,False,-0.1217
+2026-27,1610612755,Philadelphia 76ers,H2,net_rtg,2.7149,8,False,-0.1217
+2026-27,1610612760,Oklahoma City Thunder,H2,net_rtg,2.6538,9,False,-0.1217
+2026-27,1610612756,Phoenix Suns,H2,net_rtg,1.7639,10,False,-0.1217
+2026-27,1610612744,Golden State Warriors,H2,net_rtg,1.6867,11,False,-0.1217
+2026-27,1610612747,Los Angeles Lakers,H2,net_rtg,1.6687,12,False,-0.1217
+2026-27,1610612754,Indiana Pacers,H2,net_rtg,1.182,13,False,-0.1217
+2026-27,1610612761,Toronto Raptors,H2,net_rtg,0.9021,14,False,-0.1217
+2026-27,1610612739,Cleveland Cavaliers,H2,net_rtg,0.3538,15,False,-0.1217
+2026-27,1610612745,Houston Rockets,H2,net_rtg,-0.6105,16,False,-0.1217
+2026-27,1610612743,Denver Nuggets,H2,net_rtg,-0.8299,17,False,-0.1217
+2026-27,1610612738,Boston Celtics,H2,net_rtg,-0.8685,18,False,-0.1217
+2026-27,1610612752,New York Knicks,H2,net_rtg,-1.0038,19,False,-0.1217
+2026-27,1610612751,Brooklyn Nets,H2,net_rtg,-2.008,20,False,-0.1217
+2026-27,1610612762,Utah Jazz,H2,net_rtg,-2.0202,21,False,-0.1217
+2026-27,1610612764,Washington Wizards,H2,net_rtg,-2.1591,22,False,-0.1217
+2026-27,1610612753,Orlando Magic,H2,net_rtg,-2.8497,23,False,-0.1217
+2026-27,1610612748,Miami Heat,H2,net_rtg,-3.3333,24,False,-0.1217
+2026-27,1610612749,Milwaukee Bucks,H2,net_rtg,-5.3426,25,False,-0.1217
+2026-27,1610612758,Sacramento Kings,H2,net_rtg,-9.5839,26,False,-0.1217
+2026-27,1610612741,Chicago Bulls,H2,net_rtg,-10.3912,27,False,-0.1217
+2026-27,1610612740,New Orleans Pelicans,H2,net_rtg,-11.942,28,False,-0.1217
+2026-27,1610612746,LA Clippers,H2,net_rtg,-12.1294,29,True,-0.1217
+2026-27,1610612766,Charlotte Hornets,H2,net_rtg,-18.6262,30,False,-0.1217
+2026-27,1610612749,Milwaukee Bucks,change,net_rtg,13.7716,1,False,-0.0915
+2026-27,1610612751,Brooklyn Nets,change,net_rtg,11.8175,2,False,-0.0915
+2026-27,1610612742,Dallas Mavericks,change,net_rtg,11.4451,3,False,-0.0915
+2026-27,1610612763,Memphis Grizzlies,change,net_rtg,11.0192,4,False,-0.0915
+2026-27,1610612754,Indiana Pacers,change,net_rtg,9.783,5,False,-0.0915
+2026-27,1610612765,Detroit Pistons,change,net_rtg,8.9353,6,False,-0.0915
+2026-27,1610612762,Utah Jazz,change,net_rtg,8.6509,7,False,-0.0915
+2026-27,1610612757,Portland Trail Blazers,change,net_rtg,7.5093,8,False,-0.0915
+2026-27,1610612750,Minnesota Timberwolves,change,net_rtg,6.4051,9,False,-0.0915
+2026-27,1610612744,Golden State Warriors,change,net_rtg,5.8239,10,False,-0.0915
+2026-27,1610612758,Sacramento Kings,change,net_rtg,5.4099,11,False,-0.0915
+2026-27,1610612764,Washington Wizards,change,net_rtg,5.4049,12,False,-0.0915
+2026-27,1610612756,Phoenix Suns,change,net_rtg,5.2774,13,False,-0.0915
+2026-27,1610612737,Atlanta Hawks,change,net_rtg,2.9937,14,False,-0.0915
+2026-27,1610612753,Orlando Magic,change,net_rtg,1.8757,15,False,-0.0915
+2026-27,1610612755,Philadelphia 76ers,change,net_rtg,1.7292,16,False,-0.0915
+2026-27,1610612761,Toronto Raptors,change,net_rtg,0.9021,17,False,-0.0915
+2026-27,1610612760,Oklahoma City Thunder,change,net_rtg,-1.9974,18,False,-0.0915
+2026-27,1610612743,Denver Nuggets,change,net_rtg,-3.615,19,False,-0.0915
+2026-27,1610612739,Cleveland Cavaliers,change,net_rtg,-3.7255,20,False,-0.0915
+2026-27,1610612759,San Antonio Spurs,change,net_rtg,-4.6354,21,False,-0.0915
+2026-27,1610612741,Chicago Bulls,change,net_rtg,-5.09,22,False,-0.0915
+2026-27,1610612740,New Orleans Pelicans,change,net_rtg,-7.2933,23,False,-0.0915
+2026-27,1610612747,Los Angeles Lakers,change,net_rtg,-8.483,24,False,-0.0915
+2026-27,1610612748,Miami Heat,change,net_rtg,-8.8956,25,False,-0.0915
+2026-27,1610612746,LA Clippers,change,net_rtg,-11.3347,26,True,-0.0915
+2026-27,1610612752,New York Knicks,change,net_rtg,-13.3058,27,False,-0.0915
+2026-27,1610612766,Charlotte Hornets,change,net_rtg,-16.1934,28,False,-0.0915
+2026-27,1610612745,Houston Rockets,change,net_rtg,-16.6628,29,False,-0.0915
+2026-27,1610612738,Boston Celtics,change,net_rtg,-20.2661,30,False,-0.0915
+2026-27,1610612738,Boston Celtics,H1,opp_efg_pct,0.4737,1,False,0.5418
+2026-27,1610612752,New York Knicks,H1,opp_efg_pct,0.5,2,False,0.5418
+2026-27,1610612760,Oklahoma City Thunder,H1,opp_efg_pct,0.5006,3,False,0.5418
+2026-27,1610612765,Detroit Pistons,H1,opp_efg_pct,0.51,4,False,0.5418
+2026-27,1610612745,Houston Rockets,H1,opp_efg_pct,0.5115,5,False,0.5418
+2026-27,1610612759,San Antonio Spurs,H1,opp_efg_pct,0.5148,6,False,0.5418
+2026-27,1610612750,Minnesota Timberwolves,H1,opp_efg_pct,0.5151,7,False,0.5418
+2026-27,1610612757,Portland Trail Blazers,H1,opp_efg_pct,0.5192,8,False,0.5418
+2026-27,1610612762,Utah Jazz,H1,opp_efg_pct,0.5326,9,False,0.5418
+2026-27,1610612739,Cleveland Cavaliers,H1,opp_efg_pct,0.5368,10,False,0.5418
+2026-27,1610612753,Orlando Magic,H1,opp_efg_pct,0.537,11,False,0.5418
+2026-27,1610612764,Washington Wizards,H1,opp_efg_pct,0.5373,12,False,0.5418
+2026-27,1610612755,Philadelphia 76ers,H1,opp_efg_pct,0.5384,13,False,0.5418
+2026-27,1610612749,Milwaukee Bucks,H1,opp_efg_pct,0.5398,14,False,0.5418
+2026-27,1610612744,Golden State Warriors,H1,opp_efg_pct,0.5412,15,False,0.5418
+2026-27,1610612763,Memphis Grizzlies,H1,opp_efg_pct,0.5474,16,False,0.5418
+2026-27,1610612741,Chicago Bulls,H1,opp_efg_pct,0.5516,17,False,0.5418
+2026-27,1610612746,LA Clippers,H1,opp_efg_pct,0.5518,18,True,0.5418
+2026-27,1610612754,Indiana Pacers,H1,opp_efg_pct,0.5541,19,False,0.5418
+2026-27,1610612737,Atlanta Hawks,H1,opp_efg_pct,0.5544,20,False,0.5418
+2026-27,1610612756,Phoenix Suns,H1,opp_efg_pct,0.5552,21,False,0.5418
+2026-27,1610612742,Dallas Mavericks,H1,opp_efg_pct,0.5566,22,False,0.5418
+2026-27,1610612761,Toronto Raptors,H1,opp_efg_pct,0.5584,23,False,0.5418
+2026-27,1610612743,Denver Nuggets,H1,opp_efg_pct,0.5618,24,False,0.5418
+2026-27,1610612766,Charlotte Hornets,H1,opp_efg_pct,0.5641,25,False,0.5418
+2026-27,1610612748,Miami Heat,H1,opp_efg_pct,0.5663,26,False,0.5418
+2026-27,1610612740,New Orleans Pelicans,H1,opp_efg_pct,0.5694,27,False,0.5418
+2026-27,1610612747,Los Angeles Lakers,H1,opp_efg_pct,0.576,28,False,0.5418
+2026-27,1610612758,Sacramento Kings,H1,opp_efg_pct,0.5799,29,False,0.5418
+2026-27,1610612751,Brooklyn Nets,H1,opp_efg_pct,0.5989,30,False,0.5418
+2026-27,1610612750,Minnesota Timberwolves,H2,opp_efg_pct,0.4735,1,False,0.5341
+2026-27,1610612763,Memphis Grizzlies,H2,opp_efg_pct,0.5,2,False,0.5341
+2026-27,1610612759,San Antonio Spurs,H2,opp_efg_pct,0.5007,3,False,0.5341
+2026-27,1610612757,Portland Trail Blazers,H2,opp_efg_pct,0.5062,4,False,0.5341
+2026-27,1610612762,Utah Jazz,H2,opp_efg_pct,0.5092,5,False,0.5341
+2026-27,1610612765,Detroit Pistons,H2,opp_efg_pct,0.5134,6,False,0.5341
+2026-27,1610612764,Washington Wizards,H2,opp_efg_pct,0.5137,7,False,0.5341
+2026-27,1610612747,Los Angeles Lakers,H2,opp_efg_pct,0.517,8,False,0.5341
+2026-27,1610612742,Dallas Mavericks,H2,opp_efg_pct,0.5225,9,False,0.5341
+2026-27,1610612752,New York Knicks,H2,opp_efg_pct,0.5226,10,False,0.5341
+2026-27,1610612760,Oklahoma City Thunder,H2,opp_efg_pct,0.5282,11,False,0.5341
+2026-27,1610612737,Atlanta Hawks,H2,opp_efg_pct,0.5292,12,False,0.5341
+2026-27,1610612739,Cleveland Cavaliers,H2,opp_efg_pct,0.53,13,False,0.5341
+2026-27,1610612754,Indiana Pacers,H2,opp_efg_pct,0.5327,14,False,0.5341
+2026-27,1610612744,Golden State Warriors,H2,opp_efg_pct,0.534,15,False,0.5341
+2026-27,1610612751,Brooklyn Nets,H2,opp_efg_pct,0.5341,16,False,0.5341
+2026-27,1610612738,Boston Celtics,H2,opp_efg_pct,0.5344,17,False,0.5341
+2026-27,1610612756,Phoenix Suns,H2,opp_efg_pct,0.5346,18,False,0.5341
+2026-27,1610612743,Denver Nuggets,H2,opp_efg_pct,0.5405,19,False,0.5341
+2026-27,1610612761,Toronto Raptors,H2,opp_efg_pct,0.5425,20,False,0.5341
+2026-27,1610612755,Philadelphia 76ers,H2,opp_efg_pct,0.5457,21,False,0.5341
+2026-27,1610612758,Sacramento Kings,H2,opp_efg_pct,0.5508,22,False,0.5341
+2026-27,1610612741,Chicago Bulls,H2,opp_efg_pct,0.5533,23,False,0.5341
+2026-27,1610612748,Miami Heat,H2,opp_efg_pct,0.5582,24,False,0.5341
+2026-27,1610612745,Houston Rockets,H2,opp_efg_pct,0.5607,25,False,0.5341
+2026-27,1610612749,Milwaukee Bucks,H2,opp_efg_pct,0.5632,26,False,0.5341
+2026-27,1610612740,New Orleans Pelicans,H2,opp_efg_pct,0.5635,27,False,0.5341
+2026-27,1610612766,Charlotte Hornets,H2,opp_efg_pct,0.5639,28,False,0.5341
+2026-27,1610612753,Orlando Magic,H2,opp_efg_pct,0.5679,29,False,0.5341
+2026-27,1610612746,LA Clippers,H2,opp_efg_pct,0.5772,30,True,0.5341
+2026-27,1610612751,Brooklyn Nets,change,opp_efg_pct,-0.0648,1,False,-0.0077
+2026-27,1610612747,Los Angeles Lakers,change,opp_efg_pct,-0.059,2,False,-0.0077
+2026-27,1610612763,Memphis Grizzlies,change,opp_efg_pct,-0.0474,3,False,-0.0077
+2026-27,1610612750,Minnesota Timberwolves,change,opp_efg_pct,-0.0417,4,False,-0.0077
+2026-27,1610612742,Dallas Mavericks,change,opp_efg_pct,-0.0341,5,False,-0.0077
+2026-27,1610612758,Sacramento Kings,change,opp_efg_pct,-0.029,6,False,-0.0077
+2026-27,1610612737,Atlanta Hawks,change,opp_efg_pct,-0.0251,7,False,-0.0077
+2026-27,1610612764,Washington Wizards,change,opp_efg_pct,-0.0236,8,False,-0.0077
+2026-27,1610612762,Utah Jazz,change,opp_efg_pct,-0.0234,9,False,-0.0077
+2026-27,1610612754,Indiana Pacers,change,opp_efg_pct,-0.0215,10,False,-0.0077
+2026-27,1610612743,Denver Nuggets,change,opp_efg_pct,-0.0214,11,False,-0.0077
+2026-27,1610612756,Phoenix Suns,change,opp_efg_pct,-0.0206,12,False,-0.0077
+2026-27,1610612761,Toronto Raptors,change,opp_efg_pct,-0.0159,13,False,-0.0077
+2026-27,1610612759,San Antonio Spurs,change,opp_efg_pct,-0.0141,14,False,-0.0077
+2026-27,1610612757,Portland Trail Blazers,change,opp_efg_pct,-0.013,15,False,-0.0077
+2026-27,1610612748,Miami Heat,change,opp_efg_pct,-0.0082,16,False,-0.0077
+2026-27,1610612744,Golden State Warriors,change,opp_efg_pct,-0.0071,17,False,-0.0077
+2026-27,1610612739,Cleveland Cavaliers,change,opp_efg_pct,-0.0068,18,False,-0.0077
+2026-27,1610612740,New Orleans Pelicans,change,opp_efg_pct,-0.0059,19,False,-0.0077
+2026-27,1610612766,Charlotte Hornets,change,opp_efg_pct,-0.0001,20,False,-0.0077
+2026-27,1610612741,Chicago Bulls,change,opp_efg_pct,0.0017,21,False,-0.0077
+2026-27,1610612765,Detroit Pistons,change,opp_efg_pct,0.0034,22,False,-0.0077
+2026-27,1610612755,Philadelphia 76ers,change,opp_efg_pct,0.0073,23,False,-0.0077
+2026-27,1610612752,New York Knicks,change,opp_efg_pct,0.0226,24,False,-0.0077
+2026-27,1610612749,Milwaukee Bucks,change,opp_efg_pct,0.0234,25,False,-0.0077
+2026-27,1610612746,LA Clippers,change,opp_efg_pct,0.0254,26,True,-0.0077
+2026-27,1610612760,Oklahoma City Thunder,change,opp_efg_pct,0.0275,27,False,-0.0077
+2026-27,1610612753,Orlando Magic,change,opp_efg_pct,0.0309,28,False,-0.0077
+2026-27,1610612745,Houston Rockets,change,opp_efg_pct,0.0493,29,False,-0.0077
+2026-27,1610612738,Boston Celtics,change,opp_efg_pct,0.0607,30,False,-0.0077
 2026-27,1610612759,San Antonio Spurs,H1,opp_ft_rate,0.1941,1,False,0.2496
 2026-27,1610612764,Washington Wizards,H1,opp_ft_rate,0.1949,2,False,0.2496
 2026-27,1610612743,Denver Nuggets,H1,opp_ft_rate,0.1967,3,False,0.2496
@@ -1362,73 +1362,73 @@ season,team_id,team_name,split,metric,value,rank,is_team,league_mean
 2026-27,1610612739,Cleveland Cavaliers,H1,opp_ft_rate,0.23,11,False,0.2496
 2026-27,1610612741,Chicago Bulls,H1,opp_ft_rate,0.2311,12,False,0.2496
 2026-27,1610612754,Indiana Pacers,H1,opp_ft_rate,0.2358,13,False,0.2496
-2026-27,1610612737,Atlanta Hawks,H1,opp_ft_rate,0.2372,14,False,0.2496
-2026-27,1610612755,Philadelphia 76ers,H1,opp_ft_rate,0.2377,15,False,0.2496
+2026-27,1610612766,Charlotte Hornets,H1,opp_ft_rate,0.2371,14,False,0.2496
+2026-27,1610612737,Atlanta Hawks,H1,opp_ft_rate,0.2372,15,False,0.2496
 2026-27,1610612746,LA Clippers,H1,opp_ft_rate,0.2378,16,True,0.2496
-2026-27,1610612766,Charlotte Hornets,H1,opp_ft_rate,0.241,17,False,0.2496
+2026-27,1610612755,Philadelphia 76ers,H1,opp_ft_rate,0.2485,17,False,0.2496
 2026-27,1610612738,Boston Celtics,H1,opp_ft_rate,0.2493,18,False,0.2496
 2026-27,1610612753,Orlando Magic,H1,opp_ft_rate,0.2654,19,False,0.2496
 2026-27,1610612749,Milwaukee Bucks,H1,opp_ft_rate,0.2709,20,False,0.2496
 2026-27,1610612747,Los Angeles Lakers,H1,opp_ft_rate,0.272,21,False,0.2496
 2026-27,1610612756,Phoenix Suns,H1,opp_ft_rate,0.2738,22,False,0.2496
 2026-27,1610612740,New Orleans Pelicans,H1,opp_ft_rate,0.2764,23,False,0.2496
-2026-27,1610612763,Memphis Grizzlies,H1,opp_ft_rate,0.2886,24,False,0.2496
+2026-27,1610612763,Memphis Grizzlies,H1,opp_ft_rate,0.283,24,False,0.2496
 2026-27,1610612761,Toronto Raptors,H1,opp_ft_rate,0.2944,25,False,0.2496
 2026-27,1610612765,Detroit Pistons,H1,opp_ft_rate,0.3,26,False,0.2496
 2026-27,1610612758,Sacramento Kings,H1,opp_ft_rate,0.303,27,False,0.2496
 2026-27,1610612751,Brooklyn Nets,H1,opp_ft_rate,0.3037,28,False,0.2496
 2026-27,1610612762,Utah Jazz,H1,opp_ft_rate,0.3258,29,False,0.2496
-2026-27,1610612757,Portland Trail Blazers,H1,opp_ft_rate,0.3305,30,False,0.2496
-2026-27,1610612759,San Antonio Spurs,H2,opp_ft_rate,0.2355,1,False,0.3079
-2026-27,1610612743,Denver Nuggets,H2,opp_ft_rate,0.2519,2,False,0.3079
-2026-27,1610612764,Washington Wizards,H2,opp_ft_rate,0.2522,3,False,0.3079
-2026-27,1610612763,Memphis Grizzlies,H2,opp_ft_rate,0.2554,4,False,0.3079
-2026-27,1610612750,Minnesota Timberwolves,H2,opp_ft_rate,0.2599,5,False,0.3079
-2026-27,1610612760,Oklahoma City Thunder,H2,opp_ft_rate,0.2627,6,False,0.3079
-2026-27,1610612754,Indiana Pacers,H2,opp_ft_rate,0.2773,7,False,0.3079
-2026-27,1610612765,Detroit Pistons,H2,opp_ft_rate,0.2779,8,False,0.3079
-2026-27,1610612766,Charlotte Hornets,H2,opp_ft_rate,0.2796,9,False,0.3079
-2026-27,1610612757,Portland Trail Blazers,H2,opp_ft_rate,0.2805,10,False,0.3079
-2026-27,1610612744,Golden State Warriors,H2,opp_ft_rate,0.283,11,False,0.3079
-2026-27,1610612752,New York Knicks,H2,opp_ft_rate,0.2885,12,False,0.3079
-2026-27,1610612742,Dallas Mavericks,H2,opp_ft_rate,0.2956,13,False,0.3079
-2026-27,1610612738,Boston Celtics,H2,opp_ft_rate,0.297,14,False,0.3079
-2026-27,1610612737,Atlanta Hawks,H2,opp_ft_rate,0.3008,15,False,0.3079
-2026-27,1610612739,Cleveland Cavaliers,H2,opp_ft_rate,0.3016,16,False,0.3079
-2026-27,1610612745,Houston Rockets,H2,opp_ft_rate,0.3057,17,False,0.3079
-2026-27,1610612755,Philadelphia 76ers,H2,opp_ft_rate,0.3083,18,False,0.3079
-2026-27,1610612753,Orlando Magic,H2,opp_ft_rate,0.3254,19,False,0.3079
-2026-27,1610612746,LA Clippers,H2,opp_ft_rate,0.3257,20,True,0.3079
-2026-27,1610612741,Chicago Bulls,H2,opp_ft_rate,0.343,21,False,0.3079
-2026-27,1610612748,Miami Heat,H2,opp_ft_rate,0.3434,22,False,0.3079
-2026-27,1610612749,Milwaukee Bucks,H2,opp_ft_rate,0.3434,23,False,0.3079
-2026-27,1610612758,Sacramento Kings,H2,opp_ft_rate,0.3467,24,False,0.3079
-2026-27,1610612762,Utah Jazz,H2,opp_ft_rate,0.3499,25,False,0.3079
-2026-27,1610612747,Los Angeles Lakers,H2,opp_ft_rate,0.3524,26,False,0.3079
-2026-27,1610612756,Phoenix Suns,H2,opp_ft_rate,0.3528,27,False,0.3079
-2026-27,1610612751,Brooklyn Nets,H2,opp_ft_rate,0.355,28,False,0.3079
-2026-27,1610612761,Toronto Raptors,H2,opp_ft_rate,0.39,29,False,0.3079
-2026-27,1610612740,New Orleans Pelicans,H2,opp_ft_rate,0.3966,30,False,0.3079
-2026-27,1610612757,Portland Trail Blazers,change,opp_ft_rate,-0.0501,1,False,0.0583
-2026-27,1610612763,Memphis Grizzlies,change,opp_ft_rate,-0.0332,2,False,0.0583
+2026-27,1610612757,Portland Trail Blazers,H1,opp_ft_rate,0.3267,30,False,0.2496
+2026-27,1610612759,San Antonio Spurs,H2,opp_ft_rate,0.2355,1,False,0.3078
+2026-27,1610612743,Denver Nuggets,H2,opp_ft_rate,0.2519,2,False,0.3078
+2026-27,1610612764,Washington Wizards,H2,opp_ft_rate,0.2522,3,False,0.3078
+2026-27,1610612763,Memphis Grizzlies,H2,opp_ft_rate,0.2532,4,False,0.3078
+2026-27,1610612750,Minnesota Timberwolves,H2,opp_ft_rate,0.2599,5,False,0.3078
+2026-27,1610612760,Oklahoma City Thunder,H2,opp_ft_rate,0.2627,6,False,0.3078
+2026-27,1610612754,Indiana Pacers,H2,opp_ft_rate,0.2773,7,False,0.3078
+2026-27,1610612765,Detroit Pistons,H2,opp_ft_rate,0.2779,8,False,0.3078
+2026-27,1610612757,Portland Trail Blazers,H2,opp_ft_rate,0.2808,9,False,0.3078
+2026-27,1610612744,Golden State Warriors,H2,opp_ft_rate,0.283,10,False,0.3078
+2026-27,1610612766,Charlotte Hornets,H2,opp_ft_rate,0.2881,11,False,0.3078
+2026-27,1610612752,New York Knicks,H2,opp_ft_rate,0.2885,12,False,0.3078
+2026-27,1610612742,Dallas Mavericks,H2,opp_ft_rate,0.2956,13,False,0.3078
+2026-27,1610612738,Boston Celtics,H2,opp_ft_rate,0.297,14,False,0.3078
+2026-27,1610612755,Philadelphia 76ers,H2,opp_ft_rate,0.298,15,False,0.3078
+2026-27,1610612737,Atlanta Hawks,H2,opp_ft_rate,0.3008,16,False,0.3078
+2026-27,1610612739,Cleveland Cavaliers,H2,opp_ft_rate,0.3016,17,False,0.3078
+2026-27,1610612745,Houston Rockets,H2,opp_ft_rate,0.3057,18,False,0.3078
+2026-27,1610612753,Orlando Magic,H2,opp_ft_rate,0.3254,19,False,0.3078
+2026-27,1610612746,LA Clippers,H2,opp_ft_rate,0.3257,20,True,0.3078
+2026-27,1610612741,Chicago Bulls,H2,opp_ft_rate,0.343,21,False,0.3078
+2026-27,1610612748,Miami Heat,H2,opp_ft_rate,0.3434,22,False,0.3078
+2026-27,1610612749,Milwaukee Bucks,H2,opp_ft_rate,0.3434,23,False,0.3078
+2026-27,1610612758,Sacramento Kings,H2,opp_ft_rate,0.3467,24,False,0.3078
+2026-27,1610612762,Utah Jazz,H2,opp_ft_rate,0.3499,25,False,0.3078
+2026-27,1610612747,Los Angeles Lakers,H2,opp_ft_rate,0.3524,26,False,0.3078
+2026-27,1610612756,Phoenix Suns,H2,opp_ft_rate,0.3528,27,False,0.3078
+2026-27,1610612751,Brooklyn Nets,H2,opp_ft_rate,0.355,28,False,0.3078
+2026-27,1610612761,Toronto Raptors,H2,opp_ft_rate,0.39,29,False,0.3078
+2026-27,1610612740,New Orleans Pelicans,H2,opp_ft_rate,0.3966,30,False,0.3078
+2026-27,1610612757,Portland Trail Blazers,change,opp_ft_rate,-0.0459,1,False,0.0583
+2026-27,1610612763,Memphis Grizzlies,change,opp_ft_rate,-0.0299,2,False,0.0583
 2026-27,1610612765,Detroit Pistons,change,opp_ft_rate,-0.0221,3,False,0.0583
 2026-27,1610612762,Utah Jazz,change,opp_ft_rate,0.0241,4,False,0.0583
-2026-27,1610612766,Charlotte Hornets,change,opp_ft_rate,0.0386,5,False,0.0583
-2026-27,1610612759,San Antonio Spurs,change,opp_ft_rate,0.0414,6,False,0.0583
-2026-27,1610612754,Indiana Pacers,change,opp_ft_rate,0.0415,7,False,0.0583
-2026-27,1610612758,Sacramento Kings,change,opp_ft_rate,0.0437,8,False,0.0583
-2026-27,1610612750,Minnesota Timberwolves,change,opp_ft_rate,0.0442,9,False,0.0583
-2026-27,1610612760,Oklahoma City Thunder,change,opp_ft_rate,0.0462,10,False,0.0583
-2026-27,1610612738,Boston Celtics,change,opp_ft_rate,0.0477,11,False,0.0583
-2026-27,1610612751,Brooklyn Nets,change,opp_ft_rate,0.0513,12,False,0.0583
-2026-27,1610612743,Denver Nuggets,change,opp_ft_rate,0.0552,13,False,0.0583
-2026-27,1610612764,Washington Wizards,change,opp_ft_rate,0.0573,14,False,0.0583
-2026-27,1610612753,Orlando Magic,change,opp_ft_rate,0.0601,15,False,0.0583
-2026-27,1610612737,Atlanta Hawks,change,opp_ft_rate,0.0636,16,False,0.0583
-2026-27,1610612752,New York Knicks,change,opp_ft_rate,0.0648,17,False,0.0583
-2026-27,1610612742,Dallas Mavericks,change,opp_ft_rate,0.0668,18,False,0.0583
-2026-27,1610612744,Golden State Warriors,change,opp_ft_rate,0.0698,19,False,0.0583
-2026-27,1610612755,Philadelphia 76ers,change,opp_ft_rate,0.0707,20,False,0.0583
+2026-27,1610612759,San Antonio Spurs,change,opp_ft_rate,0.0414,5,False,0.0583
+2026-27,1610612754,Indiana Pacers,change,opp_ft_rate,0.0415,6,False,0.0583
+2026-27,1610612758,Sacramento Kings,change,opp_ft_rate,0.0437,7,False,0.0583
+2026-27,1610612750,Minnesota Timberwolves,change,opp_ft_rate,0.0442,8,False,0.0583
+2026-27,1610612760,Oklahoma City Thunder,change,opp_ft_rate,0.0462,9,False,0.0583
+2026-27,1610612738,Boston Celtics,change,opp_ft_rate,0.0477,10,False,0.0583
+2026-27,1610612755,Philadelphia 76ers,change,opp_ft_rate,0.0495,11,False,0.0583
+2026-27,1610612766,Charlotte Hornets,change,opp_ft_rate,0.051,12,False,0.0583
+2026-27,1610612751,Brooklyn Nets,change,opp_ft_rate,0.0513,13,False,0.0583
+2026-27,1610612743,Denver Nuggets,change,opp_ft_rate,0.0552,14,False,0.0583
+2026-27,1610612764,Washington Wizards,change,opp_ft_rate,0.0573,15,False,0.0583
+2026-27,1610612753,Orlando Magic,change,opp_ft_rate,0.0601,16,False,0.0583
+2026-27,1610612737,Atlanta Hawks,change,opp_ft_rate,0.0636,17,False,0.0583
+2026-27,1610612752,New York Knicks,change,opp_ft_rate,0.0648,18,False,0.0583
+2026-27,1610612742,Dallas Mavericks,change,opp_ft_rate,0.0668,19,False,0.0583
+2026-27,1610612744,Golden State Warriors,change,opp_ft_rate,0.0698,20,False,0.0583
 2026-27,1610612739,Cleveland Cavaliers,change,opp_ft_rate,0.0716,21,False,0.0583
 2026-27,1610612749,Milwaukee Bucks,change,opp_ft_rate,0.0726,22,False,0.0583
 2026-27,1610612756,Phoenix Suns,change,opp_ft_rate,0.0789,23,False,0.0583
@@ -1439,543 +1439,543 @@ season,team_id,team_name,split,metric,value,rank,is_team,league_mean
 2026-27,1610612741,Chicago Bulls,change,opp_ft_rate,0.1119,28,False,0.0583
 2026-27,1610612740,New Orleans Pelicans,change,opp_ft_rate,0.1202,29,False,0.0583
 2026-27,1610612748,Miami Heat,change,opp_ft_rate,0.1423,30,False,0.0583
-2026-27,1610612759,San Antonio Spurs,H1,opp_oreb_pct,0.2101,1,False,0.2692
-2026-27,1610612752,New York Knicks,H1,opp_oreb_pct,0.2211,2,False,0.2692
-2026-27,1610612745,Houston Rockets,H1,opp_oreb_pct,0.2342,3,False,0.2692
-2026-27,1610612740,New Orleans Pelicans,H1,opp_oreb_pct,0.2358,4,False,0.2692
-2026-27,1610612743,Denver Nuggets,H1,opp_oreb_pct,0.2381,5,False,0.2692
-2026-27,1610612762,Utah Jazz,H1,opp_oreb_pct,0.2395,6,False,0.2692
-2026-27,1610612739,Cleveland Cavaliers,H1,opp_oreb_pct,0.2403,7,False,0.2692
-2026-27,1610612766,Charlotte Hornets,H1,opp_oreb_pct,0.2404,8,False,0.2692
-2026-27,1610612750,Minnesota Timberwolves,H1,opp_oreb_pct,0.2405,9,False,0.2692
-2026-27,1610612754,Indiana Pacers,H1,opp_oreb_pct,0.2493,10,False,0.2692
-2026-27,1610612760,Oklahoma City Thunder,H1,opp_oreb_pct,0.2512,11,False,0.2692
-2026-27,1610612738,Boston Celtics,H1,opp_oreb_pct,0.2581,12,False,0.2692
-2026-27,1610612757,Portland Trail Blazers,H1,opp_oreb_pct,0.2709,13,False,0.2692
-2026-27,1610612744,Golden State Warriors,H1,opp_oreb_pct,0.2735,14,False,0.2692
-2026-27,1610612737,Atlanta Hawks,H1,opp_oreb_pct,0.2737,15,False,0.2692
-2026-27,1610612746,LA Clippers,H1,opp_oreb_pct,0.2741,16,True,0.2692
-2026-27,1610612755,Philadelphia 76ers,H1,opp_oreb_pct,0.2753,17,False,0.2692
-2026-27,1610612753,Orlando Magic,H1,opp_oreb_pct,0.2771,18,False,0.2692
-2026-27,1610612748,Miami Heat,H1,opp_oreb_pct,0.2793,19,False,0.2692
-2026-27,1610612758,Sacramento Kings,H1,opp_oreb_pct,0.2812,20,False,0.2692
-2026-27,1610612763,Memphis Grizzlies,H1,opp_oreb_pct,0.2835,21,False,0.2692
-2026-27,1610612749,Milwaukee Bucks,H1,opp_oreb_pct,0.2846,22,False,0.2692
-2026-27,1610612747,Los Angeles Lakers,H1,opp_oreb_pct,0.291,23,False,0.2692
-2026-27,1610612761,Toronto Raptors,H1,opp_oreb_pct,0.2928,24,False,0.2692
-2026-27,1610612751,Brooklyn Nets,H1,opp_oreb_pct,0.2979,25,False,0.2692
-2026-27,1610612741,Chicago Bulls,H1,opp_oreb_pct,0.2983,26,False,0.2692
-2026-27,1610612765,Detroit Pistons,H1,opp_oreb_pct,0.3011,27,False,0.2692
-2026-27,1610612742,Dallas Mavericks,H1,opp_oreb_pct,0.3174,28,False,0.2692
-2026-27,1610612764,Washington Wizards,H1,opp_oreb_pct,0.321,29,False,0.2692
-2026-27,1610612756,Phoenix Suns,H1,opp_oreb_pct,0.3253,30,False,0.2692
-2026-27,1610612753,Orlando Magic,H2,opp_oreb_pct,0.1949,1,False,0.2767
-2026-27,1610612766,Charlotte Hornets,H2,opp_oreb_pct,0.2061,2,False,0.2767
-2026-27,1610612755,Philadelphia 76ers,H2,opp_oreb_pct,0.2279,3,False,0.2767
-2026-27,1610612758,Sacramento Kings,H2,opp_oreb_pct,0.2347,4,False,0.2767
-2026-27,1610612757,Portland Trail Blazers,H2,opp_oreb_pct,0.2416,5,False,0.2767
-2026-27,1610612752,New York Knicks,H2,opp_oreb_pct,0.2423,6,False,0.2767
-2026-27,1610612737,Atlanta Hawks,H2,opp_oreb_pct,0.2576,7,False,0.2767
-2026-27,1610612763,Memphis Grizzlies,H2,opp_oreb_pct,0.259,8,False,0.2767
-2026-27,1610612751,Brooklyn Nets,H2,opp_oreb_pct,0.2602,9,False,0.2767
-2026-27,1610612762,Utah Jazz,H2,opp_oreb_pct,0.2629,10,False,0.2767
-2026-27,1610612754,Indiana Pacers,H2,opp_oreb_pct,0.2644,11,False,0.2767
-2026-27,1610612761,Toronto Raptors,H2,opp_oreb_pct,0.2704,12,False,0.2767
-2026-27,1610612748,Miami Heat,H2,opp_oreb_pct,0.2706,13,False,0.2767
-2026-27,1610612759,San Antonio Spurs,H2,opp_oreb_pct,0.2708,14,False,0.2767
-2026-27,1610612739,Cleveland Cavaliers,H2,opp_oreb_pct,0.2711,15,False,0.2767
-2026-27,1610612750,Minnesota Timberwolves,H2,opp_oreb_pct,0.2714,16,False,0.2767
-2026-27,1610612760,Oklahoma City Thunder,H2,opp_oreb_pct,0.272,17,False,0.2767
-2026-27,1610612764,Washington Wizards,H2,opp_oreb_pct,0.2727,18,False,0.2767
-2026-27,1610612742,Dallas Mavericks,H2,opp_oreb_pct,0.2784,19,False,0.2767
-2026-27,1610612765,Detroit Pistons,H2,opp_oreb_pct,0.2921,20,False,0.2767
-2026-27,1610612740,New Orleans Pelicans,H2,opp_oreb_pct,0.3035,21,False,0.2767
-2026-27,1610612746,LA Clippers,H2,opp_oreb_pct,0.3041,22,True,0.2767
-2026-27,1610612745,Houston Rockets,H2,opp_oreb_pct,0.3042,23,False,0.2767
-2026-27,1610612756,Phoenix Suns,H2,opp_oreb_pct,0.3089,24,False,0.2767
-2026-27,1610612744,Golden State Warriors,H2,opp_oreb_pct,0.312,25,False,0.2767
-2026-27,1610612741,Chicago Bulls,H2,opp_oreb_pct,0.3179,26,False,0.2767
-2026-27,1610612749,Milwaukee Bucks,H2,opp_oreb_pct,0.3216,27,False,0.2767
-2026-27,1610612738,Boston Celtics,H2,opp_oreb_pct,0.3304,28,False,0.2767
-2026-27,1610612747,Los Angeles Lakers,H2,opp_oreb_pct,0.3308,29,False,0.2767
-2026-27,1610612743,Denver Nuggets,H2,opp_oreb_pct,0.3462,30,False,0.2767
-2026-27,1610612753,Orlando Magic,change,opp_oreb_pct,-0.0823,1,False,0.0075
-2026-27,1610612764,Washington Wizards,change,opp_oreb_pct,-0.0483,2,False,0.0075
-2026-27,1610612755,Philadelphia 76ers,change,opp_oreb_pct,-0.0473,3,False,0.0075
-2026-27,1610612758,Sacramento Kings,change,opp_oreb_pct,-0.0464,4,False,0.0075
-2026-27,1610612742,Dallas Mavericks,change,opp_oreb_pct,-0.0391,5,False,0.0075
-2026-27,1610612751,Brooklyn Nets,change,opp_oreb_pct,-0.0378,6,False,0.0075
-2026-27,1610612766,Charlotte Hornets,change,opp_oreb_pct,-0.0343,7,False,0.0075
-2026-27,1610612757,Portland Trail Blazers,change,opp_oreb_pct,-0.0294,8,False,0.0075
-2026-27,1610612763,Memphis Grizzlies,change,opp_oreb_pct,-0.0245,9,False,0.0075
-2026-27,1610612761,Toronto Raptors,change,opp_oreb_pct,-0.0224,10,False,0.0075
-2026-27,1610612756,Phoenix Suns,change,opp_oreb_pct,-0.0164,11,False,0.0075
-2026-27,1610612737,Atlanta Hawks,change,opp_oreb_pct,-0.0161,12,False,0.0075
-2026-27,1610612765,Detroit Pistons,change,opp_oreb_pct,-0.009,13,False,0.0075
-2026-27,1610612748,Miami Heat,change,opp_oreb_pct,-0.0087,14,False,0.0075
-2026-27,1610612754,Indiana Pacers,change,opp_oreb_pct,0.0151,15,False,0.0075
-2026-27,1610612741,Chicago Bulls,change,opp_oreb_pct,0.0196,16,False,0.0075
-2026-27,1610612760,Oklahoma City Thunder,change,opp_oreb_pct,0.0208,17,False,0.0075
-2026-27,1610612752,New York Knicks,change,opp_oreb_pct,0.0213,18,False,0.0075
-2026-27,1610612762,Utah Jazz,change,opp_oreb_pct,0.0234,19,False,0.0075
-2026-27,1610612746,LA Clippers,change,opp_oreb_pct,0.0299,20,True,0.0075
-2026-27,1610612739,Cleveland Cavaliers,change,opp_oreb_pct,0.0308,21,False,0.0075
-2026-27,1610612750,Minnesota Timberwolves,change,opp_oreb_pct,0.0309,22,False,0.0075
-2026-27,1610612749,Milwaukee Bucks,change,opp_oreb_pct,0.037,23,False,0.0075
-2026-27,1610612744,Golden State Warriors,change,opp_oreb_pct,0.0385,24,False,0.0075
-2026-27,1610612747,Los Angeles Lakers,change,opp_oreb_pct,0.0398,25,False,0.0075
-2026-27,1610612759,San Antonio Spurs,change,opp_oreb_pct,0.0607,26,False,0.0075
-2026-27,1610612740,New Orleans Pelicans,change,opp_oreb_pct,0.0678,27,False,0.0075
-2026-27,1610612745,Houston Rockets,change,opp_oreb_pct,0.07,28,False,0.0075
-2026-27,1610612738,Boston Celtics,change,opp_oreb_pct,0.0723,29,False,0.0075
-2026-27,1610612743,Denver Nuggets,change,opp_oreb_pct,0.1081,30,False,0.0075
-2026-27,1610612766,Charlotte Hornets,H1,oreb_pct,0.3607,1,False,0.268
-2026-27,1610612738,Boston Celtics,H1,oreb_pct,0.3376,2,False,0.268
-2026-27,1610612745,Houston Rockets,H1,oreb_pct,0.3143,3,False,0.268
-2026-27,1610612747,Los Angeles Lakers,H1,oreb_pct,0.3035,4,False,0.268
-2026-27,1610612749,Milwaukee Bucks,H1,oreb_pct,0.2971,5,False,0.268
-2026-27,1610612742,Dallas Mavericks,H1,oreb_pct,0.2952,6,False,0.268
-2026-27,1610612752,New York Knicks,H1,oreb_pct,0.294,7,False,0.268
-2026-27,1610612761,Toronto Raptors,H1,oreb_pct,0.2865,8,False,0.268
-2026-27,1610612759,San Antonio Spurs,H1,oreb_pct,0.2789,9,False,0.268
-2026-27,1610612757,Portland Trail Blazers,H1,oreb_pct,0.2775,10,False,0.268
-2026-27,1610612763,Memphis Grizzlies,H1,oreb_pct,0.2768,11,False,0.268
-2026-27,1610612751,Brooklyn Nets,H1,oreb_pct,0.2742,12,False,0.268
-2026-27,1610612764,Washington Wizards,H1,oreb_pct,0.2737,13,False,0.268
-2026-27,1610612741,Chicago Bulls,H1,oreb_pct,0.2727,14,False,0.268
-2026-27,1610612765,Detroit Pistons,H1,oreb_pct,0.2717,15,False,0.268
-2026-27,1610612737,Atlanta Hawks,H1,oreb_pct,0.27,16,False,0.268
-2026-27,1610612744,Golden State Warriors,H1,oreb_pct,0.2628,17,False,0.268
-2026-27,1610612748,Miami Heat,H1,oreb_pct,0.2625,18,False,0.268
-2026-27,1610612739,Cleveland Cavaliers,H1,oreb_pct,0.2555,19,False,0.268
-2026-27,1610612756,Phoenix Suns,H1,oreb_pct,0.2538,20,False,0.268
-2026-27,1610612762,Utah Jazz,H1,oreb_pct,0.2537,21,False,0.268
-2026-27,1610612753,Orlando Magic,H1,oreb_pct,0.2523,22,False,0.268
-2026-27,1610612750,Minnesota Timberwolves,H1,oreb_pct,0.2493,23,False,0.268
-2026-27,1610612743,Denver Nuggets,H1,oreb_pct,0.2468,24,False,0.268
-2026-27,1610612740,New Orleans Pelicans,H1,oreb_pct,0.241,25,False,0.268
-2026-27,1610612746,LA Clippers,H1,oreb_pct,0.2373,26,True,0.268
-2026-27,1610612760,Oklahoma City Thunder,H1,oreb_pct,0.2262,27,False,0.268
-2026-27,1610612755,Philadelphia 76ers,H1,oreb_pct,0.2172,28,False,0.268
-2026-27,1610612758,Sacramento Kings,H1,oreb_pct,0.213,29,False,0.268
-2026-27,1610612754,Indiana Pacers,H1,oreb_pct,0.1858,30,False,0.268
-2026-27,1610612744,Golden State Warriors,H2,oreb_pct,0.3494,1,False,0.2774
-2026-27,1610612745,Houston Rockets,H2,oreb_pct,0.3389,2,False,0.2774
-2026-27,1610612763,Memphis Grizzlies,H2,oreb_pct,0.3274,3,False,0.2774
-2026-27,1610612750,Minnesota Timberwolves,H2,oreb_pct,0.3225,4,False,0.2774
-2026-27,1610612737,Atlanta Hawks,H2,oreb_pct,0.3134,5,False,0.2774
-2026-27,1610612766,Charlotte Hornets,H2,oreb_pct,0.3061,6,False,0.2774
-2026-27,1610612752,New York Knicks,H2,oreb_pct,0.3,7,False,0.2774
-2026-27,1610612761,Toronto Raptors,H2,oreb_pct,0.2994,8,False,0.2774
-2026-27,1610612759,San Antonio Spurs,H2,oreb_pct,0.2938,9,False,0.2774
-2026-27,1610612760,Oklahoma City Thunder,H2,oreb_pct,0.2885,10,False,0.2774
-2026-27,1610612738,Boston Celtics,H2,oreb_pct,0.2818,11,False,0.2774
-2026-27,1610612747,Los Angeles Lakers,H2,oreb_pct,0.2794,12,False,0.2774
-2026-27,1610612741,Chicago Bulls,H2,oreb_pct,0.277,13,False,0.2774
-2026-27,1610612757,Portland Trail Blazers,H2,oreb_pct,0.2758,14,False,0.2774
-2026-27,1610612756,Phoenix Suns,H2,oreb_pct,0.2744,15,False,0.2774
-2026-27,1610612751,Brooklyn Nets,H2,oreb_pct,0.2733,16,False,0.2774
-2026-27,1610612762,Utah Jazz,H2,oreb_pct,0.2711,17,False,0.2774
-2026-27,1610612742,Dallas Mavericks,H2,oreb_pct,0.2704,18,False,0.2774
-2026-27,1610612749,Milwaukee Bucks,H2,oreb_pct,0.269,19,False,0.2774
-2026-27,1610612758,Sacramento Kings,H2,oreb_pct,0.2665,20,False,0.2774
-2026-27,1610612740,New Orleans Pelicans,H2,oreb_pct,0.2625,21,False,0.2774
-2026-27,1610612739,Cleveland Cavaliers,H2,oreb_pct,0.2588,22,False,0.2774
-2026-27,1610612746,LA Clippers,H2,oreb_pct,0.2571,23,True,0.2774
-2026-27,1610612743,Denver Nuggets,H2,oreb_pct,0.256,24,False,0.2774
-2026-27,1610612765,Detroit Pistons,H2,oreb_pct,0.2537,25,False,0.2774
-2026-27,1610612753,Orlando Magic,H2,oreb_pct,0.2515,26,False,0.2774
-2026-27,1610612755,Philadelphia 76ers,H2,oreb_pct,0.2347,27,False,0.2774
-2026-27,1610612754,Indiana Pacers,H2,oreb_pct,0.2329,28,False,0.2774
-2026-27,1610612748,Miami Heat,H2,oreb_pct,0.2323,29,False,0.2774
-2026-27,1610612764,Washington Wizards,H2,oreb_pct,0.2035,30,False,0.2774
-2026-27,1610612744,Golden State Warriors,change,oreb_pct,0.0867,1,False,0.0093
-2026-27,1610612750,Minnesota Timberwolves,change,oreb_pct,0.0732,2,False,0.0093
-2026-27,1610612760,Oklahoma City Thunder,change,oreb_pct,0.0623,3,False,0.0093
-2026-27,1610612758,Sacramento Kings,change,oreb_pct,0.0535,4,False,0.0093
-2026-27,1610612763,Memphis Grizzlies,change,oreb_pct,0.0506,5,False,0.0093
-2026-27,1610612754,Indiana Pacers,change,oreb_pct,0.0471,6,False,0.0093
-2026-27,1610612737,Atlanta Hawks,change,oreb_pct,0.0434,7,False,0.0093
-2026-27,1610612745,Houston Rockets,change,oreb_pct,0.0246,8,False,0.0093
-2026-27,1610612740,New Orleans Pelicans,change,oreb_pct,0.0215,9,False,0.0093
-2026-27,1610612756,Phoenix Suns,change,oreb_pct,0.0207,10,False,0.0093
-2026-27,1610612746,LA Clippers,change,oreb_pct,0.0197,11,True,0.0093
-2026-27,1610612755,Philadelphia 76ers,change,oreb_pct,0.0175,12,False,0.0093
-2026-27,1610612762,Utah Jazz,change,oreb_pct,0.0174,13,False,0.0093
-2026-27,1610612759,San Antonio Spurs,change,oreb_pct,0.0149,14,False,0.0093
-2026-27,1610612761,Toronto Raptors,change,oreb_pct,0.0129,15,False,0.0093
-2026-27,1610612743,Denver Nuggets,change,oreb_pct,0.0091,16,False,0.0093
-2026-27,1610612752,New York Knicks,change,oreb_pct,0.006,17,False,0.0093
-2026-27,1610612741,Chicago Bulls,change,oreb_pct,0.0042,18,False,0.0093
-2026-27,1610612739,Cleveland Cavaliers,change,oreb_pct,0.0033,19,False,0.0093
-2026-27,1610612753,Orlando Magic,change,oreb_pct,-0.0008,20,False,0.0093
-2026-27,1610612751,Brooklyn Nets,change,oreb_pct,-0.0009,21,False,0.0093
-2026-27,1610612757,Portland Trail Blazers,change,oreb_pct,-0.0017,22,False,0.0093
-2026-27,1610612765,Detroit Pistons,change,oreb_pct,-0.018,23,False,0.0093
-2026-27,1610612747,Los Angeles Lakers,change,oreb_pct,-0.0241,24,False,0.0093
-2026-27,1610612742,Dallas Mavericks,change,oreb_pct,-0.0247,25,False,0.0093
-2026-27,1610612749,Milwaukee Bucks,change,oreb_pct,-0.028,26,False,0.0093
-2026-27,1610612748,Miami Heat,change,oreb_pct,-0.0302,27,False,0.0093
-2026-27,1610612766,Charlotte Hornets,change,oreb_pct,-0.0546,28,False,0.0093
-2026-27,1610612738,Boston Celtics,change,oreb_pct,-0.0558,29,False,0.0093
-2026-27,1610612764,Washington Wizards,change,oreb_pct,-0.0702,30,False,0.0093
-2026-27,1610612747,Los Angeles Lakers,H1,ortg,124.3874,1,False,113.0608
-2026-27,1610612759,San Antonio Spurs,H1,ortg,122.4057,2,False,113.0608
-2026-27,1610612748,Miami Heat,H1,ortg,120.0726,3,False,113.0608
-2026-27,1610612745,Houston Rockets,H1,ortg,118.6683,4,False,113.0608
-2026-27,1610612738,Boston Celtics,H1,ortg,118.5542,5,False,113.0608
-2026-27,1610612763,Memphis Grizzlies,H1,ortg,118.2135,6,False,113.0608
-2026-27,1610612743,Denver Nuggets,H1,ortg,116.7109,7,False,113.0608
-2026-27,1610612739,Cleveland Cavaliers,H1,ortg,116.5501,8,False,113.0608
-2026-27,1610612752,New York Knicks,H1,ortg,116.3216,9,False,113.0608
-2026-27,1610612757,Portland Trail Blazers,H1,ortg,114.8466,10,False,113.0608
-2026-27,1610612755,Philadelphia 76ers,H1,ortg,114.6821,11,False,113.0608
-2026-27,1610612761,Toronto Raptors,H1,ortg,114.359,12,False,113.0608
-2026-27,1610612741,Chicago Bulls,H1,ortg,113.9759,13,False,113.0608
-2026-27,1610612756,Phoenix Suns,H1,ortg,113.9189,14,False,113.0608
-2026-27,1610612737,Atlanta Hawks,H1,ortg,113.0045,15,False,113.0608
-2026-27,1610612753,Orlando Magic,H1,ortg,112.3883,16,False,113.0608
-2026-27,1610612750,Minnesota Timberwolves,H1,ortg,111.5741,17,False,113.0608
-2026-27,1610612751,Brooklyn Nets,H1,ortg,111.2752,18,False,113.0608
-2026-27,1610612764,Washington Wizards,H1,ortg,110.7898,19,False,113.0608
-2026-27,1610612760,Oklahoma City Thunder,H1,ortg,110.6977,20,False,113.0608
-2026-27,1610612765,Detroit Pistons,H1,ortg,110.4869,21,False,113.0608
-2026-27,1610612740,New Orleans Pelicans,H1,ortg,110.4865,22,False,113.0608
-2026-27,1610612766,Charlotte Hornets,H1,ortg,110.4762,23,False,113.0608
-2026-27,1610612746,LA Clippers,H1,ortg,110.4636,24,True,113.0608
-2026-27,1610612742,Dallas Mavericks,H1,ortg,110.3286,25,False,113.0608
-2026-27,1610612758,Sacramento Kings,H1,ortg,110.0372,26,False,113.0608
-2026-27,1610612762,Utah Jazz,H1,ortg,106.4906,27,False,113.0608
-2026-27,1610612754,Indiana Pacers,H1,ortg,105.8486,28,False,113.0608
-2026-27,1610612744,Golden State Warriors,H1,ortg,105.792,29,False,113.0608
-2026-27,1610612749,Milwaukee Bucks,H1,ortg,98.0186,30,False,113.0608
-2026-27,1610612745,Houston Rockets,H2,ortg,123.5653,1,False,113.6919
-2026-27,1610612763,Memphis Grizzlies,H2,ortg,121.7184,2,False,113.6919
-2026-27,1610612739,Cleveland Cavaliers,H2,ortg,118.6321,3,False,113.6919
-2026-27,1610612749,Milwaukee Bucks,H2,ortg,118.2346,4,False,113.6919
-2026-27,1610612744,Golden State Warriors,H2,ortg,118.0723,5,False,113.6919
-2026-27,1610612756,Phoenix Suns,H2,ortg,117.3677,6,False,113.6919
-2026-27,1610612765,Detroit Pistons,H2,ortg,117.2057,7,False,113.6919
-2026-27,1610612757,Portland Trail Blazers,H2,ortg,117.0051,8,False,113.6919
-2026-27,1610612760,Oklahoma City Thunder,H2,ortg,116.8878,9,False,113.6919
-2026-27,1610612755,Philadelphia 76ers,H2,ortg,116.2679,10,False,113.6919
-2026-27,1610612743,Denver Nuggets,H2,ortg,116.1826,11,False,113.6919
-2026-27,1610612750,Minnesota Timberwolves,H2,ortg,115.4846,12,False,113.6919
-2026-27,1610612747,Los Angeles Lakers,H2,ortg,115.2563,13,False,113.6919
-2026-27,1610612754,Indiana Pacers,H2,ortg,115.2482,14,False,113.6919
-2026-27,1610612742,Dallas Mavericks,H2,ortg,115.1839,15,False,113.6919
-2026-27,1610612748,Miami Heat,H2,ortg,114.5679,16,False,113.6919
-2026-27,1610612759,San Antonio Spurs,H2,ortg,113.7349,17,False,113.6919
-2026-27,1610612761,Toronto Raptors,H2,ortg,113.4021,18,False,113.6919
-2026-27,1610612737,Atlanta Hawks,H2,ortg,112.9371,19,False,113.6919
-2026-27,1610612738,Boston Celtics,H2,ortg,111.5385,20,False,113.6919
-2026-27,1610612740,New Orleans Pelicans,H2,ortg,111.4955,21,False,113.6919
-2026-27,1610612746,LA Clippers,H2,ortg,111.0512,22,True,113.6919
-2026-27,1610612751,Brooklyn Nets,H2,ortg,110.7095,23,False,113.6919
-2026-27,1610612752,New York Knicks,H2,ortg,110.4141,24,False,113.6919
-2026-27,1610612764,Washington Wizards,H2,ortg,110.3409,25,False,113.6919
-2026-27,1610612753,Orlando Magic,H2,ortg,110.2332,26,False,113.6919
-2026-27,1610612762,Utah Jazz,H2,ortg,109.0909,27,False,113.6919
-2026-27,1610612741,Chicago Bulls,H2,ortg,108.9242,28,False,113.6919
-2026-27,1610612758,Sacramento Kings,H2,ortg,103.5309,29,False,113.6919
-2026-27,1610612766,Charlotte Hornets,H2,ortg,96.4739,30,False,113.6919
-2026-27,1610612749,Milwaukee Bucks,change,ortg,20.216,1,False,0.6311
-2026-27,1610612744,Golden State Warriors,change,ortg,12.2803,2,False,0.6311
-2026-27,1610612754,Indiana Pacers,change,ortg,9.3996,3,False,0.6311
-2026-27,1610612765,Detroit Pistons,change,ortg,6.7188,4,False,0.6311
-2026-27,1610612760,Oklahoma City Thunder,change,ortg,6.1901,5,False,0.6311
-2026-27,1610612745,Houston Rockets,change,ortg,4.8971,6,False,0.6311
-2026-27,1610612742,Dallas Mavericks,change,ortg,4.8552,7,False,0.6311
-2026-27,1610612750,Minnesota Timberwolves,change,ortg,3.9106,8,False,0.6311
-2026-27,1610612763,Memphis Grizzlies,change,ortg,3.5049,9,False,0.6311
-2026-27,1610612756,Phoenix Suns,change,ortg,3.4488,10,False,0.6311
-2026-27,1610612762,Utah Jazz,change,ortg,2.6003,11,False,0.6311
-2026-27,1610612757,Portland Trail Blazers,change,ortg,2.1585,12,False,0.6311
-2026-27,1610612739,Cleveland Cavaliers,change,ortg,2.082,13,False,0.6311
-2026-27,1610612755,Philadelphia 76ers,change,ortg,1.5859,14,False,0.6311
-2026-27,1610612740,New Orleans Pelicans,change,ortg,1.009,15,False,0.6311
-2026-27,1610612746,LA Clippers,change,ortg,0.5876,16,True,0.6311
-2026-27,1610612737,Atlanta Hawks,change,ortg,-0.0674,17,False,0.6311
-2026-27,1610612764,Washington Wizards,change,ortg,-0.4489,18,False,0.6311
-2026-27,1610612743,Denver Nuggets,change,ortg,-0.5283,19,False,0.6311
-2026-27,1610612751,Brooklyn Nets,change,ortg,-0.5657,20,False,0.6311
-2026-27,1610612761,Toronto Raptors,change,ortg,-0.9569,21,False,0.6311
-2026-27,1610612753,Orlando Magic,change,ortg,-2.1551,22,False,0.6311
-2026-27,1610612741,Chicago Bulls,change,ortg,-5.0517,23,False,0.6311
-2026-27,1610612748,Miami Heat,change,ortg,-5.5047,24,False,0.6311
-2026-27,1610612752,New York Knicks,change,ortg,-5.9075,25,False,0.6311
-2026-27,1610612758,Sacramento Kings,change,ortg,-6.5063,26,False,0.6311
-2026-27,1610612738,Boston Celtics,change,ortg,-7.0158,27,False,0.6311
-2026-27,1610612759,San Antonio Spurs,change,ortg,-8.6707,28,False,0.6311
-2026-27,1610612747,Los Angeles Lakers,change,ortg,-9.1311,29,False,0.6311
-2026-27,1610612766,Charlotte Hornets,change,ortg,-14.0023,30,False,0.6311
-2026-27,1610612737,Atlanta Hawks,H1,pace,104.9412,1,False,100.5061
-2026-27,1610612741,Chicago Bulls,H1,pace,103.75,2,False,100.5061
-2026-27,1610612748,Miami Heat,H1,pace,103.375,3,False,100.5061
-2026-27,1610612740,New Orleans Pelicans,H1,pace,102.7778,4,False,100.5061
-2026-27,1610612754,Indiana Pacers,H1,pace,102.5882,5,False,100.5061
-2026-27,1610612757,Portland Trail Blazers,H1,pace,101.875,6,False,100.5061
-2026-27,1610612755,Philadelphia 76ers,H1,pace,101.7647,7,False,100.5061
-2026-27,1610612750,Minnesota Timberwolves,H1,pace,101.6471,8,False,100.5061
-2026-27,1610612763,Memphis Grizzlies,H1,pace,101.4118,9,False,100.5061
-2026-27,1610612760,Oklahoma City Thunder,H1,pace,101.1765,10,False,100.5061
-2026-27,1610612762,Utah Jazz,H1,pace,101.0,11,False,100.5061
-2026-27,1610612739,Cleveland Cavaliers,H1,pace,100.9412,12,False,100.5061
-2026-27,1610612749,Milwaukee Bucks,H1,pace,100.9412,12,False,100.5061
-2026-27,1610612758,Sacramento Kings,H1,pace,100.875,14,False,100.5061
-2026-27,1610612747,Los Angeles Lakers,H1,pace,100.8235,15,False,100.5061
-2026-27,1610612746,LA Clippers,H1,pace,100.6667,16,True,100.5061
-2026-27,1610612743,Denver Nuggets,H1,pace,100.5333,17,False,100.5061
-2026-27,1610612742,Dallas Mavericks,H1,pace,100.2353,18,False,100.5061
-2026-27,1610612765,Detroit Pistons,H1,pace,100.125,19,False,100.5061
-2026-27,1610612764,Washington Wizards,H1,pace,99.8889,20,False,100.5061
-2026-27,1610612759,San Antonio Spurs,H1,pace,99.7647,21,False,100.5061
-2026-27,1610612744,Golden State Warriors,H1,pace,99.5294,22,False,100.5061
-2026-27,1610612751,Brooklyn Nets,H1,pace,99.3333,23,False,100.5061
-2026-27,1610612745,Houston Rockets,H1,pace,98.9412,24,False,100.5061
-2026-27,1610612756,Phoenix Suns,H1,pace,98.6667,25,False,100.5061
-2026-27,1610612766,Charlotte Hornets,H1,pace,98.0,26,False,100.5061
-2026-27,1610612753,Orlando Magic,H1,pace,97.875,27,False,100.5061
-2026-27,1610612738,Boston Celtics,H1,pace,97.6471,28,False,100.5061
-2026-27,1610612761,Toronto Raptors,H1,pace,97.5,29,False,100.5061
-2026-27,1610612752,New York Knicks,H1,pace,96.5882,30,False,100.5061
-2026-27,1610612741,Chicago Bulls,H2,pace,102.25,1,False,98.2988
-2026-27,1610612749,Milwaukee Bucks,H2,pace,101.2941,2,False,98.2988
-2026-27,1610612748,Miami Heat,H2,pace,101.25,3,False,98.2988
-2026-27,1610612737,Atlanta Hawks,H2,pace,100.9412,4,False,98.2988
-2026-27,1610612739,Cleveland Cavaliers,H2,pace,99.7647,5,False,98.2988
-2026-27,1610612751,Brooklyn Nets,H2,pace,99.6,6,False,98.2988
-2026-27,1610612740,New Orleans Pelicans,H2,pace,99.5556,7,False,98.2988
-2026-27,1610612750,Minnesota Timberwolves,H2,pace,99.5294,8,False,98.2988
-2026-27,1610612754,Indiana Pacers,H2,pace,99.5294,8,False,98.2988
-2026-27,1610612742,Dallas Mavericks,H2,pace,99.1765,10,False,98.2988
-2026-27,1610612758,Sacramento Kings,H2,pace,99.125,11,False,98.2988
-2026-27,1610612762,Utah Jazz,H2,pace,99.0,12,False,98.2988
-2026-27,1610612746,LA Clippers,H2,pace,98.9333,13,True,98.2988
-2026-27,1610612747,Los Angeles Lakers,H2,pace,98.7059,14,False,98.2988
-2026-27,1610612763,Memphis Grizzlies,H2,pace,98.5882,15,False,98.2988
-2026-27,1610612757,Portland Trail Blazers,H2,pace,98.5,16,False,98.2988
-2026-27,1610612755,Philadelphia 76ers,H2,pace,98.3529,17,False,98.2988
-2026-27,1610612756,Phoenix Suns,H2,pace,98.2667,18,False,98.2988
-2026-27,1610612764,Washington Wizards,H2,pace,97.7778,19,False,98.2988
-2026-27,1610612744,Golden State Warriors,H2,pace,97.6471,20,False,98.2988
-2026-27,1610612759,San Antonio Spurs,H2,pace,97.6471,20,False,98.2988
-2026-27,1610612760,Oklahoma City Thunder,H2,pace,97.5294,22,False,98.2988
-2026-27,1610612761,Toronto Raptors,H2,pace,97.0,23,False,98.2988
-2026-27,1610612765,Detroit Pistons,H2,pace,96.625,24,False,98.2988
-2026-27,1610612753,Orlando Magic,H2,pace,96.5,25,False,98.2988
-2026-27,1610612743,Denver Nuggets,H2,pace,96.4,26,False,98.2988
-2026-27,1610612745,Houston Rockets,H2,pace,96.3529,27,False,98.2988
-2026-27,1610612738,Boston Celtics,H2,pace,94.8235,28,False,98.2988
-2026-27,1610612766,Charlotte Hornets,H2,pace,94.5333,29,False,98.2988
-2026-27,1610612752,New York Knicks,H2,pace,93.7647,30,False,98.2988
-2026-27,1610612749,Milwaukee Bucks,change,pace,0.3529,1,False,-2.2073
-2026-27,1610612751,Brooklyn Nets,change,pace,0.2667,2,False,-2.2073
-2026-27,1610612756,Phoenix Suns,change,pace,-0.4,3,False,-2.2073
-2026-27,1610612761,Toronto Raptors,change,pace,-0.5,4,False,-2.2073
-2026-27,1610612742,Dallas Mavericks,change,pace,-1.0588,5,False,-2.2073
-2026-27,1610612739,Cleveland Cavaliers,change,pace,-1.1765,6,False,-2.2073
-2026-27,1610612753,Orlando Magic,change,pace,-1.375,7,False,-2.2073
-2026-27,1610612741,Chicago Bulls,change,pace,-1.5,8,False,-2.2073
-2026-27,1610612746,LA Clippers,change,pace,-1.7333,9,True,-2.2073
-2026-27,1610612758,Sacramento Kings,change,pace,-1.75,10,False,-2.2073
-2026-27,1610612744,Golden State Warriors,change,pace,-1.8824,11,False,-2.2073
-2026-27,1610612762,Utah Jazz,change,pace,-2.0,12,False,-2.2073
-2026-27,1610612764,Washington Wizards,change,pace,-2.1111,13,False,-2.2073
-2026-27,1610612750,Minnesota Timberwolves,change,pace,-2.1176,14,False,-2.2073
-2026-27,1610612747,Los Angeles Lakers,change,pace,-2.1176,15,False,-2.2073
-2026-27,1610612759,San Antonio Spurs,change,pace,-2.1176,15,False,-2.2073
-2026-27,1610612748,Miami Heat,change,pace,-2.125,17,False,-2.2073
-2026-27,1610612745,Houston Rockets,change,pace,-2.5882,18,False,-2.2073
-2026-27,1610612738,Boston Celtics,change,pace,-2.8235,19,False,-2.2073
-2026-27,1610612752,New York Knicks,change,pace,-2.8235,20,False,-2.2073
-2026-27,1610612763,Memphis Grizzlies,change,pace,-2.8235,20,False,-2.2073
-2026-27,1610612754,Indiana Pacers,change,pace,-3.0588,22,False,-2.2073
-2026-27,1610612740,New Orleans Pelicans,change,pace,-3.2222,23,False,-2.2073
-2026-27,1610612757,Portland Trail Blazers,change,pace,-3.375,24,False,-2.2073
-2026-27,1610612755,Philadelphia 76ers,change,pace,-3.4118,25,False,-2.2073
-2026-27,1610612766,Charlotte Hornets,change,pace,-3.4667,26,False,-2.2073
-2026-27,1610612765,Detroit Pistons,change,pace,-3.5,27,False,-2.2073
-2026-27,1610612760,Oklahoma City Thunder,change,pace,-3.6471,28,False,-2.2073
-2026-27,1610612737,Atlanta Hawks,change,pace,-4.0,29,False,-2.2073
-2026-27,1610612743,Denver Nuggets,change,pace,-4.1333,30,False,-2.2073
-2026-27,1610612760,Oklahoma City Thunder,H1,pf_per100,16.9767,1,False,20.016
-2026-27,1610612745,Houston Rockets,H1,pf_per100,17.0036,2,False,20.016
-2026-27,1610612759,San Antonio Spurs,H1,pf_per100,17.4528,3,False,20.016
-2026-27,1610612748,Miami Heat,H1,pf_per100,17.5333,4,False,20.016
-2026-27,1610612743,Denver Nuggets,H1,pf_per100,17.9045,5,False,20.016
-2026-27,1610612754,Indiana Pacers,H1,pf_per100,18.4633,6,False,20.016
-2026-27,1610612755,Philadelphia 76ers,H1,pf_per100,18.7283,7,False,20.016
-2026-27,1610612750,Minnesota Timberwolves,H1,pf_per100,18.75,8,False,20.016
-2026-27,1610612744,Golden State Warriors,H1,pf_per100,18.9125,9,False,20.016
-2026-27,1610612737,Atlanta Hawks,H1,pf_per100,19.0583,10,False,20.016
-2026-27,1610612746,LA Clippers,H1,pf_per100,19.0728,11,True,20.016
-2026-27,1610612742,Dallas Mavericks,H1,pf_per100,19.1315,12,False,20.016
-2026-27,1610612739,Cleveland Cavaliers,H1,pf_per100,19.2308,13,False,20.016
-2026-27,1610612764,Washington Wizards,H1,pf_per100,19.3548,14,False,20.016
-2026-27,1610612752,New York Knicks,H1,pf_per100,19.732,15,False,20.016
-2026-27,1610612741,Chicago Bulls,H1,pf_per100,19.759,16,False,20.016
-2026-27,1610612740,New Orleans Pelicans,H1,pf_per100,19.8919,17,False,20.016
-2026-27,1610612749,Milwaukee Bucks,H1,pf_per100,20.1632,18,False,20.016
-2026-27,1610612738,Boston Celtics,H1,pf_per100,20.241,19,False,20.016
-2026-27,1610612756,Phoenix Suns,H1,pf_per100,20.2703,20,False,20.016
-2026-27,1610612747,Los Angeles Lakers,H1,pf_per100,20.6534,21,False,20.016
-2026-27,1610612758,Sacramento Kings,H1,pf_per100,20.6939,22,False,20.016
-2026-27,1610612766,Charlotte Hornets,H1,pf_per100,21.2245,23,False,20.016
-2026-27,1610612753,Orlando Magic,H1,pf_per100,21.3282,24,False,20.016
-2026-27,1610612762,Utah Jazz,H1,pf_per100,21.8922,25,False,20.016
-2026-27,1610612761,Toronto Raptors,H1,pf_per100,22.5641,26,False,20.016
-2026-27,1610612765,Detroit Pistons,H1,pf_per100,23.3458,27,False,20.016
-2026-27,1610612757,Portland Trail Blazers,H1,pf_per100,23.4356,28,False,20.016
-2026-27,1610612763,Memphis Grizzlies,H1,pf_per100,23.5499,29,False,20.016
-2026-27,1610612751,Brooklyn Nets,H1,pf_per100,24.1611,30,False,20.016
-2026-27,1610612759,San Antonio Spurs,H2,pf_per100,20.6024,1,False,23.4683
-2026-27,1610612757,Portland Trail Blazers,H2,pf_per100,20.6853,2,False,23.4683
-2026-27,1610612743,Denver Nuggets,H2,pf_per100,20.8852,3,False,23.4683
-2026-27,1610612764,Washington Wizards,H2,pf_per100,21.0227,4,False,23.4683
-2026-27,1610612760,Oklahoma City Thunder,H2,pf_per100,21.2304,5,False,23.4683
-2026-27,1610612754,Indiana Pacers,H2,pf_per100,21.7494,6,False,23.4683
-2026-27,1610612737,Atlanta Hawks,H2,pf_per100,21.7949,7,False,23.4683
-2026-27,1610612766,Charlotte Hornets,H2,pf_per100,21.8618,8,False,23.4683
-2026-27,1610612755,Philadelphia 76ers,H2,pf_per100,21.89,9,False,23.4683
-2026-27,1610612763,Memphis Grizzlies,H2,pf_per100,22.1957,10,False,23.4683
-2026-27,1610612765,Detroit Pistons,H2,pf_per100,22.5097,11,False,23.4683
-2026-27,1610612750,Minnesota Timberwolves,H2,pf_per100,22.9314,12,False,23.4683
-2026-27,1610612762,Utah Jazz,H2,pf_per100,23.0079,13,False,23.4683
-2026-27,1610612756,Phoenix Suns,H2,pf_per100,23.7449,14,False,23.4683
-2026-27,1610612748,Miami Heat,H2,pf_per100,23.8272,15,False,23.4683
-2026-27,1610612753,Orlando Magic,H2,pf_per100,23.8342,16,False,23.4683
-2026-27,1610612742,Dallas Mavericks,H2,pf_per100,23.8434,17,False,23.4683
-2026-27,1610612745,Houston Rockets,H2,pf_per100,24.0537,18,False,23.4683
-2026-27,1610612758,Sacramento Kings,H2,pf_per100,24.0858,19,False,23.4683
-2026-27,1610612739,Cleveland Cavaliers,H2,pf_per100,24.1745,20,False,23.4683
-2026-27,1610612752,New York Knicks,H2,pf_per100,24.2158,21,False,23.4683
-2026-27,1610612747,Los Angeles Lakers,H2,pf_per100,24.3147,22,False,23.4683
-2026-27,1610612746,LA Clippers,H2,pf_per100,24.3935,23,True,23.4683
-2026-27,1610612744,Golden State Warriors,H2,pf_per100,24.5783,24,False,23.4683
-2026-27,1610612741,Chicago Bulls,H2,pf_per100,24.6944,25,False,23.4683
-2026-27,1610612738,Boston Celtics,H2,pf_per100,24.8139,26,False,23.4683
-2026-27,1610612740,New Orleans Pelicans,H2,pf_per100,26.0045,27,False,23.4683
-2026-27,1610612749,Milwaukee Bucks,H2,pf_per100,26.3647,28,False,23.4683
-2026-27,1610612751,Brooklyn Nets,H2,pf_per100,26.7738,29,False,23.4683
-2026-27,1610612761,Toronto Raptors,H2,pf_per100,27.9639,30,False,23.4683
-2026-27,1610612757,Portland Trail Blazers,change,pf_per100,-2.7503,1,False,3.4523
-2026-27,1610612763,Memphis Grizzlies,change,pf_per100,-1.3542,2,False,3.4523
-2026-27,1610612765,Detroit Pistons,change,pf_per100,-0.8361,3,False,3.4523
-2026-27,1610612766,Charlotte Hornets,change,pf_per100,0.6373,4,False,3.4523
-2026-27,1610612762,Utah Jazz,change,pf_per100,1.1157,5,False,3.4523
-2026-27,1610612764,Washington Wizards,change,pf_per100,1.6679,6,False,3.4523
-2026-27,1610612753,Orlando Magic,change,pf_per100,2.506,7,False,3.4523
-2026-27,1610612751,Brooklyn Nets,change,pf_per100,2.6127,8,False,3.4523
-2026-27,1610612737,Atlanta Hawks,change,pf_per100,2.7366,9,False,3.4523
-2026-27,1610612743,Denver Nuggets,change,pf_per100,2.9807,10,False,3.4523
-2026-27,1610612759,San Antonio Spurs,change,pf_per100,3.1496,11,False,3.4523
-2026-27,1610612755,Philadelphia 76ers,change,pf_per100,3.1616,12,False,3.4523
-2026-27,1610612754,Indiana Pacers,change,pf_per100,3.2861,13,False,3.4523
-2026-27,1610612758,Sacramento Kings,change,pf_per100,3.3918,14,False,3.4523
-2026-27,1610612756,Phoenix Suns,change,pf_per100,3.4746,15,False,3.4523
-2026-27,1610612747,Los Angeles Lakers,change,pf_per100,3.6612,16,False,3.4523
-2026-27,1610612750,Minnesota Timberwolves,change,pf_per100,4.1814,17,False,3.4523
-2026-27,1610612760,Oklahoma City Thunder,change,pf_per100,4.2537,18,False,3.4523
-2026-27,1610612752,New York Knicks,change,pf_per100,4.4838,19,False,3.4523
-2026-27,1610612738,Boston Celtics,change,pf_per100,4.5729,20,False,3.4523
-2026-27,1610612742,Dallas Mavericks,change,pf_per100,4.712,21,False,3.4523
-2026-27,1610612741,Chicago Bulls,change,pf_per100,4.9353,22,False,3.4523
-2026-27,1610612739,Cleveland Cavaliers,change,pf_per100,4.9438,23,False,3.4523
-2026-27,1610612746,LA Clippers,change,pf_per100,5.3207,24,True,3.4523
-2026-27,1610612761,Toronto Raptors,change,pf_per100,5.3998,25,False,3.4523
-2026-27,1610612744,Golden State Warriors,change,pf_per100,5.6658,26,False,3.4523
-2026-27,1610612740,New Orleans Pelicans,change,pf_per100,6.1126,27,False,3.4523
-2026-27,1610612749,Milwaukee Bucks,change,pf_per100,6.2015,28,False,3.4523
-2026-27,1610612748,Miami Heat,change,pf_per100,6.2939,29,False,3.4523
-2026-27,1610612745,Houston Rockets,change,pf_per100,7.0502,30,False,3.4523
-2026-27,1610612761,Toronto Raptors,H1,tov_pct,12.6923,1,False,15.4004
-2026-27,1610612755,Philadelphia 76ers,H1,tov_pct,12.7168,2,False,15.4004
-2026-27,1610612759,San Antonio Spurs,H1,tov_pct,12.9717,3,False,15.4004
-2026-27,1610612760,Oklahoma City Thunder,H1,tov_pct,13.1395,4,False,15.4004
-2026-27,1610612743,Denver Nuggets,H1,tov_pct,13.3952,5,False,15.4004
-2026-27,1610612748,Miami Heat,H1,tov_pct,13.7848,6,False,15.4004
-2026-27,1610612738,Boston Celtics,H1,tov_pct,14.0964,7,False,15.4004
-2026-27,1610612756,Phoenix Suns,H1,tov_pct,14.1892,8,False,15.4004
-2026-27,1610612739,Cleveland Cavaliers,H1,tov_pct,14.2191,9,False,15.4004
-2026-27,1610612754,Indiana Pacers,H1,tov_pct,14.2202,10,False,15.4004
-2026-27,1610612752,New York Knicks,H1,tov_pct,14.6163,11,False,15.4004
-2026-27,1610612741,Chicago Bulls,H1,tov_pct,14.9398,12,False,15.4004
-2026-27,1610612765,Detroit Pistons,H1,tov_pct,14.9813,13,False,15.4004
-2026-27,1610612745,Houston Rockets,H1,tov_pct,15.3389,14,False,15.4004
-2026-27,1610612737,Atlanta Hawks,H1,tov_pct,15.4709,15,False,15.4004
-2026-27,1610612747,Los Angeles Lakers,H1,tov_pct,15.5193,16,False,15.4004
-2026-27,1610612740,New Orleans Pelicans,H1,tov_pct,15.6757,17,False,15.4004
-2026-27,1610612764,Washington Wizards,H1,tov_pct,15.9066,18,False,15.4004
-2026-27,1610612763,Memphis Grizzlies,H1,tov_pct,16.2413,19,False,15.4004
-2026-27,1610612750,Minnesota Timberwolves,H1,tov_pct,16.5509,20,False,15.4004
-2026-27,1610612757,Portland Trail Blazers,H1,tov_pct,16.5644,21,False,15.4004
-2026-27,1610612742,Dallas Mavericks,H1,tov_pct,16.6667,22,False,15.4004
-2026-27,1610612744,Golden State Warriors,H1,tov_pct,16.6667,22,False,15.4004
-2026-27,1610612751,Brooklyn Nets,H1,tov_pct,16.7785,24,False,15.4004
-2026-27,1610612762,Utah Jazz,H1,tov_pct,16.8317,25,False,15.4004
-2026-27,1610612758,Sacramento Kings,H1,tov_pct,16.8525,26,False,15.4004
-2026-27,1610612749,Milwaukee Bucks,H1,tov_pct,17.366,27,False,15.4004
-2026-27,1610612746,LA Clippers,H1,tov_pct,17.4834,28,True,15.4004
-2026-27,1610612753,Orlando Magic,H1,tov_pct,17.4968,29,False,15.4004
-2026-27,1610612766,Charlotte Hornets,H1,tov_pct,18.6395,30,False,15.4004
-2026-27,1610612755,Philadelphia 76ers,H2,tov_pct,11.4833,1,False,15.3964
-2026-27,1610612739,Cleveland Cavaliers,H2,tov_pct,12.8538,2,False,15.3964
-2026-27,1610612764,Washington Wizards,H2,tov_pct,13.4091,3,False,15.3964
-2026-27,1610612759,San Antonio Spurs,H2,tov_pct,13.494,4,False,15.3964
-2026-27,1610612760,Oklahoma City Thunder,H2,tov_pct,13.5103,5,False,15.3964
-2026-27,1610612765,Detroit Pistons,H2,tov_pct,13.5834,6,False,15.3964
-2026-27,1610612737,Atlanta Hawks,H2,tov_pct,13.8695,7,False,15.3964
-2026-27,1610612754,Indiana Pacers,H2,tov_pct,13.948,8,False,15.3964
-2026-27,1610612743,Denver Nuggets,H2,tov_pct,14.1079,9,False,15.3964
-2026-27,1610612756,Phoenix Suns,H2,tov_pct,14.1113,10,False,15.3964
-2026-27,1610612748,Miami Heat,H2,tov_pct,14.321,11,False,15.3964
-2026-27,1610612753,Orlando Magic,H2,tov_pct,14.6373,12,False,15.3964
-2026-27,1610612745,Houston Rockets,H2,tov_pct,14.652,13,False,15.3964
-2026-27,1610612742,Dallas Mavericks,H2,tov_pct,14.7094,14,False,15.3964
-2026-27,1610612740,New Orleans Pelicans,H2,tov_pct,15.067,15,False,15.3964
-2026-27,1610612761,Toronto Raptors,H2,tov_pct,15.0773,16,False,15.3964
-2026-27,1610612749,Milwaukee Bucks,H2,tov_pct,15.0987,17,False,15.3964
-2026-27,1610612763,Memphis Grizzlies,H2,tov_pct,15.6325,18,False,15.3964
-2026-27,1610612738,Boston Celtics,H2,tov_pct,15.7568,19,False,15.3964
-2026-27,1610612752,New York Knicks,H2,tov_pct,16.1857,20,False,15.3964
-2026-27,1610612750,Minnesota Timberwolves,H2,tov_pct,16.1939,21,False,15.3964
-2026-27,1610612757,Portland Trail Blazers,H2,tov_pct,16.2437,22,False,15.3964
-2026-27,1610612762,Utah Jazz,H2,tov_pct,16.7228,23,False,15.3964
-2026-27,1610612744,Golden State Warriors,H2,tov_pct,17.2289,24,False,15.3964
-2026-27,1610612746,LA Clippers,H2,tov_pct,17.3854,25,True,15.3964
-2026-27,1610612747,Los Angeles Lakers,H2,tov_pct,17.5209,26,False,15.3964
-2026-27,1610612741,Chicago Bulls,H2,tov_pct,17.8484,27,False,15.3964
-2026-27,1610612758,Sacramento Kings,H2,tov_pct,18.1589,28,False,15.3964
-2026-27,1610612751,Brooklyn Nets,H2,tov_pct,18.2062,29,False,15.3964
-2026-27,1610612766,Charlotte Hornets,H2,tov_pct,20.8745,30,False,15.3964
-2026-27,1610612753,Orlando Magic,change,tov_pct,-2.8595,1,False,-0.004
-2026-27,1610612764,Washington Wizards,change,tov_pct,-2.4975,2,False,-0.004
-2026-27,1610612749,Milwaukee Bucks,change,tov_pct,-2.2672,3,False,-0.004
-2026-27,1610612742,Dallas Mavericks,change,tov_pct,-1.9573,4,False,-0.004
-2026-27,1610612737,Atlanta Hawks,change,tov_pct,-1.6014,5,False,-0.004
-2026-27,1610612765,Detroit Pistons,change,tov_pct,-1.3978,6,False,-0.004
-2026-27,1610612739,Cleveland Cavaliers,change,tov_pct,-1.3653,7,False,-0.004
-2026-27,1610612755,Philadelphia 76ers,change,tov_pct,-1.2335,8,False,-0.004
-2026-27,1610612745,Houston Rockets,change,tov_pct,-0.6869,9,False,-0.004
-2026-27,1610612763,Memphis Grizzlies,change,tov_pct,-0.6088,10,False,-0.004
-2026-27,1610612740,New Orleans Pelicans,change,tov_pct,-0.6087,11,False,-0.004
-2026-27,1610612750,Minnesota Timberwolves,change,tov_pct,-0.3571,12,False,-0.004
-2026-27,1610612757,Portland Trail Blazers,change,tov_pct,-0.3208,13,False,-0.004
-2026-27,1610612754,Indiana Pacers,change,tov_pct,-0.2722,14,False,-0.004
-2026-27,1610612762,Utah Jazz,change,tov_pct,-0.1089,15,False,-0.004
-2026-27,1610612746,LA Clippers,change,tov_pct,-0.098,16,True,-0.004
-2026-27,1610612756,Phoenix Suns,change,tov_pct,-0.0779,17,False,-0.004
-2026-27,1610612760,Oklahoma City Thunder,change,tov_pct,0.3707,18,False,-0.004
-2026-27,1610612759,San Antonio Spurs,change,tov_pct,0.5223,19,False,-0.004
-2026-27,1610612748,Miami Heat,change,tov_pct,0.5362,20,False,-0.004
-2026-27,1610612744,Golden State Warriors,change,tov_pct,0.5622,21,False,-0.004
-2026-27,1610612743,Denver Nuggets,change,tov_pct,0.7127,22,False,-0.004
-2026-27,1610612758,Sacramento Kings,change,tov_pct,1.3064,23,False,-0.004
-2026-27,1610612751,Brooklyn Nets,change,tov_pct,1.4276,24,False,-0.004
-2026-27,1610612752,New York Knicks,change,tov_pct,1.5694,25,False,-0.004
-2026-27,1610612738,Boston Celtics,change,tov_pct,1.6604,26,False,-0.004
-2026-27,1610612747,Los Angeles Lakers,change,tov_pct,2.0016,27,False,-0.004
-2026-27,1610612766,Charlotte Hornets,change,tov_pct,2.235,28,False,-0.004
-2026-27,1610612761,Toronto Raptors,change,tov_pct,2.385,29,False,-0.004
-2026-27,1610612741,Chicago Bulls,change,tov_pct,2.9087,30,False,-0.004
+2026-27,1610612759,San Antonio Spurs,H1,opp_oreb_pct,0.2101,1,False,0.2699
+2026-27,1610612752,New York Knicks,H1,opp_oreb_pct,0.2211,2,False,0.2699
+2026-27,1610612745,Houston Rockets,H1,opp_oreb_pct,0.2342,3,False,0.2699
+2026-27,1610612740,New Orleans Pelicans,H1,opp_oreb_pct,0.2358,4,False,0.2699
+2026-27,1610612743,Denver Nuggets,H1,opp_oreb_pct,0.2381,5,False,0.2699
+2026-27,1610612762,Utah Jazz,H1,opp_oreb_pct,0.2395,6,False,0.2699
+2026-27,1610612739,Cleveland Cavaliers,H1,opp_oreb_pct,0.2403,7,False,0.2699
+2026-27,1610612750,Minnesota Timberwolves,H1,opp_oreb_pct,0.2405,8,False,0.2699
+2026-27,1610612766,Charlotte Hornets,H1,opp_oreb_pct,0.2439,9,False,0.2699
+2026-27,1610612754,Indiana Pacers,H1,opp_oreb_pct,0.2493,10,False,0.2699
+2026-27,1610612760,Oklahoma City Thunder,H1,opp_oreb_pct,0.2512,11,False,0.2699
+2026-27,1610612738,Boston Celtics,H1,opp_oreb_pct,0.2581,12,False,0.2699
+2026-27,1610612757,Portland Trail Blazers,H1,opp_oreb_pct,0.2701,13,False,0.2699
+2026-27,1610612744,Golden State Warriors,H1,opp_oreb_pct,0.2735,14,False,0.2699
+2026-27,1610612737,Atlanta Hawks,H1,opp_oreb_pct,0.2737,15,False,0.2699
+2026-27,1610612746,LA Clippers,H1,opp_oreb_pct,0.2741,16,True,0.2699
+2026-27,1610612753,Orlando Magic,H1,opp_oreb_pct,0.2771,17,False,0.2699
+2026-27,1610612748,Miami Heat,H1,opp_oreb_pct,0.2793,18,False,0.2699
+2026-27,1610612758,Sacramento Kings,H1,opp_oreb_pct,0.2812,19,False,0.2699
+2026-27,1610612755,Philadelphia 76ers,H1,opp_oreb_pct,0.2833,20,False,0.2699
+2026-27,1610612749,Milwaukee Bucks,H1,opp_oreb_pct,0.2846,21,False,0.2699
+2026-27,1610612747,Los Angeles Lakers,H1,opp_oreb_pct,0.291,22,False,0.2699
+2026-27,1610612761,Toronto Raptors,H1,opp_oreb_pct,0.2928,23,False,0.2699
+2026-27,1610612763,Memphis Grizzlies,H1,opp_oreb_pct,0.2928,24,False,0.2699
+2026-27,1610612751,Brooklyn Nets,H1,opp_oreb_pct,0.2979,25,False,0.2699
+2026-27,1610612741,Chicago Bulls,H1,opp_oreb_pct,0.2983,26,False,0.2699
+2026-27,1610612765,Detroit Pistons,H1,opp_oreb_pct,0.3011,27,False,0.2699
+2026-27,1610612742,Dallas Mavericks,H1,opp_oreb_pct,0.3174,28,False,0.2699
+2026-27,1610612764,Washington Wizards,H1,opp_oreb_pct,0.321,29,False,0.2699
+2026-27,1610612756,Phoenix Suns,H1,opp_oreb_pct,0.3253,30,False,0.2699
+2026-27,1610612753,Orlando Magic,H2,opp_oreb_pct,0.1949,1,False,0.2768
+2026-27,1610612766,Charlotte Hornets,H2,opp_oreb_pct,0.2145,2,False,0.2768
+2026-27,1610612755,Philadelphia 76ers,H2,opp_oreb_pct,0.2332,3,False,0.2768
+2026-27,1610612758,Sacramento Kings,H2,opp_oreb_pct,0.2347,4,False,0.2768
+2026-27,1610612757,Portland Trail Blazers,H2,opp_oreb_pct,0.2376,5,False,0.2768
+2026-27,1610612752,New York Knicks,H2,opp_oreb_pct,0.2423,6,False,0.2768
+2026-27,1610612763,Memphis Grizzlies,H2,opp_oreb_pct,0.2536,7,False,0.2768
+2026-27,1610612737,Atlanta Hawks,H2,opp_oreb_pct,0.2576,8,False,0.2768
+2026-27,1610612751,Brooklyn Nets,H2,opp_oreb_pct,0.2602,9,False,0.2768
+2026-27,1610612762,Utah Jazz,H2,opp_oreb_pct,0.2629,10,False,0.2768
+2026-27,1610612754,Indiana Pacers,H2,opp_oreb_pct,0.2644,11,False,0.2768
+2026-27,1610612761,Toronto Raptors,H2,opp_oreb_pct,0.2704,12,False,0.2768
+2026-27,1610612748,Miami Heat,H2,opp_oreb_pct,0.2706,13,False,0.2768
+2026-27,1610612759,San Antonio Spurs,H2,opp_oreb_pct,0.2708,14,False,0.2768
+2026-27,1610612739,Cleveland Cavaliers,H2,opp_oreb_pct,0.2711,15,False,0.2768
+2026-27,1610612750,Minnesota Timberwolves,H2,opp_oreb_pct,0.2714,16,False,0.2768
+2026-27,1610612760,Oklahoma City Thunder,H2,opp_oreb_pct,0.272,17,False,0.2768
+2026-27,1610612764,Washington Wizards,H2,opp_oreb_pct,0.2727,18,False,0.2768
+2026-27,1610612742,Dallas Mavericks,H2,opp_oreb_pct,0.2784,19,False,0.2768
+2026-27,1610612765,Detroit Pistons,H2,opp_oreb_pct,0.2921,20,False,0.2768
+2026-27,1610612740,New Orleans Pelicans,H2,opp_oreb_pct,0.3035,21,False,0.2768
+2026-27,1610612746,LA Clippers,H2,opp_oreb_pct,0.3041,22,True,0.2768
+2026-27,1610612745,Houston Rockets,H2,opp_oreb_pct,0.3042,23,False,0.2768
+2026-27,1610612756,Phoenix Suns,H2,opp_oreb_pct,0.3089,24,False,0.2768
+2026-27,1610612744,Golden State Warriors,H2,opp_oreb_pct,0.312,25,False,0.2768
+2026-27,1610612741,Chicago Bulls,H2,opp_oreb_pct,0.3179,26,False,0.2768
+2026-27,1610612749,Milwaukee Bucks,H2,opp_oreb_pct,0.3216,27,False,0.2768
+2026-27,1610612738,Boston Celtics,H2,opp_oreb_pct,0.3304,28,False,0.2768
+2026-27,1610612747,Los Angeles Lakers,H2,opp_oreb_pct,0.3308,29,False,0.2768
+2026-27,1610612743,Denver Nuggets,H2,opp_oreb_pct,0.3462,30,False,0.2768
+2026-27,1610612753,Orlando Magic,change,opp_oreb_pct,-0.0823,1,False,0.0069
+2026-27,1610612755,Philadelphia 76ers,change,opp_oreb_pct,-0.05,2,False,0.0069
+2026-27,1610612764,Washington Wizards,change,opp_oreb_pct,-0.0483,3,False,0.0069
+2026-27,1610612758,Sacramento Kings,change,opp_oreb_pct,-0.0464,4,False,0.0069
+2026-27,1610612763,Memphis Grizzlies,change,opp_oreb_pct,-0.0392,5,False,0.0069
+2026-27,1610612742,Dallas Mavericks,change,opp_oreb_pct,-0.0391,6,False,0.0069
+2026-27,1610612751,Brooklyn Nets,change,opp_oreb_pct,-0.0378,7,False,0.0069
+2026-27,1610612757,Portland Trail Blazers,change,opp_oreb_pct,-0.0325,8,False,0.0069
+2026-27,1610612766,Charlotte Hornets,change,opp_oreb_pct,-0.0294,9,False,0.0069
+2026-27,1610612761,Toronto Raptors,change,opp_oreb_pct,-0.0224,10,False,0.0069
+2026-27,1610612756,Phoenix Suns,change,opp_oreb_pct,-0.0164,11,False,0.0069
+2026-27,1610612737,Atlanta Hawks,change,opp_oreb_pct,-0.0161,12,False,0.0069
+2026-27,1610612765,Detroit Pistons,change,opp_oreb_pct,-0.009,13,False,0.0069
+2026-27,1610612748,Miami Heat,change,opp_oreb_pct,-0.0087,14,False,0.0069
+2026-27,1610612754,Indiana Pacers,change,opp_oreb_pct,0.0151,15,False,0.0069
+2026-27,1610612741,Chicago Bulls,change,opp_oreb_pct,0.0196,16,False,0.0069
+2026-27,1610612760,Oklahoma City Thunder,change,opp_oreb_pct,0.0208,17,False,0.0069
+2026-27,1610612752,New York Knicks,change,opp_oreb_pct,0.0213,18,False,0.0069
+2026-27,1610612762,Utah Jazz,change,opp_oreb_pct,0.0234,19,False,0.0069
+2026-27,1610612746,LA Clippers,change,opp_oreb_pct,0.0299,20,True,0.0069
+2026-27,1610612739,Cleveland Cavaliers,change,opp_oreb_pct,0.0308,21,False,0.0069
+2026-27,1610612750,Minnesota Timberwolves,change,opp_oreb_pct,0.0309,22,False,0.0069
+2026-27,1610612749,Milwaukee Bucks,change,opp_oreb_pct,0.037,23,False,0.0069
+2026-27,1610612744,Golden State Warriors,change,opp_oreb_pct,0.0385,24,False,0.0069
+2026-27,1610612747,Los Angeles Lakers,change,opp_oreb_pct,0.0398,25,False,0.0069
+2026-27,1610612759,San Antonio Spurs,change,opp_oreb_pct,0.0607,26,False,0.0069
+2026-27,1610612740,New Orleans Pelicans,change,opp_oreb_pct,0.0678,27,False,0.0069
+2026-27,1610612745,Houston Rockets,change,opp_oreb_pct,0.07,28,False,0.0069
+2026-27,1610612738,Boston Celtics,change,opp_oreb_pct,0.0723,29,False,0.0069
+2026-27,1610612743,Denver Nuggets,change,opp_oreb_pct,0.1081,30,False,0.0069
+2026-27,1610612766,Charlotte Hornets,H1,oreb_pct,0.3664,1,False,0.2686
+2026-27,1610612738,Boston Celtics,H1,oreb_pct,0.3376,2,False,0.2686
+2026-27,1610612745,Houston Rockets,H1,oreb_pct,0.3143,3,False,0.2686
+2026-27,1610612747,Los Angeles Lakers,H1,oreb_pct,0.3035,4,False,0.2686
+2026-27,1610612749,Milwaukee Bucks,H1,oreb_pct,0.2971,5,False,0.2686
+2026-27,1610612742,Dallas Mavericks,H1,oreb_pct,0.2952,6,False,0.2686
+2026-27,1610612752,New York Knicks,H1,oreb_pct,0.294,7,False,0.2686
+2026-27,1610612757,Portland Trail Blazers,H1,oreb_pct,0.2865,8,False,0.2686
+2026-27,1610612761,Toronto Raptors,H1,oreb_pct,0.2865,8,False,0.2686
+2026-27,1610612759,San Antonio Spurs,H1,oreb_pct,0.2789,10,False,0.2686
+2026-27,1610612763,Memphis Grizzlies,H1,oreb_pct,0.2784,11,False,0.2686
+2026-27,1610612751,Brooklyn Nets,H1,oreb_pct,0.2742,12,False,0.2686
+2026-27,1610612764,Washington Wizards,H1,oreb_pct,0.2737,13,False,0.2686
+2026-27,1610612741,Chicago Bulls,H1,oreb_pct,0.2727,14,False,0.2686
+2026-27,1610612765,Detroit Pistons,H1,oreb_pct,0.2717,15,False,0.2686
+2026-27,1610612737,Atlanta Hawks,H1,oreb_pct,0.27,16,False,0.2686
+2026-27,1610612744,Golden State Warriors,H1,oreb_pct,0.2628,17,False,0.2686
+2026-27,1610612748,Miami Heat,H1,oreb_pct,0.2625,18,False,0.2686
+2026-27,1610612739,Cleveland Cavaliers,H1,oreb_pct,0.2555,19,False,0.2686
+2026-27,1610612756,Phoenix Suns,H1,oreb_pct,0.2538,20,False,0.2686
+2026-27,1610612762,Utah Jazz,H1,oreb_pct,0.2537,21,False,0.2686
+2026-27,1610612753,Orlando Magic,H1,oreb_pct,0.2523,22,False,0.2686
+2026-27,1610612750,Minnesota Timberwolves,H1,oreb_pct,0.2493,23,False,0.2686
+2026-27,1610612743,Denver Nuggets,H1,oreb_pct,0.2468,24,False,0.2686
+2026-27,1610612740,New Orleans Pelicans,H1,oreb_pct,0.241,25,False,0.2686
+2026-27,1610612746,LA Clippers,H1,oreb_pct,0.2373,26,True,0.2686
+2026-27,1610612760,Oklahoma City Thunder,H1,oreb_pct,0.2262,27,False,0.2686
+2026-27,1610612755,Philadelphia 76ers,H1,oreb_pct,0.2185,28,False,0.2686
+2026-27,1610612758,Sacramento Kings,H1,oreb_pct,0.213,29,False,0.2686
+2026-27,1610612754,Indiana Pacers,H1,oreb_pct,0.1858,30,False,0.2686
+2026-27,1610612744,Golden State Warriors,H2,oreb_pct,0.3494,1,False,0.2771
+2026-27,1610612745,Houston Rockets,H2,oreb_pct,0.3389,2,False,0.2771
+2026-27,1610612763,Memphis Grizzlies,H2,oreb_pct,0.3278,3,False,0.2771
+2026-27,1610612750,Minnesota Timberwolves,H2,oreb_pct,0.3225,4,False,0.2771
+2026-27,1610612737,Atlanta Hawks,H2,oreb_pct,0.3134,5,False,0.2771
+2026-27,1610612752,New York Knicks,H2,oreb_pct,0.3,6,False,0.2771
+2026-27,1610612761,Toronto Raptors,H2,oreb_pct,0.2994,7,False,0.2771
+2026-27,1610612766,Charlotte Hornets,H2,oreb_pct,0.297,8,False,0.2771
+2026-27,1610612759,San Antonio Spurs,H2,oreb_pct,0.2938,9,False,0.2771
+2026-27,1610612760,Oklahoma City Thunder,H2,oreb_pct,0.2885,10,False,0.2771
+2026-27,1610612738,Boston Celtics,H2,oreb_pct,0.2818,11,False,0.2771
+2026-27,1610612747,Los Angeles Lakers,H2,oreb_pct,0.2794,12,False,0.2771
+2026-27,1610612757,Portland Trail Blazers,H2,oreb_pct,0.2784,13,False,0.2771
+2026-27,1610612741,Chicago Bulls,H2,oreb_pct,0.277,14,False,0.2771
+2026-27,1610612756,Phoenix Suns,H2,oreb_pct,0.2744,15,False,0.2771
+2026-27,1610612751,Brooklyn Nets,H2,oreb_pct,0.2733,16,False,0.2771
+2026-27,1610612762,Utah Jazz,H2,oreb_pct,0.2711,17,False,0.2771
+2026-27,1610612742,Dallas Mavericks,H2,oreb_pct,0.2704,18,False,0.2771
+2026-27,1610612749,Milwaukee Bucks,H2,oreb_pct,0.269,19,False,0.2771
+2026-27,1610612758,Sacramento Kings,H2,oreb_pct,0.2665,20,False,0.2771
+2026-27,1610612740,New Orleans Pelicans,H2,oreb_pct,0.2625,21,False,0.2771
+2026-27,1610612739,Cleveland Cavaliers,H2,oreb_pct,0.2588,22,False,0.2771
+2026-27,1610612746,LA Clippers,H2,oreb_pct,0.2571,23,True,0.2771
+2026-27,1610612743,Denver Nuggets,H2,oreb_pct,0.256,24,False,0.2771
+2026-27,1610612765,Detroit Pistons,H2,oreb_pct,0.2537,25,False,0.2771
+2026-27,1610612753,Orlando Magic,H2,oreb_pct,0.2515,26,False,0.2771
+2026-27,1610612754,Indiana Pacers,H2,oreb_pct,0.2329,27,False,0.2771
+2026-27,1610612748,Miami Heat,H2,oreb_pct,0.2323,28,False,0.2771
+2026-27,1610612755,Philadelphia 76ers,H2,oreb_pct,0.2313,29,False,0.2771
+2026-27,1610612764,Washington Wizards,H2,oreb_pct,0.2035,30,False,0.2771
+2026-27,1610612744,Golden State Warriors,change,oreb_pct,0.0867,1,False,0.0084
+2026-27,1610612750,Minnesota Timberwolves,change,oreb_pct,0.0732,2,False,0.0084
+2026-27,1610612760,Oklahoma City Thunder,change,oreb_pct,0.0623,3,False,0.0084
+2026-27,1610612758,Sacramento Kings,change,oreb_pct,0.0535,4,False,0.0084
+2026-27,1610612763,Memphis Grizzlies,change,oreb_pct,0.0494,5,False,0.0084
+2026-27,1610612754,Indiana Pacers,change,oreb_pct,0.0471,6,False,0.0084
+2026-27,1610612737,Atlanta Hawks,change,oreb_pct,0.0434,7,False,0.0084
+2026-27,1610612745,Houston Rockets,change,oreb_pct,0.0246,8,False,0.0084
+2026-27,1610612740,New Orleans Pelicans,change,oreb_pct,0.0215,9,False,0.0084
+2026-27,1610612756,Phoenix Suns,change,oreb_pct,0.0207,10,False,0.0084
+2026-27,1610612746,LA Clippers,change,oreb_pct,0.0197,11,True,0.0084
+2026-27,1610612762,Utah Jazz,change,oreb_pct,0.0174,12,False,0.0084
+2026-27,1610612759,San Antonio Spurs,change,oreb_pct,0.0149,13,False,0.0084
+2026-27,1610612761,Toronto Raptors,change,oreb_pct,0.0129,14,False,0.0084
+2026-27,1610612755,Philadelphia 76ers,change,oreb_pct,0.0128,15,False,0.0084
+2026-27,1610612743,Denver Nuggets,change,oreb_pct,0.0091,16,False,0.0084
+2026-27,1610612752,New York Knicks,change,oreb_pct,0.006,17,False,0.0084
+2026-27,1610612741,Chicago Bulls,change,oreb_pct,0.0042,18,False,0.0084
+2026-27,1610612739,Cleveland Cavaliers,change,oreb_pct,0.0033,19,False,0.0084
+2026-27,1610612753,Orlando Magic,change,oreb_pct,-0.0008,20,False,0.0084
+2026-27,1610612751,Brooklyn Nets,change,oreb_pct,-0.0009,21,False,0.0084
+2026-27,1610612757,Portland Trail Blazers,change,oreb_pct,-0.0081,22,False,0.0084
+2026-27,1610612765,Detroit Pistons,change,oreb_pct,-0.018,23,False,0.0084
+2026-27,1610612747,Los Angeles Lakers,change,oreb_pct,-0.0241,24,False,0.0084
+2026-27,1610612742,Dallas Mavericks,change,oreb_pct,-0.0247,25,False,0.0084
+2026-27,1610612749,Milwaukee Bucks,change,oreb_pct,-0.028,26,False,0.0084
+2026-27,1610612748,Miami Heat,change,oreb_pct,-0.0302,27,False,0.0084
+2026-27,1610612738,Boston Celtics,change,oreb_pct,-0.0558,28,False,0.0084
+2026-27,1610612766,Charlotte Hornets,change,oreb_pct,-0.0694,29,False,0.0084
+2026-27,1610612764,Washington Wizards,change,oreb_pct,-0.0702,30,False,0.0084
+2026-27,1610612747,Los Angeles Lakers,H1,ortg,124.3874,1,False,113.228
+2026-27,1610612759,San Antonio Spurs,H1,ortg,122.4057,2,False,113.228
+2026-27,1610612748,Miami Heat,H1,ortg,120.0726,3,False,113.228
+2026-27,1610612763,Memphis Grizzlies,H1,ortg,119.0529,4,False,113.228
+2026-27,1610612745,Houston Rockets,H1,ortg,118.6683,5,False,113.228
+2026-27,1610612738,Boston Celtics,H1,ortg,118.5542,6,False,113.228
+2026-27,1610612743,Denver Nuggets,H1,ortg,116.7109,7,False,113.228
+2026-27,1610612739,Cleveland Cavaliers,H1,ortg,116.5501,8,False,113.228
+2026-27,1610612752,New York Knicks,H1,ortg,116.3216,9,False,113.228
+2026-27,1610612757,Portland Trail Blazers,H1,ortg,116.3194,10,False,113.228
+2026-27,1610612755,Philadelphia 76ers,H1,ortg,116.2103,11,False,113.228
+2026-27,1610612761,Toronto Raptors,H1,ortg,114.359,12,False,113.228
+2026-27,1610612741,Chicago Bulls,H1,ortg,113.9759,13,False,113.228
+2026-27,1610612756,Phoenix Suns,H1,ortg,113.9189,14,False,113.228
+2026-27,1610612737,Atlanta Hawks,H1,ortg,113.0045,15,False,113.228
+2026-27,1610612753,Orlando Magic,H1,ortg,112.3883,16,False,113.228
+2026-27,1610612766,Charlotte Hornets,H1,ortg,111.6517,17,False,113.228
+2026-27,1610612750,Minnesota Timberwolves,H1,ortg,111.5741,18,False,113.228
+2026-27,1610612751,Brooklyn Nets,H1,ortg,111.2752,19,False,113.228
+2026-27,1610612764,Washington Wizards,H1,ortg,110.7898,20,False,113.228
+2026-27,1610612760,Oklahoma City Thunder,H1,ortg,110.6977,21,False,113.228
+2026-27,1610612765,Detroit Pistons,H1,ortg,110.4869,22,False,113.228
+2026-27,1610612740,New Orleans Pelicans,H1,ortg,110.4865,23,False,113.228
+2026-27,1610612746,LA Clippers,H1,ortg,110.4636,24,True,113.228
+2026-27,1610612742,Dallas Mavericks,H1,ortg,110.3286,25,False,113.228
+2026-27,1610612758,Sacramento Kings,H1,ortg,110.0372,26,False,113.228
+2026-27,1610612762,Utah Jazz,H1,ortg,106.4906,27,False,113.228
+2026-27,1610612754,Indiana Pacers,H1,ortg,105.8486,28,False,113.228
+2026-27,1610612744,Golden State Warriors,H1,ortg,105.792,29,False,113.228
+2026-27,1610612749,Milwaukee Bucks,H1,ortg,98.0186,30,False,113.228
+2026-27,1610612745,Houston Rockets,H2,ortg,123.5653,1,False,113.6544
+2026-27,1610612763,Memphis Grizzlies,H2,ortg,121.195,2,False,113.6544
+2026-27,1610612739,Cleveland Cavaliers,H2,ortg,118.6321,3,False,113.6544
+2026-27,1610612749,Milwaukee Bucks,H2,ortg,118.2346,4,False,113.6544
+2026-27,1610612744,Golden State Warriors,H2,ortg,118.0723,5,False,113.6544
+2026-27,1610612756,Phoenix Suns,H2,ortg,117.3677,6,False,113.6544
+2026-27,1610612757,Portland Trail Blazers,H2,ortg,117.3445,7,False,113.6544
+2026-27,1610612765,Detroit Pistons,H2,ortg,117.2057,8,False,113.6544
+2026-27,1610612760,Oklahoma City Thunder,H2,ortg,116.8878,9,False,113.6544
+2026-27,1610612743,Denver Nuggets,H2,ortg,116.1826,10,False,113.6544
+2026-27,1610612750,Minnesota Timberwolves,H2,ortg,115.4846,11,False,113.6544
+2026-27,1610612747,Los Angeles Lakers,H2,ortg,115.2563,12,False,113.6544
+2026-27,1610612754,Indiana Pacers,H2,ortg,115.2482,13,False,113.6544
+2026-27,1610612742,Dallas Mavericks,H2,ortg,115.1839,14,False,113.6544
+2026-27,1610612755,Philadelphia 76ers,H2,ortg,114.7059,15,False,113.6544
+2026-27,1610612748,Miami Heat,H2,ortg,114.5679,16,False,113.6544
+2026-27,1610612759,San Antonio Spurs,H2,ortg,113.7349,17,False,113.6544
+2026-27,1610612761,Toronto Raptors,H2,ortg,113.4021,18,False,113.6544
+2026-27,1610612737,Atlanta Hawks,H2,ortg,112.9371,19,False,113.6544
+2026-27,1610612738,Boston Celtics,H2,ortg,111.5385,20,False,113.6544
+2026-27,1610612740,New Orleans Pelicans,H2,ortg,111.4955,21,False,113.6544
+2026-27,1610612746,LA Clippers,H2,ortg,111.0512,22,True,113.6544
+2026-27,1610612751,Brooklyn Nets,H2,ortg,110.7095,23,False,113.6544
+2026-27,1610612752,New York Knicks,H2,ortg,110.4141,24,False,113.6544
+2026-27,1610612764,Washington Wizards,H2,ortg,110.3409,25,False,113.6544
+2026-27,1610612753,Orlando Magic,H2,ortg,110.2332,26,False,113.6544
+2026-27,1610612762,Utah Jazz,H2,ortg,109.0909,27,False,113.6544
+2026-27,1610612741,Chicago Bulls,H2,ortg,108.9242,28,False,113.6544
+2026-27,1610612758,Sacramento Kings,H2,ortg,103.5309,29,False,113.6544
+2026-27,1610612766,Charlotte Hornets,H2,ortg,97.0938,30,False,113.6544
+2026-27,1610612749,Milwaukee Bucks,change,ortg,20.216,1,False,0.4263
+2026-27,1610612744,Golden State Warriors,change,ortg,12.2803,2,False,0.4263
+2026-27,1610612754,Indiana Pacers,change,ortg,9.3996,3,False,0.4263
+2026-27,1610612765,Detroit Pistons,change,ortg,6.7188,4,False,0.4263
+2026-27,1610612760,Oklahoma City Thunder,change,ortg,6.1901,5,False,0.4263
+2026-27,1610612745,Houston Rockets,change,ortg,4.8971,6,False,0.4263
+2026-27,1610612742,Dallas Mavericks,change,ortg,4.8552,7,False,0.4263
+2026-27,1610612750,Minnesota Timberwolves,change,ortg,3.9106,8,False,0.4263
+2026-27,1610612756,Phoenix Suns,change,ortg,3.4488,9,False,0.4263
+2026-27,1610612762,Utah Jazz,change,ortg,2.6003,10,False,0.4263
+2026-27,1610612763,Memphis Grizzlies,change,ortg,2.1422,11,False,0.4263
+2026-27,1610612739,Cleveland Cavaliers,change,ortg,2.082,12,False,0.4263
+2026-27,1610612757,Portland Trail Blazers,change,ortg,1.0251,13,False,0.4263
+2026-27,1610612740,New Orleans Pelicans,change,ortg,1.009,14,False,0.4263
+2026-27,1610612746,LA Clippers,change,ortg,0.5876,15,True,0.4263
+2026-27,1610612737,Atlanta Hawks,change,ortg,-0.0674,16,False,0.4263
+2026-27,1610612764,Washington Wizards,change,ortg,-0.4489,17,False,0.4263
+2026-27,1610612743,Denver Nuggets,change,ortg,-0.5283,18,False,0.4263
+2026-27,1610612751,Brooklyn Nets,change,ortg,-0.5657,19,False,0.4263
+2026-27,1610612761,Toronto Raptors,change,ortg,-0.9569,20,False,0.4263
+2026-27,1610612755,Philadelphia 76ers,change,ortg,-1.5044,21,False,0.4263
+2026-27,1610612753,Orlando Magic,change,ortg,-2.1551,22,False,0.4263
+2026-27,1610612741,Chicago Bulls,change,ortg,-5.0517,23,False,0.4263
+2026-27,1610612748,Miami Heat,change,ortg,-5.5047,24,False,0.4263
+2026-27,1610612752,New York Knicks,change,ortg,-5.9075,25,False,0.4263
+2026-27,1610612758,Sacramento Kings,change,ortg,-6.5063,26,False,0.4263
+2026-27,1610612738,Boston Celtics,change,ortg,-7.0158,27,False,0.4263
+2026-27,1610612759,San Antonio Spurs,change,ortg,-8.6707,28,False,0.4263
+2026-27,1610612747,Los Angeles Lakers,change,ortg,-9.1311,29,False,0.4263
+2026-27,1610612766,Charlotte Hornets,change,ortg,-14.5579,30,False,0.4263
+2026-27,1610612737,Atlanta Hawks,H1,pace,104.9412,1,False,100.4579
+2026-27,1610612741,Chicago Bulls,H1,pace,103.75,2,False,100.4579
+2026-27,1610612748,Miami Heat,H1,pace,103.375,3,False,100.4579
+2026-27,1610612740,New Orleans Pelicans,H1,pace,102.7778,4,False,100.4579
+2026-27,1610612754,Indiana Pacers,H1,pace,102.5882,5,False,100.4579
+2026-27,1610612750,Minnesota Timberwolves,H1,pace,101.6471,6,False,100.4579
+2026-27,1610612757,Portland Trail Blazers,H1,pace,101.6471,6,False,100.4579
+2026-27,1610612755,Philadelphia 76ers,H1,pace,101.4444,8,False,100.4579
+2026-27,1610612760,Oklahoma City Thunder,H1,pace,101.1765,9,False,100.4579
+2026-27,1610612762,Utah Jazz,H1,pace,101.0,10,False,100.4579
+2026-27,1610612739,Cleveland Cavaliers,H1,pace,100.9412,11,False,100.4579
+2026-27,1610612749,Milwaukee Bucks,H1,pace,100.9412,11,False,100.4579
+2026-27,1610612763,Memphis Grizzlies,H1,pace,100.8889,13,False,100.4579
+2026-27,1610612758,Sacramento Kings,H1,pace,100.875,14,False,100.4579
+2026-27,1610612747,Los Angeles Lakers,H1,pace,100.8235,15,False,100.4579
+2026-27,1610612746,LA Clippers,H1,pace,100.6667,16,True,100.4579
+2026-27,1610612743,Denver Nuggets,H1,pace,100.5333,17,False,100.4579
+2026-27,1610612742,Dallas Mavericks,H1,pace,100.2353,18,False,100.4579
+2026-27,1610612765,Detroit Pistons,H1,pace,100.125,19,False,100.4579
+2026-27,1610612764,Washington Wizards,H1,pace,99.8889,20,False,100.4579
+2026-27,1610612759,San Antonio Spurs,H1,pace,99.7647,21,False,100.4579
+2026-27,1610612744,Golden State Warriors,H1,pace,99.5294,22,False,100.4579
+2026-27,1610612751,Brooklyn Nets,H1,pace,99.3333,23,False,100.4579
+2026-27,1610612745,Houston Rockets,H1,pace,98.9412,24,False,100.4579
+2026-27,1610612756,Phoenix Suns,H1,pace,98.6667,25,False,100.4579
+2026-27,1610612753,Orlando Magic,H1,pace,97.875,26,False,100.4579
+2026-27,1610612738,Boston Celtics,H1,pace,97.6471,27,False,100.4579
+2026-27,1610612766,Charlotte Hornets,H1,pace,97.625,28,False,100.4579
+2026-27,1610612761,Toronto Raptors,H1,pace,97.5,29,False,100.4579
+2026-27,1610612752,New York Knicks,H1,pace,96.5882,30,False,100.4579
+2026-27,1610612741,Chicago Bulls,H2,pace,102.25,1,False,98.2915
+2026-27,1610612749,Milwaukee Bucks,H2,pace,101.2941,2,False,98.2915
+2026-27,1610612748,Miami Heat,H2,pace,101.25,3,False,98.2915
+2026-27,1610612737,Atlanta Hawks,H2,pace,100.9412,4,False,98.2915
+2026-27,1610612739,Cleveland Cavaliers,H2,pace,99.7647,5,False,98.2915
+2026-27,1610612751,Brooklyn Nets,H2,pace,99.6,6,False,98.2915
+2026-27,1610612740,New Orleans Pelicans,H2,pace,99.5556,7,False,98.2915
+2026-27,1610612750,Minnesota Timberwolves,H2,pace,99.5294,8,False,98.2915
+2026-27,1610612754,Indiana Pacers,H2,pace,99.5294,8,False,98.2915
+2026-27,1610612742,Dallas Mavericks,H2,pace,99.1765,10,False,98.2915
+2026-27,1610612758,Sacramento Kings,H2,pace,99.125,11,False,98.2915
+2026-27,1610612762,Utah Jazz,H2,pace,99.0,12,False,98.2915
+2026-27,1610612746,LA Clippers,H2,pace,98.9333,13,True,98.2915
+2026-27,1610612747,Los Angeles Lakers,H2,pace,98.7059,14,False,98.2915
+2026-27,1610612763,Memphis Grizzlies,H2,pace,98.5556,15,False,98.2915
+2026-27,1610612757,Portland Trail Blazers,H2,pace,98.3529,16,False,98.2915
+2026-27,1610612756,Phoenix Suns,H2,pace,98.2667,17,False,98.2915
+2026-27,1610612755,Philadelphia 76ers,H2,pace,98.2222,18,False,98.2915
+2026-27,1610612764,Washington Wizards,H2,pace,97.7778,19,False,98.2915
+2026-27,1610612744,Golden State Warriors,H2,pace,97.6471,20,False,98.2915
+2026-27,1610612759,San Antonio Spurs,H2,pace,97.6471,20,False,98.2915
+2026-27,1610612760,Oklahoma City Thunder,H2,pace,97.5294,22,False,98.2915
+2026-27,1610612761,Toronto Raptors,H2,pace,97.0,23,False,98.2915
+2026-27,1610612765,Detroit Pistons,H2,pace,96.625,24,False,98.2915
+2026-27,1610612753,Orlando Magic,H2,pace,96.5,25,False,98.2915
+2026-27,1610612743,Denver Nuggets,H2,pace,96.4,26,False,98.2915
+2026-27,1610612745,Houston Rockets,H2,pace,96.3529,27,False,98.2915
+2026-27,1610612738,Boston Celtics,H2,pace,94.8235,28,False,98.2915
+2026-27,1610612766,Charlotte Hornets,H2,pace,94.625,29,False,98.2915
+2026-27,1610612752,New York Knicks,H2,pace,93.7647,30,False,98.2915
+2026-27,1610612749,Milwaukee Bucks,change,pace,0.3529,1,False,-2.1664
+2026-27,1610612751,Brooklyn Nets,change,pace,0.2667,2,False,-2.1664
+2026-27,1610612756,Phoenix Suns,change,pace,-0.4,3,False,-2.1664
+2026-27,1610612761,Toronto Raptors,change,pace,-0.5,4,False,-2.1664
+2026-27,1610612742,Dallas Mavericks,change,pace,-1.0588,5,False,-2.1664
+2026-27,1610612739,Cleveland Cavaliers,change,pace,-1.1765,6,False,-2.1664
+2026-27,1610612753,Orlando Magic,change,pace,-1.375,7,False,-2.1664
+2026-27,1610612741,Chicago Bulls,change,pace,-1.5,8,False,-2.1664
+2026-27,1610612746,LA Clippers,change,pace,-1.7333,9,True,-2.1664
+2026-27,1610612758,Sacramento Kings,change,pace,-1.75,10,False,-2.1664
+2026-27,1610612744,Golden State Warriors,change,pace,-1.8824,11,False,-2.1664
+2026-27,1610612762,Utah Jazz,change,pace,-2.0,12,False,-2.1664
+2026-27,1610612764,Washington Wizards,change,pace,-2.1111,13,False,-2.1664
+2026-27,1610612750,Minnesota Timberwolves,change,pace,-2.1176,14,False,-2.1664
+2026-27,1610612747,Los Angeles Lakers,change,pace,-2.1176,15,False,-2.1664
+2026-27,1610612759,San Antonio Spurs,change,pace,-2.1176,15,False,-2.1664
+2026-27,1610612748,Miami Heat,change,pace,-2.125,17,False,-2.1664
+2026-27,1610612763,Memphis Grizzlies,change,pace,-2.3333,18,False,-2.1664
+2026-27,1610612745,Houston Rockets,change,pace,-2.5882,19,False,-2.1664
+2026-27,1610612738,Boston Celtics,change,pace,-2.8235,20,False,-2.1664
+2026-27,1610612752,New York Knicks,change,pace,-2.8235,21,False,-2.1664
+2026-27,1610612766,Charlotte Hornets,change,pace,-3.0,22,False,-2.1664
+2026-27,1610612754,Indiana Pacers,change,pace,-3.0588,23,False,-2.1664
+2026-27,1610612740,New Orleans Pelicans,change,pace,-3.2222,24,False,-2.1664
+2026-27,1610612755,Philadelphia 76ers,change,pace,-3.2222,24,False,-2.1664
+2026-27,1610612757,Portland Trail Blazers,change,pace,-3.2941,26,False,-2.1664
+2026-27,1610612765,Detroit Pistons,change,pace,-3.5,27,False,-2.1664
+2026-27,1610612760,Oklahoma City Thunder,change,pace,-3.6471,28,False,-2.1664
+2026-27,1610612737,Atlanta Hawks,change,pace,-4.0,29,False,-2.1664
+2026-27,1610612743,Denver Nuggets,change,pace,-4.1333,30,False,-2.1664
+2026-27,1610612760,Oklahoma City Thunder,H1,pf_per100,16.9767,1,False,19.9912
+2026-27,1610612745,Houston Rockets,H1,pf_per100,17.0036,2,False,19.9912
+2026-27,1610612759,San Antonio Spurs,H1,pf_per100,17.4528,3,False,19.9912
+2026-27,1610612748,Miami Heat,H1,pf_per100,17.5333,4,False,19.9912
+2026-27,1610612743,Denver Nuggets,H1,pf_per100,17.9045,5,False,19.9912
+2026-27,1610612754,Indiana Pacers,H1,pf_per100,18.4633,6,False,19.9912
+2026-27,1610612750,Minnesota Timberwolves,H1,pf_per100,18.75,7,False,19.9912
+2026-27,1610612744,Golden State Warriors,H1,pf_per100,18.9125,8,False,19.9912
+2026-27,1610612755,Philadelphia 76ers,H1,pf_per100,19.0581,9,False,19.9912
+2026-27,1610612737,Atlanta Hawks,H1,pf_per100,19.0583,10,False,19.9912
+2026-27,1610612746,LA Clippers,H1,pf_per100,19.0728,11,True,19.9912
+2026-27,1610612742,Dallas Mavericks,H1,pf_per100,19.1315,12,False,19.9912
+2026-27,1610612739,Cleveland Cavaliers,H1,pf_per100,19.2308,13,False,19.9912
+2026-27,1610612764,Washington Wizards,H1,pf_per100,19.3548,14,False,19.9912
+2026-27,1610612752,New York Knicks,H1,pf_per100,19.732,15,False,19.9912
+2026-27,1610612741,Chicago Bulls,H1,pf_per100,19.759,16,False,19.9912
+2026-27,1610612740,New Orleans Pelicans,H1,pf_per100,19.8919,17,False,19.9912
+2026-27,1610612749,Milwaukee Bucks,H1,pf_per100,20.1632,18,False,19.9912
+2026-27,1610612738,Boston Celtics,H1,pf_per100,20.241,19,False,19.9912
+2026-27,1610612756,Phoenix Suns,H1,pf_per100,20.2703,20,False,19.9912
+2026-27,1610612747,Los Angeles Lakers,H1,pf_per100,20.6534,21,False,19.9912
+2026-27,1610612758,Sacramento Kings,H1,pf_per100,20.6939,22,False,19.9912
+2026-27,1610612766,Charlotte Hornets,H1,pf_per100,20.8707,23,False,19.9912
+2026-27,1610612753,Orlando Magic,H1,pf_per100,21.3282,24,False,19.9912
+2026-27,1610612762,Utah Jazz,H1,pf_per100,21.8922,25,False,19.9912
+2026-27,1610612761,Toronto Raptors,H1,pf_per100,22.5641,26,False,19.9912
+2026-27,1610612757,Portland Trail Blazers,H1,pf_per100,22.9167,27,False,19.9912
+2026-27,1610612765,Detroit Pistons,H1,pf_per100,23.3458,28,False,19.9912
+2026-27,1610612763,Memphis Grizzlies,H1,pf_per100,23.348,29,False,19.9912
+2026-27,1610612751,Brooklyn Nets,H1,pf_per100,24.1611,30,False,19.9912
+2026-27,1610612759,San Antonio Spurs,H2,pf_per100,20.6024,1,False,23.4511
+2026-27,1610612757,Portland Trail Blazers,H2,pf_per100,20.6938,2,False,23.4511
+2026-27,1610612743,Denver Nuggets,H2,pf_per100,20.8852,3,False,23.4511
+2026-27,1610612764,Washington Wizards,H2,pf_per100,21.0227,4,False,23.4511
+2026-27,1610612760,Oklahoma City Thunder,H2,pf_per100,21.2304,5,False,23.4511
+2026-27,1610612755,Philadelphia 76ers,H2,pf_per100,21.3801,6,False,23.4511
+2026-27,1610612754,Indiana Pacers,H2,pf_per100,21.7494,7,False,23.4511
+2026-27,1610612737,Atlanta Hawks,H2,pf_per100,21.7949,8,False,23.4511
+2026-27,1610612763,Memphis Grizzlies,H2,pf_per100,21.9842,9,False,23.4511
+2026-27,1610612766,Charlotte Hornets,H2,pf_per100,22.0608,10,False,23.4511
+2026-27,1610612765,Detroit Pistons,H2,pf_per100,22.5097,11,False,23.4511
+2026-27,1610612750,Minnesota Timberwolves,H2,pf_per100,22.9314,12,False,23.4511
+2026-27,1610612762,Utah Jazz,H2,pf_per100,23.0079,13,False,23.4511
+2026-27,1610612756,Phoenix Suns,H2,pf_per100,23.7449,14,False,23.4511
+2026-27,1610612748,Miami Heat,H2,pf_per100,23.8272,15,False,23.4511
+2026-27,1610612753,Orlando Magic,H2,pf_per100,23.8342,16,False,23.4511
+2026-27,1610612742,Dallas Mavericks,H2,pf_per100,23.8434,17,False,23.4511
+2026-27,1610612745,Houston Rockets,H2,pf_per100,24.0537,18,False,23.4511
+2026-27,1610612758,Sacramento Kings,H2,pf_per100,24.0858,19,False,23.4511
+2026-27,1610612739,Cleveland Cavaliers,H2,pf_per100,24.1745,20,False,23.4511
+2026-27,1610612752,New York Knicks,H2,pf_per100,24.2158,21,False,23.4511
+2026-27,1610612747,Los Angeles Lakers,H2,pf_per100,24.3147,22,False,23.4511
+2026-27,1610612746,LA Clippers,H2,pf_per100,24.3935,23,True,23.4511
+2026-27,1610612744,Golden State Warriors,H2,pf_per100,24.5783,24,False,23.4511
+2026-27,1610612741,Chicago Bulls,H2,pf_per100,24.6944,25,False,23.4511
+2026-27,1610612738,Boston Celtics,H2,pf_per100,24.8139,26,False,23.4511
+2026-27,1610612740,New Orleans Pelicans,H2,pf_per100,26.0045,27,False,23.4511
+2026-27,1610612749,Milwaukee Bucks,H2,pf_per100,26.3647,28,False,23.4511
+2026-27,1610612751,Brooklyn Nets,H2,pf_per100,26.7738,29,False,23.4511
+2026-27,1610612761,Toronto Raptors,H2,pf_per100,27.9639,30,False,23.4511
+2026-27,1610612757,Portland Trail Blazers,change,pf_per100,-2.2229,1,False,3.46
+2026-27,1610612763,Memphis Grizzlies,change,pf_per100,-1.3638,2,False,3.46
+2026-27,1610612765,Detroit Pistons,change,pf_per100,-0.8361,3,False,3.46
+2026-27,1610612762,Utah Jazz,change,pf_per100,1.1157,4,False,3.46
+2026-27,1610612766,Charlotte Hornets,change,pf_per100,1.1901,5,False,3.46
+2026-27,1610612764,Washington Wizards,change,pf_per100,1.6679,6,False,3.46
+2026-27,1610612755,Philadelphia 76ers,change,pf_per100,2.322,7,False,3.46
+2026-27,1610612753,Orlando Magic,change,pf_per100,2.506,8,False,3.46
+2026-27,1610612751,Brooklyn Nets,change,pf_per100,2.6127,9,False,3.46
+2026-27,1610612737,Atlanta Hawks,change,pf_per100,2.7366,10,False,3.46
+2026-27,1610612743,Denver Nuggets,change,pf_per100,2.9807,11,False,3.46
+2026-27,1610612759,San Antonio Spurs,change,pf_per100,3.1496,12,False,3.46
+2026-27,1610612754,Indiana Pacers,change,pf_per100,3.2861,13,False,3.46
+2026-27,1610612758,Sacramento Kings,change,pf_per100,3.3918,14,False,3.46
+2026-27,1610612756,Phoenix Suns,change,pf_per100,3.4746,15,False,3.46
+2026-27,1610612747,Los Angeles Lakers,change,pf_per100,3.6612,16,False,3.46
+2026-27,1610612750,Minnesota Timberwolves,change,pf_per100,4.1814,17,False,3.46
+2026-27,1610612760,Oklahoma City Thunder,change,pf_per100,4.2537,18,False,3.46
+2026-27,1610612752,New York Knicks,change,pf_per100,4.4838,19,False,3.46
+2026-27,1610612738,Boston Celtics,change,pf_per100,4.5729,20,False,3.46
+2026-27,1610612742,Dallas Mavericks,change,pf_per100,4.712,21,False,3.46
+2026-27,1610612741,Chicago Bulls,change,pf_per100,4.9353,22,False,3.46
+2026-27,1610612739,Cleveland Cavaliers,change,pf_per100,4.9438,23,False,3.46
+2026-27,1610612746,LA Clippers,change,pf_per100,5.3207,24,True,3.46
+2026-27,1610612761,Toronto Raptors,change,pf_per100,5.3998,25,False,3.46
+2026-27,1610612744,Golden State Warriors,change,pf_per100,5.6658,26,False,3.46
+2026-27,1610612740,New Orleans Pelicans,change,pf_per100,6.1126,27,False,3.46
+2026-27,1610612749,Milwaukee Bucks,change,pf_per100,6.2015,28,False,3.46
+2026-27,1610612748,Miami Heat,change,pf_per100,6.2939,29,False,3.46
+2026-27,1610612745,Houston Rockets,change,pf_per100,7.0502,30,False,3.46
+2026-27,1610612755,Philadelphia 76ers,H1,tov_pct,12.3768,1,False,15.3796
+2026-27,1610612761,Toronto Raptors,H1,tov_pct,12.6923,2,False,15.3796
+2026-27,1610612759,San Antonio Spurs,H1,tov_pct,12.9717,3,False,15.3796
+2026-27,1610612760,Oklahoma City Thunder,H1,tov_pct,13.1395,4,False,15.3796
+2026-27,1610612743,Denver Nuggets,H1,tov_pct,13.3952,5,False,15.3796
+2026-27,1610612748,Miami Heat,H1,tov_pct,13.7848,6,False,15.3796
+2026-27,1610612738,Boston Celtics,H1,tov_pct,14.0964,7,False,15.3796
+2026-27,1610612756,Phoenix Suns,H1,tov_pct,14.1892,8,False,15.3796
+2026-27,1610612739,Cleveland Cavaliers,H1,tov_pct,14.2191,9,False,15.3796
+2026-27,1610612754,Indiana Pacers,H1,tov_pct,14.2202,10,False,15.3796
+2026-27,1610612752,New York Knicks,H1,tov_pct,14.6163,11,False,15.3796
+2026-27,1610612741,Chicago Bulls,H1,tov_pct,14.9398,12,False,15.3796
+2026-27,1610612765,Detroit Pistons,H1,tov_pct,14.9813,13,False,15.3796
+2026-27,1610612745,Houston Rockets,H1,tov_pct,15.3389,14,False,15.3796
+2026-27,1610612737,Atlanta Hawks,H1,tov_pct,15.4709,15,False,15.3796
+2026-27,1610612747,Los Angeles Lakers,H1,tov_pct,15.5193,16,False,15.3796
+2026-27,1610612740,New Orleans Pelicans,H1,tov_pct,15.6757,17,False,15.3796
+2026-27,1610612764,Washington Wizards,H1,tov_pct,15.9066,18,False,15.3796
+2026-27,1610612763,Memphis Grizzlies,H1,tov_pct,16.2996,19,False,15.3796
+2026-27,1610612750,Minnesota Timberwolves,H1,tov_pct,16.5509,20,False,15.3796
+2026-27,1610612757,Portland Trail Blazers,H1,tov_pct,16.5509,20,False,15.3796
+2026-27,1610612742,Dallas Mavericks,H1,tov_pct,16.6667,22,False,15.3796
+2026-27,1610612744,Golden State Warriors,H1,tov_pct,16.6667,22,False,15.3796
+2026-27,1610612751,Brooklyn Nets,H1,tov_pct,16.7785,24,False,15.3796
+2026-27,1610612762,Utah Jazz,H1,tov_pct,16.8317,25,False,15.3796
+2026-27,1610612758,Sacramento Kings,H1,tov_pct,16.8525,26,False,15.3796
+2026-27,1610612749,Milwaukee Bucks,H1,tov_pct,17.366,27,False,15.3796
+2026-27,1610612746,LA Clippers,H1,tov_pct,17.4834,28,True,15.3796
+2026-27,1610612753,Orlando Magic,H1,tov_pct,17.4968,29,False,15.3796
+2026-27,1610612766,Charlotte Hornets,H1,tov_pct,18.3099,30,False,15.3796
+2026-27,1610612755,Philadelphia 76ers,H2,tov_pct,11.5385,1,False,15.375
+2026-27,1610612739,Cleveland Cavaliers,H2,tov_pct,12.8538,2,False,15.375
+2026-27,1610612760,Oklahoma City Thunder,H2,tov_pct,13.3896,3,False,15.375
+2026-27,1610612764,Washington Wizards,H2,tov_pct,13.4091,4,False,15.375
+2026-27,1610612759,San Antonio Spurs,H2,tov_pct,13.494,5,False,15.375
+2026-27,1610612765,Detroit Pistons,H2,tov_pct,13.5834,6,False,15.375
+2026-27,1610612737,Atlanta Hawks,H2,tov_pct,13.8695,7,False,15.375
+2026-27,1610612754,Indiana Pacers,H2,tov_pct,13.948,8,False,15.375
+2026-27,1610612743,Denver Nuggets,H2,tov_pct,14.1079,9,False,15.375
+2026-27,1610612756,Phoenix Suns,H2,tov_pct,14.1113,10,False,15.375
+2026-27,1610612748,Miami Heat,H2,tov_pct,14.321,11,False,15.375
+2026-27,1610612753,Orlando Magic,H2,tov_pct,14.6373,12,False,15.375
+2026-27,1610612745,Houston Rockets,H2,tov_pct,14.652,13,False,15.375
+2026-27,1610612742,Dallas Mavericks,H2,tov_pct,14.7094,14,False,15.375
+2026-27,1610612740,New Orleans Pelicans,H2,tov_pct,15.067,15,False,15.375
+2026-27,1610612761,Toronto Raptors,H2,tov_pct,15.0773,16,False,15.375
+2026-27,1610612749,Milwaukee Bucks,H2,tov_pct,15.0987,17,False,15.375
+2026-27,1610612763,Memphis Grizzlies,H2,tov_pct,15.6708,18,False,15.375
+2026-27,1610612738,Boston Celtics,H2,tov_pct,15.7568,19,False,15.375
+2026-27,1610612757,Portland Trail Blazers,H2,tov_pct,16.0287,20,False,15.375
+2026-27,1610612752,New York Knicks,H2,tov_pct,16.1857,21,False,15.375
+2026-27,1610612750,Minnesota Timberwolves,H2,tov_pct,16.1939,22,False,15.375
+2026-27,1610612762,Utah Jazz,H2,tov_pct,16.7228,23,False,15.375
+2026-27,1610612744,Golden State Warriors,H2,tov_pct,17.2289,24,False,15.375
+2026-27,1610612746,LA Clippers,H2,tov_pct,17.3854,25,True,15.375
+2026-27,1610612747,Los Angeles Lakers,H2,tov_pct,17.5209,26,False,15.375
+2026-27,1610612741,Chicago Bulls,H2,tov_pct,17.8484,27,False,15.375
+2026-27,1610612758,Sacramento Kings,H2,tov_pct,18.1589,28,False,15.375
+2026-27,1610612751,Brooklyn Nets,H2,tov_pct,18.2062,29,False,15.375
+2026-27,1610612766,Charlotte Hornets,H2,tov_pct,20.4756,30,False,15.375
+2026-27,1610612753,Orlando Magic,change,tov_pct,-2.8595,1,False,-0.0046
+2026-27,1610612764,Washington Wizards,change,tov_pct,-2.4975,2,False,-0.0046
+2026-27,1610612749,Milwaukee Bucks,change,tov_pct,-2.2672,3,False,-0.0046
+2026-27,1610612742,Dallas Mavericks,change,tov_pct,-1.9573,4,False,-0.0046
+2026-27,1610612737,Atlanta Hawks,change,tov_pct,-1.6014,5,False,-0.0046
+2026-27,1610612765,Detroit Pistons,change,tov_pct,-1.3978,6,False,-0.0046
+2026-27,1610612739,Cleveland Cavaliers,change,tov_pct,-1.3653,7,False,-0.0046
+2026-27,1610612755,Philadelphia 76ers,change,tov_pct,-0.8383,8,False,-0.0046
+2026-27,1610612745,Houston Rockets,change,tov_pct,-0.6869,9,False,-0.0046
+2026-27,1610612763,Memphis Grizzlies,change,tov_pct,-0.6288,10,False,-0.0046
+2026-27,1610612740,New Orleans Pelicans,change,tov_pct,-0.6087,11,False,-0.0046
+2026-27,1610612757,Portland Trail Blazers,change,tov_pct,-0.5222,12,False,-0.0046
+2026-27,1610612750,Minnesota Timberwolves,change,tov_pct,-0.3571,13,False,-0.0046
+2026-27,1610612754,Indiana Pacers,change,tov_pct,-0.2722,14,False,-0.0046
+2026-27,1610612762,Utah Jazz,change,tov_pct,-0.1089,15,False,-0.0046
+2026-27,1610612746,LA Clippers,change,tov_pct,-0.098,16,True,-0.0046
+2026-27,1610612756,Phoenix Suns,change,tov_pct,-0.0779,17,False,-0.0046
+2026-27,1610612760,Oklahoma City Thunder,change,tov_pct,0.2501,18,False,-0.0046
+2026-27,1610612759,San Antonio Spurs,change,tov_pct,0.5223,19,False,-0.0046
+2026-27,1610612748,Miami Heat,change,tov_pct,0.5362,20,False,-0.0046
+2026-27,1610612744,Golden State Warriors,change,tov_pct,0.5622,21,False,-0.0046
+2026-27,1610612743,Denver Nuggets,change,tov_pct,0.7127,22,False,-0.0046
+2026-27,1610612758,Sacramento Kings,change,tov_pct,1.3064,23,False,-0.0046
+2026-27,1610612751,Brooklyn Nets,change,tov_pct,1.4276,24,False,-0.0046
+2026-27,1610612752,New York Knicks,change,tov_pct,1.5694,25,False,-0.0046
+2026-27,1610612738,Boston Celtics,change,tov_pct,1.6604,26,False,-0.0046
+2026-27,1610612747,Los Angeles Lakers,change,tov_pct,2.0016,27,False,-0.0046
+2026-27,1610612766,Charlotte Hornets,change,tov_pct,2.1657,28,False,-0.0046
+2026-27,1610612761,Toronto Raptors,change,tov_pct,2.385,29,False,-0.0046
+2026-27,1610612741,Chicago Bulls,change,tov_pct,2.9087,30,False,-0.0046
