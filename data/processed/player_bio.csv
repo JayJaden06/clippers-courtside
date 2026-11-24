@@ -625,11 +625,12 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1631104,Blake Wesley,LAC,23.0,76,190.0,2022,False
 2026-27,1626171,Bobby Portis Jr.,MIA,31.0,82,250.0,2015,False
 2026-27,203992,Bogdan Bogdanović,HOU,34.0,77,231.0,2014,False
-2026-27,1642881,Bogoljub Marković,MIL,21.0,82,210.0,2025,False
+2026-27,1642881,Bogoljub Markovic,MIL,21.0,82,210.0,2025,False
 2026-27,1630538,Bones Hyland,MIN,26.0,74,169.0,2021,False
 2026-27,1643552,Braden Smith,IND,23.0,71,170.0,2026,True
 2026-27,1642382,Branden Carlson,POR,27.0,84,220.0,Undrafted,False
 2026-27,1641764,Brandin Podziemski,GSW,23.0,76,208.0,2023,False
+2026-27,1627742,Brandon Ingram,LAC,29.0,80,190.0,2016,False
 2026-27,1641706,Brandon Miller,CHA,24.0,79,210.0,2023,False
 2026-27,1630314,Brandon Williams,GSW,27.0,73,185.0,Undrafted,False
 2026-27,1643415,Brayden Burries,MIL,21.0,76,205.0,2026,True
@@ -740,6 +741,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629048,Goga Bitadze,ORL,27.0,83,235.0,2019,False
 2026-27,1641711,Gradey Dick,LAC,23.0,79,200.0,2023,False
 2026-27,1643633,Graham Ike,GSW,24.0,82,245.0,Undrafted,False
+2026-27,1641761,Grant Nelson,BKN,24.0,82,240.0,Undrafted,False
 2026-27,1629684,Grant Williams,CHA,27.0,79,236.0,2019,False
 2026-27,1628960,Grayson Allen,CHA,31.0,76,218.0,2018,False
 2026-27,1630611,Gui Santos,GSW,24.0,79,225.0,2022,False
@@ -817,6 +819,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,203954,Joel Embiid,PHI,32.0,84,270.0,2014,False
 2026-27,1628381,John Collins,DET,29.0,81,226.0,2017,False
 2026-27,1642910,John Tonje,POR,25.0,76,218.0,2025,False
+2026-27,1641780,Johni Broome,MIN,24.0,81,244.0,2025,False
 2026-27,1630228,Jonathan Kuminga,MIN,24.0,79,225.0,2021,False
 2026-27,1642367,Jonathan Mogbo,SAC,25.0,79,225.0,2024,False
 2026-27,203903,Jordan Clarkson,NYK,34.0,77,194.0,2014,False
