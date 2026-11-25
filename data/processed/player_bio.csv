@@ -652,7 +652,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1642285,Cam Spencer,MEM,26.0,75,205.0,2024,False
 2026-27,1641715,Cam Whitmore,DEN,22.0,78,230.0,2023,False
 2026-27,1643409,Cameron Boozer,MEM,19.0,80,250.0,2026,True
-2026-27,1643418,Cameron Carr,LAL,21.0,77,175.0,2026,True
+2026-27,1643418,Cameron Carr,LAL,22.0,77,175.0,2026,True
 2026-27,1629661,Cameron Johnson,DEN,30.0,80,210.0,2019,False
 2026-27,1627747,Caris LeVert,MIL,32.0,79,205.0,2016,False
 2026-27,1643721,Carson Cooper,LAL,22.0,82,245.0,Undrafted,False
@@ -690,7 +690,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1643411,Darius Acuff Jr.,SAC,20.0,74,190.0,2026,True
 2026-27,1629636,Darius Garland,LAC,26.0,73,192.0,2019,False
 2026-27,1643408,Darryn Peterson,UTA,19.0,78,205.0,2026,True
-2026-27,1642357,David Jones Garcia,SAS,24.0,76,210.0,Undrafted,False
+2026-27,1642357,David Jones Garcia,SAS,25.0,76,210.0,Undrafted,False
 2026-27,1630558,Davion Mitchell,MIA,28.0,72,200.0,2021,False
 2026-27,1630549,Day'Ron Sharpe,BKN,25.0,82,265.0,2021,False
 2026-27,1628368,De'Aaron Fox,SAS,28.0,75,185.0,2017,False
@@ -836,7 +836,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630581,Josh Giddey,CHI,24.0,80,214.0,2021,False
 2026-27,1630182,Josh Green,UTA,26.0,78,200.0,2020,False
 2026-27,1628404,Josh Hart,NYK,31.0,77,215.0,2017,False
-2026-27,1631169,Josh Minott,BKN,23.0,81,215.0,2022,False
+2026-27,1631169,Josh Minott,BKN,24.0,81,215.0,2022,False
 2026-27,1629006,Josh Okogie,UTA,28.0,76,213.0,2018,False
 2026-27,1643538,Joshua Jefferson,BKN,23.0,80,250.0,2026,True
 2026-27,201950,Jrue Holiday,POR,36.0,76,220.0,2009,False
@@ -881,7 +881,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1642273,Kyshawn George,WAS,22.0,80,200.0,2024,False
 2026-27,1643018,LJ Cryer,GSW,25.0,72,202.0,Undrafted,False
 2026-27,1630163,LaMelo Ball,MIN,25.0,79,180.0,2020,False
-2026-27,1642889,Labaron Philon Jr.,PHI,20.0,75,177.0,2026,True
+2026-27,1642889,Labaron Philon Jr.,PHI,21.0,75,177.0,2026,True
 2026-27,1629013,Landry Shamet,NYK,29.0,77,190.0,2018,False
 2026-27,1626204,Larry Nance Jr.,IND,33.0,80,245.0,2015,False
 2026-27,1628374,Lauri Markkanen,UTA,29.0,85,240.0,2017,False

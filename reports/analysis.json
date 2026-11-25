@@ -5,21 +5,21 @@
     "games": 16,
     "focus_player": "Darius Garland",
     "team": "LAC",
-    "analyzed_on": "2026-11-24",
+    "analyzed_on": "2026-11-25",
     "lead_threshold": 8
   },
   "results": [
     {
       "id": "H1",
       "title": "The second-half collapse is real",
-      "verdict": "Probably: net rating goes from -1.2 in first halves to -12.3 in second halves, a change of -11.2 per 100 possessions. That ranks 26th of 30 (league average change -0.1, so most teams barely move), and second halves were worse in 9 of 16 games. Some of it is regression: first-half eFG% was 0.546 (11th in the league, +0.005 vs the league's first-half average). But the second half (0.545, 12th) is +0.011 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.543 first-half eFG% vs a league average of 0.541; 3P% 0.374) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 16 games (32 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -24.4 to +2.1, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.",
+      "verdict": "Probably: net rating goes from -1.2 in first halves to -12.3 in second halves, a change of -11.2 per 100 possessions. That ranks 26th of 30 (league average change -0.1, so most teams barely move), and second halves were worse in 9 of 16 games. Some of it is regression: first-half eFG% was 0.546 (12th in the league, +0.005 vs the league's first-half average). But the second half (0.545, 12th) is +0.010 below the league's second-half average, so the drop overshoots a return to normal. Opponents, if anything, were hot early (0.543 first-half eFG% vs a league average of 0.540; 3P% 0.374) and cooled off after halftime, which helped the Clippers rather than hurt them. Sample: 16 games (32 halves), so treat every number here as a lead, not a settled rate. The 90% bootstrap interval for the net-rating change (resampling games) is -24.4 to +2.1, which includes zero: relative to the league it looks real, but 8 games cannot rule out noise.",
       "chart": "league_rank_dots.png",
       "key": {
         "net_h1": -1.2438,
         "net_h2": -12.2784,
         "net_change": -11.1928,
         "net_change_rank": 26,
-        "league_mean_change": -0.1146,
+        "league_mean_change": -0.123,
         "boot_lo": -24.3859,
         "boot_hi": 2.1172,
         "games_worse": 9,
@@ -80,7 +80,7 @@
     {
       "id": "H4",
       "title": "Fouls and free throws drive it",
-      "verdict": "Fouling is a minor part of the collapse on the scoreboard, and it is a chronic habit rather than a new one. Team fouls go from 134 to 173 and opponent free-throw rate from 0.236 to 0.312 (change ranked 22nd of 30; last season 28th). But 19 of the second-half fouls were late fouls by a team already behind (33 opponent FTA) - a consequence of losing, not a cause. Without those and without the TOR game, the rise is +0.007, close to last season's +0.068 (same adjustments). The Clippers also get to the line more after halftime (134 -> 161 made), so in the decomposition free throws net -5.8 points of the -88 (7%), -0.4 per game vs -0.8 per game last season. Sample: 16 games (32 halves), so treat every number here as a lead, not a settled rate.",
+      "verdict": "Fouling is a minor part of the collapse on the scoreboard, and it is a chronic habit rather than a new one. Team fouls go from 134 to 173 and opponent free-throw rate from 0.236 to 0.312 (change ranked 21st of 30; last season 28th). But 19 of the second-half fouls were late fouls by a team already behind (33 opponent FTA) - a consequence of losing, not a cause. Without those and without the TOR game, the rise is +0.007, close to last season's +0.068 (same adjustments). The Clippers also get to the line more after halftime (134 -> 161 made), so in the decomposition free throws net -5.8 points of the -88 (7%), -0.4 per game vs -0.8 per game last season. Sample: 16 games (32 halves), so treat every number here as a lead, not a settled rate.",
       "chart": "half_team_stats.png",
       "key": {
         "opp_ft_rate_h1": 0.2365,
@@ -90,7 +90,7 @@
         "rise_prior_ex_late": 0.0681,
         "ft_points": -5.824,
         "ft_share": 0.0662,
-        "change_rank": 22,
+        "change_rank": 21,
         "change_rank_prior": 28
       },
       "tables": [
