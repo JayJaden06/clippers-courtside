@@ -141,6 +141,22 @@ def test_games_page_opens_an_upcoming_game_plan(data):
     assert at.toggle  # the game-plan checklist
 
 
+def test_the_odds_are_described_as_injury_adjusted_everywhere(data):
+    """The odds count the injury report (analysis.availability), so no method text may say they ignore injuries."""
+    at = _app("replay")
+    key = f"pick_{data.seasons[0]}"
+    texts = [" ".join(m.value for m in at.markdown)]
+    nxt = [o for o in at.selectbox(key=key).options if "next game" in o or "% to win" in o]
+    if nxt:
+        at.selectbox(key=key).set_value(nxt[0]).run()
+        assert not at.exception
+        texts.append(" ".join(m.value for m in at.markdown))
+    text = " ".join(texts).lower()
+    for wrong in ("no injuries", "doesn't know about injuries", "knows nothing about injuries"):
+        assert wrong not in text, wrong
+    assert "injury report" in text
+
+
 def test_games_page_opens_with_the_intro_and_it_can_be_hidden(data):
     at = _app("replay")
     html = " ".join(m.value for m in at.markdown)
