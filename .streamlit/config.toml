@@ -4,7 +4,9 @@ primaryColor = "#1d428a"
 backgroundColor = "#f6f5f1"
 secondaryBackgroundColor = "#ebe9e3"
 textColor = "#1b2333"
-font = "sans serif"
+# Body text: Schibsted Grotesk (tasteskill's pick for an editorial, media voice). Headlines and big numbers
+# use Barlow Condensed, set in courtside/web/style.css.
+font = "Schibsted Grotesk:https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap, sans-serif"
 
 [client]
 # Hide the Deploy button and developer menu from visitors.
