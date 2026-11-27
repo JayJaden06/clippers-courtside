@@ -85,7 +85,7 @@ def page_top(title: str, subtitle: str, show_kicker: bool = True, band: bool = T
     with box:
         if show_kicker:
             st.markdown(kicker(), unsafe_allow_html=True)
-        left, right = st.columns([4, 1], vertical_alignment="bottom")
+        left, right = st.columns([3.2, 1.3], vertical_alignment="bottom")  # room for the glossary label
         left.title(title)
         with right:
             glossary_button()
@@ -197,7 +197,7 @@ def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None
         + f'<div class="v-small">{c.small}</div>' + ("</a>" if link else "</div>")
         for c in cards)
     n = len(cards)
-    cols = n if n <= 4 else min(4, -(-n // 2))
+    cols = n if n <= 5 else min(4, -(-n // 2))  # five in one row, not 3 + 2
     st.markdown(f'<div class="vcards" style="--cols:{cols}">{html}</div>', unsafe_allow_html=True)
 
 

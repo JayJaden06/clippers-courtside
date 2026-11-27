@@ -316,7 +316,7 @@ def page_replay() -> None:
                         f'<div class="gc-opp">{"vs" if e["home"] else "@"} {e["opp"]}</div>'
                         f'<div class="gc-status" style="color:{text_tone(color)}">{e["status"]}</div></div>',
                         unsafe_allow_html=True)
-            st.button("Showing" if sel else ("Report" if e["kind"] == "past" else "Game plan"), key=f"open_{k}",
+            st.button("Showing" if sel else (f'{e["opp"]} report' if e["kind"] == "past" else f'{e["opp"]} plan'), key=f"open_{k}",
                       on_click=_set_game, args=(pick_key, e["label"]), disabled=sel, width="stretch")
 
     if entry["kind"] == "future":
@@ -526,7 +526,7 @@ def page_replay() -> None:
                 parts = [R.stat_line(lv.factor, this_, normal_, opp)] + lv.suggestions
                 return ". ".join(p for p in parts if p) + "." if any(parts) else "—"
 
-            answer_cards([W.Verdict(lv.title, f"−{lv.points:.0f}" + ("" if lv.units else " pts"), fix_text(lv),
+            answer_cards([W.Verdict(lv.title, f"−{lv.points:.0f}" if lv.units else f"−{lv.points:.1f} pts", fix_text(lv),
                                     "bad", "decided") for lv in lvs], link=False, big_size="1.5rem")
 
     # ---- who was out, then who played
@@ -918,7 +918,8 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
         for r in watch.itertuples():
             size = (f"{G._ft_in(r.height_in)}, {r.weight_lb:.0f} lb · " if pd.notna(r.height_in)
                     and pd.notna(r.weight_lb) else "")
-            listed = pv.opp_out[pv.opp_out["player_name"].map(A.name_key) == A.name_key(r.player_name)]                 if len(pv.opp_out) else pv.opp_out
+            listed = (pv.opp_out[pv.opp_out["player_name"].map(A.name_key) == A.name_key(r.player_name)]
+                      if len(pv.opp_out) else pv.opp_out)
             flag = (f'<span class="o-status o-{listed.iloc[0]["status"].lower()}" style="margin-left:.4rem">'
                     f'{listed.iloc[0]["status"]} tonight</span>' if len(listed) else "")
             guard = ""
@@ -954,10 +955,10 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
     section("Tale of the tape", "tape", "League rank on each part of the game (1st = best). Further right is better.")
     fig = go.Figure()
     labels = [x[0] for x in TAPE]
-    for name, row_, color in (("LAC", lac, CLIPPERS), (pv.opponent, opp, LIGHT)):  # Clippers navy vs a neutral
+    for name, row_, color, where in (("LAC", lac, CLIPPERS, "top center"), (pv.opponent, opp, LIGHT, "bottom center")):
         fig.add_trace(go.Scatter(
             x=[row_[f"{c}_rank"] for _, c, _ in TAPE], y=labels, mode="markers+text", name=name,
-            text=[P._ord(row_[f"{c}_rank"]) for _, c, _ in TAPE], textposition="top center",
+            text=[P._ord(row_[f"{c}_rank"]) for _, c, _ in TAPE], textposition=where,
             marker=dict(color=color, size=14, line=dict(color=BG, width=1.5)),
             hovertemplate="%{y}: %{text}<extra>" + name + "</extra>"))
     for lab, c, _ in TAPE:
