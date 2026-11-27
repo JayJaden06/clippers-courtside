@@ -312,3 +312,14 @@ h1, .hero {font-weight: 800 !important}
 .odds-live b.up {color: #2e6cb7}
 .odds-live .arrow {opacity: .55}
 .odds-live .hint {opacity: .72; font-size: .92rem}
+/* a played game's report: the generated verdict is the headline under the scoreboard */
+.verdict-head {font-family: 'Barlow Condensed', 'Schibsted Grotesk', sans-serif; font-weight: 700; font-size: 1.75rem;
+               line-height: 1.15; color: #13213f; max-width: 52rem; margin: .1rem 0 .55rem 0; text-wrap: balance}
+/* everyone between the best and toughest nights */
+.box-rest {width: 100%; border-collapse: collapse; margin: .2rem 0 1rem 0; background: #ffffff; border: 1px solid #e3e0d8;
+           border-radius: 12px; overflow: hidden; font-size: .9rem; font-variant-numeric: tabular-nums}
+.box-rest th {text-align: right; font-size: .74rem; font-weight: 650; letter-spacing: .03em; text-transform: uppercase;
+              color: #5f6372; padding: .5rem .7rem; border-bottom: 1px solid #e3e0d8}
+.box-rest td {text-align: right; padding: .42rem .7rem; border-top: 1px solid #f0ede6}
+.box-rest th:first-child, .box-rest td.nm {text-align: left}
+.box-rest td.nm {font-weight: 650}
