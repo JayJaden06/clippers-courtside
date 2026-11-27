@@ -297,6 +297,14 @@ def test_switching_on_a_key_updates_the_win_chance_beside_the_keys(data):
         pytest.skip("no keys for this game")
     live = lambda: next(m.value for m in at.markdown if 'class="odds-live"' in m.value)  # noqa: E731
     assert "switch on a key" in live()
+    note = lambda: next(m.value for m in at.markdown if "The forecast:" in m.value)  # noqa: E731
+    forecast = note().split("<b>")[1].split("</b>")[0]
     next(t for t in at.toggle if t.key and t.key.startswith("plan_")).set_value(True).run()
     assert not at.exception
-    assert "with 1 key" in live() and "→" in live()
+    assert "(1 key," in live() and "what-if" in live() and "→" in live()
+    # the bar's forecast doesn't move with the keys; the what-if is labeled as one
+    assert note().split("<b>")[1].split("</b>")[0] == forecast and "(a what-if)" in note()
+    next(b for b in at.button if b.label == "Reset keys").click().run()
+    assert not at.exception
+    assert "switch on a key" in live()
+    assert not any(t.value for t in at.toggle if t.key and t.key.startswith("plan_"))

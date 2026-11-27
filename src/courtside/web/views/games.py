@@ -786,6 +786,12 @@ def _whos_out(pv, opp_id: int) -> None:
                f"{A.TEAM_CAP:.0f} a team. Late scratches after the morning update aren't included.")
 
 
+def _reset_keys(keys: list[str]) -> None:
+    """Switch every game-plan key off (the odds go back to the forecast)."""
+    for k in keys:
+        st.session_state[k] = False
+
+
 def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None) -> None:
     """An upcoming game: the odds, a checklist of keys that updates them, matchups, and the tale of the tape."""
     ctx = current()
@@ -852,18 +858,26 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
     pts = sum(k.points for k in chosen)
     chance = P.win_chance(pv.margin + pts)
     if keys:  # feedback where the switches are, not only in the odds bar a screen above
-        live.markdown(
-            '<div class="odds-live" aria-live="polite">Win chance <b>' + f"{pv.chance:.0%}</b>"
-            + (f' <span class="arrow">→</span> <b class="up">{chance:.0%}</b> with {len(chosen)} '
-               f'key{"s" if len(chosen) != 1 else ""} (+{pts:.1f} pts a game)' if chosen
-               else '<span class="hint">switch on a key below to see what it&#39;s worth</span>') + "</div>",
-            unsafe_allow_html=True)
+        with live.container():
+            left_, right_ = st.columns([5, 1], vertical_alignment="center")
+            left_.markdown(
+                '<div class="odds-live" aria-live="polite">Forecast <b>' + f"{pv.chance:.0%}</b>"
+                + (f' <span class="arrow">→</span> if they do {"this" if len(chosen) == 1 else "these"}: '
+                   f'<b class="up">{chance:.0%}</b> <span class="hint">({len(chosen)} '
+                   f'key{"s" if len(chosen) != 1 else ""}, +{pts:.1f} pts a game; a what-if, not the forecast)</span>'
+                   if chosen else '<span class="hint">switch on a key below to see what it&#39;s worth</span>')
+                + "</div>", unsafe_allow_html=True)
+            if chosen:
+                right_.button("Reset keys", icon=":material/restart_alt:", key=f"reset_{game['game_id']}",
+                              on_click=_reset_keys, args=([f"plan_{game['game_id']}_{k.kind}" for k in keys],),
+                              width="stretch", type="tertiary")
     with odds.container():
-        picture(G.odds_bar("LAC", pv.opponent, chance, pv.margin + pts, team_logo=D.logo_url(tid, dark=False),
+        picture(G.odds_bar("LAC", pv.opponent, pv.chance, pv.margin, team_logo=D.logo_url(tid, dark=False),
                            opp_logo=D.logo_url(opp_id, dark=False)), max_width="900px")
-        st.markdown(f'<div class="odds-note">Today <b>{pv.chance:.0%}</b>'
-                    + (f' → with {len(chosen)} key{"s" if len(chosen) != 1 else ""} below <b>{chance:.0%}</b>'
-                       if chosen else " · switch on keys below to see what they're worth") + "</div>"
+        st.markdown(f'<div class="odds-note">The forecast: <b>{pv.chance:.0%}</b>. Models this simple pick about two '
+                    "in three NBA games right."
+                    + (f' With the {len(chosen)} key{"s" if len(chosen) != 1 else ""} switched on below: '
+                       f'<b>{chance:.0%}</b> (a what-if).' if chosen else "") + "</div>"
                     + (f'<div class="odds-note">Injuries: {abs(pv.injury_edge):.1f} points in '
                        f'{"the Clippers&#39;" if pv.injury_edge > 0 else pv.opponent + "&#39;s"} favor, already '
                        f'included (both at full strength: {P.win_chance(pv.margin - pv.injury_edge):.0%}). '
