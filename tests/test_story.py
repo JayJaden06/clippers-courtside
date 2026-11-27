@@ -63,7 +63,7 @@ def test_game_story_reads_the_game():
     text = S.game_story(row, halves, att)
     assert text.startswith("They led by as many as 20 against MIA and were up 15 at halftime.")
     assert "outscored 55-40" in text and "lost by 1 in overtime" in text
-    assert "Clippers' shooting (-26" in text
+    assert "Clippers' shooting (−26" in text  # a true minus sign
 
 
 def test_game_story_when_they_never_led_and_improved():

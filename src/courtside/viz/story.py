@@ -198,7 +198,8 @@ def game_story(leads_row: pd.Series, halves: pd.DataFrame, attribution: pd.DataF
     change = float(attribution["margin_change"].iloc[0])
     if change < 0:
         f = a.idxmin()
-        out += f" Biggest second-half problem: {_lower(FACTOR_PLAIN[f][0])} ({a[f]:+.0f} points vs the first half)."
+        pts = f"{a[f]:+.0f}".replace("-", "−")  # a true minus sign, as everywhere else on the site
+        out += f" Biggest second-half problem: {_lower(FACTOR_PLAIN[f][0])} ({pts} points vs the first half)."
     elif change > 0:
         f = a.idxmax()
         out += f" Biggest second-half improvement: {_lower(FACTOR_PLAIN[f][0])} ({a[f]:+.0f} points)."
