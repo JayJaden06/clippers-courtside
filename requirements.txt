@@ -117,7 +117,7 @@ python-dateutil==4.0.0
     #   pandas
 python-dotenv==1.2.4
     # via pydantic-settings
-python-multipart==0.0.33
+python-multipart==0.0.34
     # via streamlit
 referencing==0.37.0
     # via
