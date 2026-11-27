@@ -20,7 +20,7 @@ from courtside.viz import graphics as G
 from courtside.viz import story as S
 from courtside.viz import whatnow as W
 from courtside.web.context import current
-from courtside.web.theme import (BAD, BAD_TEXT, BG, FOCUS, GOOD, GOOD_TEXT, GRAY, H1C, H2C, INK_MARK, LIGHT, MUTED_BAR,
+from courtside.web.theme import (BAD, BAD_TEXT, BG, CLIPPERS, FOCUS, GOOD, GOOD_TEXT, GRAY, H1C, H2C, INK_MARK, LIGHT, MUTED_BAR,
                                   TONE_COLOR, _minus, signed, text_tone)
 from courtside.web.ui import PHOTO_COL, answer_cards, clicked, face, fill_toc, heading, page_top, picture, section, show, with_photos
 
@@ -195,6 +195,9 @@ def next_up(box, up: pd.DataFrame, previews: list, teams: pd.DataFrame, shooting
                   on_click=_set_game, args=(f"pick_{season_now}", _future_label(t, pv, 0)))
 
 
+SMALL_UNIT_MIN = 4  # minutes together; below this a five-man unit's score is mostly noise
+
+
 def _unit_rows(units, names: dict) -> str:
     """The outscored five-man units as rows (faces, the five names, the score and minutes) instead of one run-on
     sentence."""
@@ -203,7 +206,8 @@ def _unit_rows(units, names: dict) -> str:
         '<div class="u-row"><div class="u-faces">'
         + "".join(f'<img src="{D.headshot_url(ids[n], small=True)}" alt="" title="{n}" loading="lazy">'
                   for n in unit if n in ids)
-        + f'</div><div class="u-pm">{signed(pm, 0)}</div><div class="u-min">{mins:.0f} min</div>'
+        + f'</div><div class="u-pm">{signed(pm, 0)}</div><div class="u-min">{mins:.0f} min'
+        + ('<span class="small-n">small sample</span>' if mins < SMALL_UNIT_MIN else '') + '</div>'
         f'<div class="u-who">{", ".join(short(n) for n in unit)}</div></div>'
         for unit, pm, mins in units)
 
@@ -391,7 +395,7 @@ def page_replay() -> None:
     m = D.game_margin(data.margins, gid)
     end = max(48.0, float(m["minute"].max()))
     blown = row["lead_class"] == "blown_lead"
-    line_color = BAD if blown else H1C
+    line_color = CLIPPERS  # the Clippers' own margin, in the Clippers' color
     show_tov = st.toggle("Show Clippers turnovers on the chart", value=True,
                          help=f"Orange diamonds are {focus}'s turnovers; gray circles are everyone else's.")
     fig = go.Figure()
@@ -568,13 +572,15 @@ def page_replay() -> None:
             faces = "".join(f'<img src="{D.headshot_url(ids_by_name[n])}" alt="{n}" title="{n}">' for n in u.unit
                             if n in ids_by_name)
             color = GOOD if u.plus_minus > 0 else BAD if u.plus_minus < 0 else GRAY
+            small = '<span class="small-n">small sample</span>' if u.minutes < SMALL_UNIT_MIN else ""
             rows_html.append(
                 f'<div class="lineup"><div class="faces">{faces}</div>'
                 f'<div class="who">{", ".join(short(n) for n in u.unit)}</div>'
-                f'<div class="min">{u.minutes:.0f} min</div>'
+                f'<div class="min">{u.minutes:.0f} min{small}</div>'
                 f'<div class="pm" style="color:{text_tone(color)}">{signed(u.plus_minus, 0)}</div></div>')
         st.markdown('<div class="takeaway">The best and worst five-man units (2+ minutes together): points scored '
-                    "minus allowed while they shared the floor.</div>" + "".join(rows_html), unsafe_allow_html=True)
+                    "minus allowed while they shared the floor. Under 4 minutes is marked as a small sample: a "
+                    "couple of possessions can swing it.</div>" + "".join(rows_html), unsafe_allow_html=True)
         with st.expander("Every unit, as a chart"):
             gu2 = gu.sort_values("plus_minus")
             fig = go.Figure(go.Bar(
@@ -882,7 +888,7 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
     section("Tale of the tape", "tape", "League rank on each part of the game (1st = best). Further right is better.")
     fig = go.Figure()
     labels = [x[0] for x in TAPE]
-    for name, row_, color in (("LAC", lac, H1C), (pv.opponent, opp, FOCUS)):
+    for name, row_, color in (("LAC", lac, CLIPPERS), (pv.opponent, opp, LIGHT)):  # Clippers navy vs a neutral
         fig.add_trace(go.Scatter(
             x=[row_[f"{c}_rank"] for _, c, _ in TAPE], y=labels, mode="markers+text", name=name,
             text=[P._ord(row_[f"{c}_rank"]) for _, c, _ in TAPE], textposition="top center",
