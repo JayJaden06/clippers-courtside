@@ -883,9 +883,9 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
     longs = P.long_rotation(data.player_season, data.bio, season_now, pv.opponent)
     if len(watch):
         section("Matchups: who guards their scorers", "watch",
-                f"{pv.opponent}'s top scorers this season, and a different Clipper for each: the best defender goes "
-                "to the biggest scorer, each one close in size and allowing the fewest points per possession "
-                "(player tracking).")
+                f"{pv.opponent}'s top scorers this season, and a different Clipper for each. Size comes first: among "
+                "the Clippers close to his size, the one allowing the fewest points per possession (player tracking), "
+                "with the biggest scorer choosing first.")
         tc = D.team_color(opp_id)
         cards = []
         for r in watch.itertuples():
@@ -896,8 +896,14 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                     f'{listed.iloc[0]["status"]} tonight</span>' if len(listed) else "")
             guard = ""
             if r.guard_with:
-                vs = (f"allows {r.guard_pts100:.0f} pts per 100 possessions (team average: {defenders.team_pts100:.0f})"
-                      if pd.notna(r.guard_pts100) and defenders is not None else "")
+                vs = ""
+                if pd.notna(r.guard_pts100) and defenders is not None:
+                    avg = defenders.team_pts100
+                    vs = (f"allows {r.guard_pts100:.0f} pts per 100 possessions (team average: {avg:.0f})"
+                          if r.guard_pts100 <= avg else
+                          # the size match isn't a stopper: say so rather than imply he is
+                          f"the closest size match, though he allows {r.guard_pts100:.0f} pts per 100 possessions, "
+                          f"more than the team average ({avg:.0f}): no Clipper near his size has done better")
                 guard = (f'<div class="sc-row"><img src="{face(r.guard_with) or ""}" alt=""><div class="who">'
                          f'Guard him with <b>{r.guard_with}</b><br><span style="opacity:.65">{vs}</span></div></div>')
             cards.append(

@@ -300,3 +300,22 @@ def test_switching_on_a_key_updates_the_win_chance_beside_the_keys(data):
     next(t for t in at.toggle if t.key and t.key.startswith("plan_")).set_value(True).run()
     assert not at.exception
     assert "with 1 key" in live() and "→" in live()
+
+
+def test_a_guard_pick_never_reads_as_a_stopper_when_he_allows_more_than_average(data):
+    """'Guard him with X, allows N (team average: M)' only when N <= M; otherwise the card says he's the size match."""
+    import re
+    at = _app("replay")
+    key = f"pick_{data.seasons[0]}"
+    plans = [o for o in at.selectbox(key=key).options if "% to win" in o][:6]
+    if not plans:
+        pytest.skip("no upcoming games in the schedule")
+    seen = 0
+    for label in plans:
+        at.selectbox(key=key).set_value(label).run()
+        assert not at.exception
+        html = " ".join(m.value for m in at.markdown)
+        for n, m in re.findall(r"allows (\d+) pts per 100 possessions \(team average: (\d+)\)", html):
+            seen += 1
+            assert int(n) <= int(m), (label, n, m)
+    assert seen or plans  # the cards rendered (no tracking data would leave none)

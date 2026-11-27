@@ -199,10 +199,13 @@ def game_story(leads_row: pd.Series, halves: pd.DataFrame, attribution: pd.DataF
     if change < 0:
         f = a.idxmin()
         pts = f"{a[f]:+.0f}".replace("-", "−")  # a true minus sign, as everywhere else on the site
-        out += f" Biggest second-half problem: {_lower(FACTOR_PLAIN[f][0])} ({pts} points vs the first half)."
+        # named against their own first half, so it can't be read as the verdict's "normal night" comparison
+        out += (f" The biggest drop from their own first half: {_lower(FACTOR_PLAIN[f][0])} ({pts} points vs the "
+                "first half).")
     elif change > 0:
         f = a.idxmax()
-        out += f" Biggest second-half improvement: {_lower(FACTOR_PLAIN[f][0])} ({a[f]:+.0f} points)."
+        out += (f" The biggest gain on their own first half: {_lower(FACTOR_PLAIN[f][0])} ({a[f]:+.0f} points vs the "
+                "first half).")
     return out
 
 

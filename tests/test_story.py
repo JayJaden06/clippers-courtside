@@ -73,7 +73,7 @@ def test_game_story_when_they_never_led_and_improved():
     att = pd.DataFrame({"factor": S.factor_order(), "points": [7, 4, 6, -3, 1, -1, 6]}).assign(margin_change=20)
     text = S.game_story(row, halves, att)
     assert text.startswith("They never led") and "won the second half 60-58" in text
-    assert "improvement: Clippers' shooting" in text
+    assert "first half: Clippers' shooting" in text
 
 
 # ------------------------------------------------------------ the full answer
