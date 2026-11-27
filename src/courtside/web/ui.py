@@ -22,8 +22,17 @@ STYLE = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 
 
 def inject_style() -> None:
-    """The site's stylesheet (courtside/web/style.css), once per run."""
+    """The site's stylesheet (courtside/web/style.css), once per run, and the mark that ends the load-in motion:
+    once the first load has settled, ``html.cs-seen`` stops the tiles animating again on page switches and game
+    picks (the page is one document for the whole visit)."""
     st.markdown(f"<style>\n{STYLE}\n</style>", unsafe_allow_html=True)
+    # wait for the first tiles (or a heading) to be on the page, give their load-in time to play, then mark it
+    st.html('<div class="cs-mark"></div><script>(function () {const root = document.documentElement;'
+            'if (root.classList.contains("cs-seen") || window.__csWait) return; window.__csWait = true;'
+            'const t0 = Date.now(); const tick = () => {'
+            'if (document.querySelector(".vcard, .nextup, [data-testid=stMain] h1") || Date.now() - t0 > 20000)'
+            ' setTimeout(() => root.classList.add("cs-seen"), 600); else setTimeout(tick, 100);}; tick();})();'
+            '</script>', unsafe_allow_javascript=True)
 
 
 def show(fig: go.Figure, height: int, key: str | None = None, select: bool = False, **layout):
@@ -250,7 +259,8 @@ def fill_toc(slot) -> None:
               const box = document.querySelector('[data-testid="stMain"]');
               if (!h || !box) return;
               e.preventDefault(); e.stopPropagation();
-              box.scrollBy({top: h.getBoundingClientRect().top - 150, behavior: 'smooth'});
+              const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              box.scrollBy({top: h.getBoundingClientRect().top - 150, behavior: calm ? 'auto' : 'smooth'});
             }, true);
             window.__tocBound = true;
           }
