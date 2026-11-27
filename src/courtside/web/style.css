@@ -11,7 +11,7 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 .jump {display: flex; flex-wrap: wrap; gap: .45rem; margin: .4rem 0 1.4rem 0}
 .jump a {text-decoration: none; font-size: .9rem; padding: .3rem .8rem; border-radius: 999px;
          border: 1px solid rgba(137,135,129,.45); color: inherit}
-.jump a:hover {border-color: #3987e5; color: #3987e5}
+.jump a:hover {border-color: #3987e5; color: #2e6cb7}
 .tldr {border-left: 4px solid #d95926; padding: .2rem 0 .2rem 1rem; margin: .6rem 0 .4rem 0}
 .tldr li {margin-bottom: .35rem; font-size: 1.05rem}
 .vcards {display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: .8rem; margin: .4rem 0 1rem 0}
@@ -22,7 +22,8 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
         background: linear-gradient(160deg, #1f3364 0%, #14213f 62%); box-shadow: 0 6px 18px rgba(19,33,63,.16); border: 1px solid #2c2c29; border-radius: 14px;
         padding: .9rem 1rem .85rem 1rem}
 .vcard :is(div, span, p) {color: #f0efec}
-.nextup, .pcard, .scard .sc-top {color: #f0efec}
+.nextup, .pcard {color: #f0efec}
+.scard .sc-top, .o-top {color: var(--ink, #f0efec)}  /* the ink each team color reads at 4.5:1 (D.card_colors) */
 .v-title {font-weight: 650; font-size: .9rem; line-height: 1.25; opacity: .8}
 .v-dot {display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-right: .4rem;
         vertical-align: .08rem}
@@ -112,7 +113,7 @@ h1, .hero {color: #13213f}
 .sc-top img.face {position: absolute; bottom: 0; right: .6rem; height: 112px}
 .sc-top img.logo {position: absolute; top: .6rem; left: .7rem; width: 34px; height: 34px; object-fit: contain}
 .sc-name {position: absolute; left: .8rem; bottom: .55rem; font-weight: 800; font-size: 1.05rem; line-height: 1.1;
-          text-shadow: 0 1px 6px rgba(0,0,0,.45); max-width: 55%}
+          color: var(--ink, #f0efec); max-width: 55%}
 .sc-pts {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2rem; padding: .5rem .9rem 0 .9rem}
 .sc-pts span {font-family: inherit; font-size: .95rem; font-weight: 600; opacity: .6; margin-left: .25rem}
 .sc-row {display: flex; align-items: center; gap: .55rem; padding: .35rem .9rem; border-top: 1px solid #f0ede6}
@@ -139,7 +140,7 @@ h1, .hero {color: #13213f}
 .hc-stats {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-top: .8rem}
 .hc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; display: block; line-height: 1}
 .hc-stats span {font-size: .8rem; opacity: .7; line-height: 1.2; display: block; margin-top: .2rem}
-.hc-up {color: #d95926} .hc-down {color: #3987e5}
+.hc-up {color: #b64b20} .hc-down {color: #2e6cb7}
 /* ---- white panels on the off-white page: every chart and drawing sits on its own card */
 /* the panel goes on the chart's wrapper, so the chart sizes itself to the inside of the panel */
 [data-testid="stElementContainer"]:has(.stPlotlyChart) {background: #ffffff; border-radius: 16px;
@@ -168,7 +169,7 @@ h1, .hero {color: #13213f}
               background: #e3e0d8}
 .who-row .nm {flex: 1; font-size: .92rem; line-height: 1.2}
 .who-row .nm span {font-size: .78rem; opacity: .65}
-.who-row .n {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.5rem; color: #d95926}
+.who-row .n {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.5rem; color: #b64b20}
 /* ---- who gets sloppier: one row per player, before (gray) to after (colored), two columns */
 .slop {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1rem; margin: .4rem 0 1rem 0}
 .slop-row {display: grid; grid-template-columns: 52px 1fr auto; gap: .2rem .8rem; align-items: center;
@@ -185,7 +186,7 @@ h1, .hero {color: #13213f}
 [class*="st-key-toc_"]:has(nav.toc) {background: rgba(246,245,241,.95); backdrop-filter: blur(6px);
                                      padding: .45rem 0 .5rem 0; border-bottom: 1px solid #e3e0d8}
 nav.toc {display: flex; flex-wrap: wrap; align-items: center; gap: .4rem}
-nav.toc .lbl {font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; opacity: .6; margin-right: .3rem}
+nav.toc .lbl {font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; opacity: .72; margin-right: .3rem}
 nav.toc a {text-decoration: none; font-size: .85rem; font-weight: 600; padding: .25rem .75rem; border-radius: 999px;
            color: #13213f; background: #ffffff; border: 1px solid #e3e0d8}
 nav.toc a:hover {border-color: #1d428a}
@@ -256,7 +257,7 @@ a.vcard:focus-visible, nav.toc a:focus-visible {outline: 2px solid #1d428a; outl
 .ledger .lbar span {display: block; height: 100%; border-radius: 6px}
 .ledger .lval {font-weight: 800; font-size: 1.1rem; min-width: 3.4rem; text-align: right}
 .ledger .lempty {opacity: .6; font-size: .9rem}
-.kval {font-weight: 800; font-size: 1.05rem; color: #3987e5; margin-top: .3rem}
+.kval {font-weight: 800; font-size: 1.05rem; color: #2e6cb7; margin-top: .3rem}
 .kval span {font-weight: 500; font-size: .82rem; color: inherit; opacity: .75}
 .kwhy {font-size: .9rem; opacity: .85; line-height: 1.4}
 .lean {display: flex; gap: .55rem; align-items: center; margin: .2rem 0}
@@ -286,15 +287,16 @@ h1, .hero {font-weight: 800 !important}
               background: #3a4766; border: 1.5px solid #1b2440; margin-left: -7px}
 .u-faces img:first-child {margin-left: 0}
 .u-pm {font-weight: 800; font-size: 1.05rem; color: #f08a5d !important; text-align: right}
-.u-min {font-size: .78rem; opacity: .7; text-align: right}
+.u-min {font-size: .78rem; opacity: .85; text-align: right}
+.v-small:has(.u-row) {opacity: 1}
 .u-who {grid-column: 1 / -1; font-size: .8rem; opacity: .8; margin-top: .2rem}
 
 /* Who's out: a team-colored header, then one row per listed player */
 .o-top {display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem;
-        background: linear-gradient(150deg, var(--tc) 0%, var(--td) 100%); color: #f0efec}
+        background: linear-gradient(150deg, var(--tc) 0%, var(--td) 100%)}
 .o-top img {width: 30px; height: 30px; object-fit: contain}
-.o-top span {flex: 1; font-weight: 800; color: #f0efec}
-.o-top b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; color: #f0efec}
+.o-top span {flex: 1; font-weight: 800; color: var(--ink, #f0efec)}
+.o-top b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; color: var(--ink, #f0efec)}
 .o-status {display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .02em; padding: .05rem .45rem;
            border-radius: 999px; vertical-align: middle; font-family: inherit}
 .o-out {background: #fbe3d9; color: #9a3a12}

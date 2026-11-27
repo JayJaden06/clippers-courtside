@@ -270,3 +270,17 @@ def test_a_failing_page_shows_an_apology_not_an_error(monkeypatch):
     text = " ".join(m.value for m in at.markdown)
     assert "isn't loading right now" in text and "half-drawn content" not in text
     assert any(b.label == "Try again" for b in at.button)
+
+
+def test_team_colored_headers_are_readable_for_every_team():
+    """Player and team names on team-colored cards read at 4.5:1 or better on every team's color (WCAG AA)."""
+    for tid, color in D.TEAM_COLORS.items():
+        top, deep, ink = D.card_colors(color)
+        assert min(D.contrast(ink, top), D.contrast(ink, deep)) >= 4.5, (tid, color, top, ink)
+
+
+def test_small_text_in_the_result_colors_is_readable():
+    from courtside.web.theme import BAD_TEXT, GOOD_TEXT
+    for text in (GOOD_TEXT, BAD_TEXT):
+        for ground in ("#f6f5f1", "#ffffff", "#fbefe8"):  # the page, white cards, the selected game card
+            assert D.contrast(text, ground) >= 4.5, (text, ground)

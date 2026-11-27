@@ -20,7 +20,8 @@ from courtside.viz import graphics as G
 from courtside.viz import story as S
 from courtside.viz import whatnow as W
 from courtside.web.context import current
-from courtside.web.theme import BAD, BG, FOCUS, GOOD, GRAY, H1C, H2C, INK_MARK, LIGHT, MUTED_BAR, TONE_COLOR, _minus, signed
+from courtside.web.theme import (BAD, BAD_TEXT, BG, FOCUS, GOOD, GOOD_TEXT, GRAY, H1C, H2C, INK_MARK, LIGHT, MUTED_BAR,
+                                  TONE_COLOR, _minus, signed, text_tone)
 from courtside.web.ui import PHOTO_COL, answer_cards, clicked, face, fill_toc, heading, page_top, picture, section, show, with_photos
 
 
@@ -288,7 +289,7 @@ def page_replay() -> None:
             color = GOOD if e["won"] else BAD if e["won"] is False else INK_MARK
             st.markdown(f'<div class="gc"><div class="gc-date">{e["date"]:%a %b} {e["date"].day}</div>'
                         f'<div class="gc-opp">{"vs" if e["home"] else "@"} {e["opp"]}</div>'
-                        f'<div class="gc-status" style="color:{color}">{e["status"]}</div></div>',
+                        f'<div class="gc-status" style="color:{text_tone(color)}">{e["status"]}</div></div>',
                         unsafe_allow_html=True)
             st.button("Showing" if sel else ("Report" if e["kind"] == "past" else "Game plan"), key=f"open_{k}",
                       on_click=_set_game, args=(pick_key, e["label"]), disabled=sel, width="stretch")
@@ -477,14 +478,14 @@ def page_replay() -> None:
             items = "".join(
                 f'<div class="ledger-row"><div class="lname">{n}</div><div class="lbar"><span style="width:'
                 f'{100 * abs(v) / top:.0f}%;background:{color}"></span></div>'
-                f'<div class="lval" style="color:{color}">{signed(v)}</div></div>'
+                f'<div class="lval" style="color:{text_tone(color)}">{signed(v)}</div></div>'
                 for n, v in zip(rows["name"], rows["points"]))
-            return (f'<div class="ledger"><div class="lhead" style="color:{color}">{title}</div>'
+            return (f'<div class="ledger"><div class="lhead" style="color:{text_tone(color)}">{title}</div>'
                     + (items or f'<div class="lempty">{empty}</div>') + "</div>")
 
         normal, final = factors.attrs["normal_margin"], factors.attrs["margin"]
         st.markdown(f'<div class="ledger-sum">A normal night: <b>{signed(normal)}</b> &nbsp;→&nbsp; this game: '
-                    f'<b style="color:{GOOD if final > 0 else BAD}">{signed(final, 0)}</b></div>',
+                    f'<b style="color:{GOOD_TEXT if final > 0 else BAD_TEXT}">{signed(final, 0)}</b></div>',
                     unsafe_allow_html=True)
         left_, right_ = st.columns(2, gap="large")
         left_.markdown(ledger(better, GOOD, "▲ Better than a normal night", "Nothing stood out."),
@@ -540,11 +541,11 @@ def page_replay() -> None:
             rows = "".join(
                 f'<div class="sc-row"><img src="{face(d) or ""}" alt=""><div class="who">Guarded by '
                 f'<b>{short(d)}</b><br><span style="opacity:.65">{int(m_)}/{int(a_)} shooting, '
-                f'{pp:.0f} possessions</span></div><div class="pts" style="color:{BAD if p_ >= 10 else INK_MARK}">'
+                f'{pp:.0f} possessions</span></div><div class="pts" style="color:{BAD_TEXT if p_ >= 10 else INK_MARK}">'
                 f'{int(p_)}</div></div>'
                 for d, p_, m_, a_, pp in zip(grp["defender"], grp["pts"], grp["fgm"], grp["fga"], grp["poss"]))
             cards.append(
-                f'<div class="scard"><div class="sc-top" style="--tc:{tc};--td:{D.shade(tc)}">'
+                f'<div class="scard"><div class="sc-top" style="{_card_style(tc)}">'
                 f'<img class="logo" src="{D.logo_url(opp_id, dark=not D.is_light(tc))}" alt="">'
                 + (f'<img class="face" src="{D.headshot_url(int(pid.iloc[0]))}" alt="">' if len(pid) else "")
                 + f'<div class="sc-name">{scorer}</div></div><div class="sc-pts">{int(total)}<span>pts</span></div>'
@@ -571,7 +572,7 @@ def page_replay() -> None:
                 f'<div class="lineup"><div class="faces">{faces}</div>'
                 f'<div class="who">{", ".join(short(n) for n in u.unit)}</div>'
                 f'<div class="min">{u.minutes:.0f} min</div>'
-                f'<div class="pm" style="color:{color}">{signed(u.plus_minus, 0)}</div></div>')
+                f'<div class="pm" style="color:{text_tone(color)}">{signed(u.plus_minus, 0)}</div></div>')
         st.markdown('<div class="takeaway">The best and worst five-man units (2+ minutes together): points scored '
                     "minus allowed while they shared the floor.</div>" + "".join(rows_html), unsafe_allow_html=True)
         with st.expander("Every unit, as a chart"):
@@ -639,6 +640,12 @@ def _rating_line(who: str, t: pd.Series) -> str:
             f"({P._ord(t['ortg_rank'])}) and allow {t['drtg']:.1f} ({P._ord(t['drtg_rank'])}).")
 
 
+def _card_style(team_hex: str) -> str:
+    """CSS variables for a team-colored card header whose text reads at 4.5:1 or better (D.card_colors)."""
+    top, deep, ink = D.card_colors(team_hex)
+    return f"--tc:{top};--td:{deep};--ink:{ink}"
+
+
 def _out_row(name: str, player_id, status: str, reason: str, note: str, right: str = "") -> str:
     """One player on an injury report: face, name, status, the report's reason, and a line about him."""
     pic = D.headshot_url(int(player_id), small=True) if pd.notna(player_id) else face(name)
@@ -650,7 +657,7 @@ def _out_row(name: str, player_id, status: str, reason: str, note: str, right: s
 
 def _out_card(team: str, logo: str, color: str, right: str, rows: list[str]) -> str:
     """A team's injury-report card: a team-colored header, then one row per player."""
-    return (f'<div class="scard"><div class="o-top" style="--tc:{color};--td:{D.shade(color)}">'
+    return (f'<div class="scard"><div class="o-top" style="{_card_style(color)}">'
             f'<img src="{logo}" alt=""><span>{team}</span><b>{right}</b></div>'
             + ("".join(rows) or '<div class="sc-foot">Nobody listed.</div>') + '<div class="sc-foot"></div></div>')
 
@@ -855,7 +862,7 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                 guard = (f'<div class="sc-row"><img src="{face(r.guard_with) or ""}" alt=""><div class="who">'
                          f'Guard him with <b>{r.guard_with}</b><br><span style="opacity:.65">{vs}</span></div></div>')
             cards.append(
-                f'<div class="scard"><div class="sc-top" style="--tc:{tc};--td:{D.shade(tc)}">'
+                f'<div class="scard"><div class="sc-top" style="{_card_style(tc)}">'
                 f'<img class="logo" src="{D.logo_url(opp_id, dark=not D.is_light(tc))}" alt="">'
                 f'<img class="face" src="{D.headshot_url(int(r.player_id))}" alt="">'
                 f'<div class="sc-name">{r.player_name}</div></div>'

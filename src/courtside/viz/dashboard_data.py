@@ -385,6 +385,37 @@ def shade(hex_color: str, k: float = 0.45) -> str:
     return "#" + "".join(f"{round(v * (1 - k)):02x}" for v in (r, g, b))
 
 
+def _luminance(hex_color: str) -> float:
+    c = [int(hex_color.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def contrast(a: str, b: str) -> float:
+    """WCAG contrast ratio between two hex colors (1 to 21)."""
+    hi, lo = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+CARD_LIGHT_INK, CARD_DARK_INK = "#f0efec", "#13213f"
+
+
+def card_colors(team_hex: str) -> tuple[str, str, str]:
+    """A team-colored card header that its text can be read on (4.5:1 or better): (top, deep, ink).
+
+    Pale and bright team colors (gold, orange, lime) keep their color and take navy text over a gentle gradient.
+    The rest take off-white text, deepening the team color only as far as that needs."""
+    light_deep = shade(team_hex, 0.12)
+    if min(contrast(CARD_DARK_INK, team_hex), contrast(CARD_DARK_INK, light_deep)) >= 4.5:
+        return team_hex, light_deep, CARD_DARK_INK
+    top = team_hex
+    for k in (0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6):
+        top = shade(team_hex, k)
+        if contrast(CARD_LIGHT_INK, top) >= 4.5:
+            break
+    return top, shade(top), CARD_LIGHT_INK
+
+
 def is_light(hex_color: str) -> bool:
     """True for pale colors (Nets white, Spurs silver, Bucks cream), which need the light-background logo."""
     r, g, b = (int(hex_color.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
