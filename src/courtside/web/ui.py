@@ -237,12 +237,22 @@ def fill_toc(slot) -> None:
         """<script>
         (function () {
           // Streamlit redraws elements, so look everything up live on each scroll rather than holding on to it.
+          // Where the pinned bar ends (the game picker on Games, the pills elsewhere), measured, not guessed.
+          const barBottom = () => {
+            const n = document.querySelector('nav.toc');
+            if (!n) return 120;
+            const bar = n.closest('.st-key-gamebar') || n;
+            return Math.max(80, bar.getBoundingClientRect().bottom);
+          };
           const mark = () => {
             const links = [...document.querySelectorAll('nav.toc a')];
+            // a section is current once its heading is in the top third of what's visible under the bar
+            const top = barBottom();
+            const line = top + (window.innerHeight - top) * 0.33;
             let current = null;
             for (const l of links) {
               const h = document.getElementById(l.dataset.a);
-              if (h && h.getBoundingClientRect().top < 190) current = l.dataset.a;
+              if (h && h.getBoundingClientRect().top < line) current = l.dataset.a;
             }
             links.forEach(l => l.classList.toggle('on', l.dataset.a === current));
           };
@@ -260,7 +270,9 @@ def fill_toc(slot) -> None:
               if (!h || !box) return;
               e.preventDefault(); e.stopPropagation();
               const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              box.scrollBy({top: h.getBoundingClientRect().top - 150, behavior: calm ? 'auto' : 'smooth'});
+              const n = document.querySelector('nav.toc');
+              const bar = n ? (n.closest('.st-key-gamebar') || n).getBoundingClientRect().bottom : 120;
+              box.scrollBy({top: h.getBoundingClientRect().top - bar - 12, behavior: calm ? 'auto' : 'smooth'});
             }, true);
             window.__tocBound = true;
           }
