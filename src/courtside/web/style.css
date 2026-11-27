@@ -305,3 +305,10 @@ h1, .hero {font-weight: 800 !important}
 .o-blank {width: 30px; height: 30px; border-radius: 50%; background: #e3e0d8; flex: none}
 .o-why {display: inline-block; font-size: .8rem; line-height: 1.3; opacity: .85; margin-top: .15rem}
 .small-n {display: block; font-size: .68rem; letter-spacing: .02em; opacity: .8; font-style: italic}
+/* the running win chance above the game-plan keys */
+.odds-live {display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; margin: .2rem 0 .7rem 0; padding: .55rem .95rem;
+            background: #ffffff; border: 1px solid #e3e0d8; border-radius: 12px; font-size: 1rem}
+.odds-live b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.7rem; line-height: 1; color: #13213f}
+.odds-live b.up {color: #2e6cb7}
+.odds-live .arrow {opacity: .55}
+.odds-live .hint {opacity: .72; font-size: .92rem}

@@ -804,11 +804,10 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                       f"{'won' if r.result == 'W' else 'lost'} {int(r.team_pts)}-{int(r.opp_pts)}"
                       for r in h2h.itertuples()) + ".", "info", "plan"))
 
-    _whos_out(pv, opp_id)
-
     section(f"How to beat the {pv.opponent_name.split(' ')[-1]}", "plan",
-            "The keys to this game from both teams' season numbers. Switch them on and off: the odds above "
-            "update.")
+            "The keys to this game from both teams' season numbers. Switch them on and the win chance updates "
+            "right here.")
+    live = st.empty()  # the running win chance, filled once the keys are read
     chosen = []
     if keys:
         for j, k in enumerate(keys):
@@ -827,6 +826,13 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
         st.write("Nothing in either team's numbers points to a specific key: it's about playing their usual game.")
     pts = sum(k.points for k in chosen)
     chance = P.win_chance(pv.margin + pts)
+    if keys:  # feedback where the switches are, not only in the odds bar a screen above
+        live.markdown(
+            '<div class="odds-live" aria-live="polite">Win chance <b>' + f"{pv.chance:.0%}</b>"
+            + (f' <span class="arrow">→</span> <b class="up">{chance:.0%}</b> with {len(chosen)} '
+               f'key{"s" if len(chosen) != 1 else ""} (+{pts:.1f} pts a game)' if chosen
+               else '<span class="hint">switch on a key below to see what it&#39;s worth</span>') + "</div>",
+            unsafe_allow_html=True)
     with odds.container():
         picture(G.odds_bar("LAC", pv.opponent, chance, pv.margin + pts, team_logo=D.logo_url(tid, dark=False),
                            opp_logo=D.logo_url(opp_id, dark=False)), max_width="900px")
@@ -839,6 +845,8 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                        '<a href="#out">Who&#39;s out</a></div>' if abs(pv.injury_edge) >= 0.05 else ""),
                     unsafe_allow_html=True)
         answer_cards(tiles, link=False)
+
+    _whos_out(pv, opp_id)  # after the keys, so the odds and the keys sit together
 
     # ---- matchups
     # 30+ tracked possessions, so there are enough Clippers to give each scorer his own (the biggest scorer picks
