@@ -73,7 +73,7 @@ numpy==2.5.4
     #   pandas
     #   pydeck
     #   streamlit
-packaging==26.3
+packaging==26.4
     # via
     #   altair
     #   matplotlib
