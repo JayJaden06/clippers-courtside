@@ -6,6 +6,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # pydantic pins its own pydantic-core exactly: bumped apart, the site can't install (2026-11-27 outage).
+    groups:
+      pydantic:
+        patterns: ["pydantic", "pydantic-core"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:

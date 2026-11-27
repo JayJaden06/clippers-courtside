@@ -101,7 +101,7 @@ pydantic==2.14.4
     #   courtside (pyproject.toml)
     #   pydantic-settings
     #   typer
-pydantic-core==2.50.4
+pydantic-core==2.50.5
     # via pydantic
 pydantic-settings==2.16.3
     # via courtside (pyproject.toml)
