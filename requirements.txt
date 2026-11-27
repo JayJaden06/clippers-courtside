@@ -96,7 +96,7 @@ pyarrow==26.0.1
     # via
     #   courtside (pyproject.toml)
     #   streamlit
-pydantic==2.14.3
+pydantic==2.14.4
     # via
     #   courtside (pyproject.toml)
     #   pydantic-settings
