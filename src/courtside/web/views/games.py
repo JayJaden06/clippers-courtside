@@ -71,6 +71,21 @@ def _hide_intro() -> None:
     st.session_state["intro_hidden"] = True
 
 
+def _show_intro() -> None:
+    st.session_state["intro_full"] = True
+
+
+def _intro_line() -> None:
+    """The welcome, folded to one line after the first view of a visit."""
+    with st.container(key="intro_line"):
+        left, right = st.columns([5, 1], vertical_alignment="center")
+        left.markdown("<div class='intro-line'><b>Clippers Courtside</b> · a fan-made tracker of the Clippers' "
+                      "season, built from the NBA's own play-by-play and updated after every game.</div>",
+                      unsafe_allow_html=True)
+        right.button("About this site", icon=":material/info:", on_click=_show_intro, width="stretch",
+                     type="tertiary")
+
+
 def intro() -> None:
     """The welcome at the top of the landing page, in its light band."""
     with st.container(key="band_light_intro"):
@@ -220,7 +235,11 @@ def page_replay() -> None:
     season_now = ctx.season_now
     settings = ctx.settings
     if not st.session_state.get("intro_hidden"):
-        intro()
+        if st.session_state.get("intro_seen") and not st.session_state.get("intro_full"):
+            _intro_line()  # once you're exploring, the welcome shrinks to one line
+        else:
+            intro()
+        st.session_state["intro_seen"] = True
         st.markdown('<div id="games-list"></div>', unsafe_allow_html=True)
     banner = st.container()
     hidden = bool(st.session_state.get("intro_hidden"))
@@ -246,8 +265,6 @@ def page_replay() -> None:
         entries.append({"kind": "future", "idx": j, "date": t, "home": pv.home, "opp": pv.opponent,
                         "opp_id": int(g["away_id"] if pv.home else g["home_id"]), "status": f"{pv.chance:.0%} to win",
                         "won": None, "label": _future_label(t, pv, j)})
-    if season == season_now:
-        next_up(banner, up, previews, teams, shooting)
     labels = [e["label"] for e in entries]
     n_past = len(strip)
     xs = pd.to_datetime(strip["game_date"]).dt.strftime("%b %d").str.replace(" 0", " ") + " " + strip[
@@ -263,6 +280,10 @@ def page_replay() -> None:
         st.session_state[pick_key] = by_x[x]
     if st.session_state[pick_key] not in labels:
         st.session_state[pick_key] = labels[n_past - 1] if n_past else labels[0]
+    # the Next up banner, unless that game's plan is already the one open below it
+    next_label = labels[n_past] if len(labels) > n_past else None
+    if season == season_now and st.session_state[pick_key] != next_label:
+        next_up(banner, up, previews, teams, shooting)
 
     # ---- the game picker: pinned to the top of the page while scrolling
     with st.container(key="gamebar"):
@@ -373,15 +394,7 @@ def page_replay() -> None:
         st.markdown(f'<div class="story">{S.game_story(row, halves, att)}</div>', unsafe_allow_html=True)
 
     # ---- the tiles: best, worst, the runs, turnovers
-    best, worst = R.best_and_worst(lines)
-    tiles = []
-    for who, title, tone in ((best, "Best Clipper", "good"), (worst, "Toughest night", "bad")):
-        if who is not None:
-            tiles.append(W.Verdict(
-                f"{title}: {who['player_name']}", f"{who['game_score']:.1f}",
-                f"Game Score. {int(who['pts'])} pts, {int(who['reb'])} reb, {int(who['ast'])} ast, "
-                f"{int(who['tov'])} TO in {who['minutes']:.0f} min; {signed(who['plus_minus'], 0)} on the floor.",
-                tone, "players"))
+    tiles = []  # the best and toughest nights live in Who played well, ranked, so they aren't repeated here
     for run, title, tone in ((run_against, f"Biggest {opp} run", "bad"), (run_for, "Biggest Clippers run", "good")):
         if run is not None:
             who = ", ".join(short(n) for n in run.unit) if run.unit else "?"

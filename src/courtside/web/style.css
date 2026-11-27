@@ -312,3 +312,5 @@ h1, .hero {font-weight: 800 !important}
 .odds-note a:hover, .takeaway a:hover, .story a:hover {color: #13213f}
 ::selection {background: #d9e2f2; color: #13213f}
 :focus-visible {outline: 2px solid #1d428a; outline-offset: 2px}
+.intro-line {font-size: 1rem; color: #3b3f4c}
+.intro-line b {color: #13213f}

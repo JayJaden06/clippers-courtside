@@ -300,3 +300,19 @@ def test_switching_on_a_key_updates_the_win_chance_beside_the_keys(data):
     next(t for t in at.toggle if t.key and t.key.startswith("plan_")).set_value(True).run()
     assert not at.exception
     assert "with 1 key" in live() and "→" in live()
+
+
+def test_the_intro_folds_after_the_first_view_and_the_banner_hides_on_its_own_game(data):
+    at = _app("replay")
+    html = lambda: " ".join(m.value for m in at.markdown)  # noqa: E731
+    assert "Clippers Courtside</div>" in html()  # the full welcome on arrival
+    at.run()
+    assert "intro-line" in html() and "Clippers Courtside</div>" not in html()  # one line once you're exploring
+    next(b for b in at.button if b.label == "About this site").click().run()
+    assert "Clippers Courtside</div>" in html()
+    key = f"pick_{data.seasons[0]}"
+    nxt = [o for o in at.selectbox(key=key).options if "next game" in o]
+    if nxt:
+        assert 'class="nextup"' in html()
+        at.selectbox(key=key).set_value(nxt[0]).run()
+        assert not at.exception and 'class="nextup"' not in html()  # no banner above the plan it opens
