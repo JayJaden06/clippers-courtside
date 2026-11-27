@@ -656,7 +656,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629661,Cameron Johnson,DEN,30.0,80,210.0,2019,False
 2026-27,1627747,Caris LeVert,MIL,32.0,79,205.0,2016,False
 2026-27,1643721,Carson Cooper,LAL,22.0,82,245.0,Undrafted,False
-2026-27,1642868,Carter Bryant,SAS,20.0,78,220.0,2025,False
+2026-27,1642868,Carter Bryant,SAS,21.0,78,220.0,2025,False
 2026-27,1641717,Cason Wallace,OKC,23.0,75,195.0,2023,False
 2026-27,1642907,Cedric Coward,MEM,23.0,78,206.0,2025,False
 2026-27,1643052,Chaney Johnson,BKN,24.0,79,235.0,Undrafted,False
@@ -748,7 +748,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630611,Gui Santos,GSW,24.0,79,225.0,2022,False
 2026-27,1643419,Hannes Steinbach,CHA,20.0,82,248.0,2026,True
 2026-27,203084,Harrison Barnes,SAS,34.0,79,225.0,2012,False
-2026-27,1631127,Harrison Ingram,UTA,23.0,77,230.0,2024,False
+2026-27,1631127,Harrison Ingram,UTA,24.0,77,230.0,2024,False
 2026-27,1630529,Herbert Jones,NOP,28.0,79,210.0,2021,False
 2026-27,1642864,Hugo González,BOS,20.0,78,200.0,2025,False
 2026-27,1630193,Immanuel Quickley,TOR,27.0,75,190.0,2020,False
@@ -888,7 +888,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1643133,Lawson Lovering,LAL,23.0,84,235.0,Undrafted,False
 2026-27,2544,LeBron James,PHI,41.0,81,250.0,2003,False
 2026-27,1641778,Leaky Black,SAC,27.0,79,209.0,Undrafted,False
-2026-27,1631159,Leonard Miller,CHI,22.0,82,220.0,2023,False
+2026-27,1631159,Leonard Miller,CHI,23.0,82,220.0,2023,False
 2026-27,1642862,Liam McNeeley,CHA,21.0,80,224.0,2025,False
 2026-27,1629652,Luguentz Dort,ATL,27.0,76,220.0,Undrafted,False
 2026-27,1629029,Luka Dončić,LAL,27.0,80,230.0,2018,False
@@ -949,7 +949,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1630167,Obi Toppin,IND,28.0,81,220.0,2020,False
 2026-27,1641765,Olivier-Maxence Prosper,MEM,24.0,79,230.0,2023,False
 2026-27,1630168,Onyeka Okongwu,ATL,25.0,82,240.0,2020,False
-2026-27,1631131,Oscar Tshiebwe,HOU,26.0,80,270.0,Undrafted,False
+2026-27,1631131,Oscar Tshiebwe,HOU,27.0,80,270.0,Undrafted,False
 2026-27,1642345,Oso Ighodaro,PHX,24.0,83,235.0,2024,False
 2026-27,1631172,Ousmane Dieng,MIL,23.0,81,185.0,2022,False
 2026-27,1629023,P.J. Washington,DAL,28.0,78,230.0,2019,False
@@ -1037,6 +1037,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629660,Ty Jerome,MEM,29.0,77,195.0,2019,False
 2026-27,1629639,Tyler Herro,MIL,26.0,77,195.0,2019,False
 2026-27,1642278,Tyler Kolek,NYK,25.0,74,195.0,2024,False
+2026-27,1643589,Tyler Nickel,NYK,23.0,79,220.0,2026,True
 2026-27,1630169,Tyrese Haliburton,IND,26.0,77,185.0,2020,False
 2026-27,1630178,Tyrese Maxey,PHI,26.0,74,200.0,2020,False
 2026-27,1642878,Tyrese Proctor,CLE,22.0,76,185.0,2025,False
