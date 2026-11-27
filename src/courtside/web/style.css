@@ -3,7 +3,7 @@
 
 .kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .65; margin-bottom: .2rem}
 .hero {font-size: clamp(1.9rem, 4vw, 3rem); font-weight: 800; line-height: 1.08; margin: 0 0 .6rem 0}
-.lede {font-size: 1.15rem; opacity: .85; max-width: 52rem; margin-bottom: 1.2rem}
+.lede {font-size: 1.15rem; opacity: .85; max-width: 40rem; margin-bottom: 1.2rem}  /* about 70 characters a line */
 .story {font-size: 1.12rem; line-height: 1.55}
 .big-q {font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem}
 .rank {font-size: 2.4rem; font-weight: 800; line-height: 1; text-align: center; opacity: .8}
@@ -34,7 +34,7 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
          background: #2c2c29; margin-bottom: .35rem}
 .vcard:has(.v-img) .v-big {font-size: 1.6rem}
 [data-testid="stHeaderLogo"] {height: 2.4rem; max-height: 2.4rem}
-.vcards.intro {grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))}
+.vcards.intro {grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))}  /* fit: no empty sixth column */
 #games-list {scroll-margin-top: 4rem}
 [data-testid="stLayoutWrapper"]:has(> .st-key-gamebar) {position: sticky; top: 3.6rem; z-index: 60}
 .st-key-gamebar {background: #f6f5f1; padding: .35rem 0 .55rem 0; border-bottom: 1px solid #dedbd2}
@@ -323,3 +323,8 @@ h1, .hero {font-weight: 800 !important}
 .box-rest td {text-align: right; padding: .42rem .7rem; border-top: 1px solid #f0ede6}
 .box-rest th:first-child, .box-rest td.nm {text-align: left}
 .box-rest td.nm {font-weight: 650}
+/* the parts the browser draws, in the site's colors */
+.odds-note a, .takeaway a, .story a {color: #2e6cb7; text-decoration-thickness: 1px; text-underline-offset: 3px}
+.odds-note a:hover, .takeaway a:hover, .story a:hover {color: #13213f}
+::selection {background: #d9e2f2; color: #13213f}
+:focus-visible {outline: 2px solid #1d428a; outline-offset: 2px}
