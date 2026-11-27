@@ -4,6 +4,8 @@
 .kicker {text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; opacity: .65; margin-bottom: .2rem}
 .hero {font-size: clamp(1.9rem, 4vw, 3rem); font-weight: 800; line-height: 1.08; margin: 0 0 .6rem 0}
 .lede {font-size: 1.15rem; opacity: .85; max-width: 40rem; margin-bottom: 1.2rem}  /* about 70 characters a line */
+.intro-line {font-size: 1rem; color: #3b3f4c}
+.intro-line b {color: #13213f}
 .story {font-size: 1.12rem; line-height: 1.55}
 .big-q {font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem}
 .rank {font-size: 2.4rem; font-weight: 800; line-height: 1; text-align: center; opacity: .8}
