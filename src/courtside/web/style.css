@@ -20,8 +20,7 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 [data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] style) {display: none}
 .vcard {display: flex; flex-direction: column; gap: .15rem; text-decoration: none !important; color: #f0efec !important;
         background: linear-gradient(160deg, #1f3364 0%, #14213f 62%); box-shadow: 0 6px 18px rgba(19,33,63,.16); border: 1px solid #2c2c29; border-radius: 14px;
-        padding: .9rem 1rem .85rem 1rem; transition: transform .12s, border-color .12s}
-a.vcard:hover {transform: translateY(-2px); border-color: #4a5a85}
+        padding: .9rem 1rem .85rem 1rem}
 .vcard :is(div, span, p) {color: #f0efec}
 .nextup, .pcard, .scard .sc-top {color: #f0efec}
 .v-title {font-weight: 650; font-size: .9rem; line-height: 1.25; opacity: .8}
@@ -188,7 +187,7 @@ h1, .hero {color: #13213f}
 nav.toc {display: flex; flex-wrap: wrap; align-items: center; gap: .4rem}
 nav.toc .lbl {font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; opacity: .6; margin-right: .3rem}
 nav.toc a {text-decoration: none; font-size: .85rem; font-weight: 600; padding: .25rem .75rem; border-radius: 999px;
-           color: #13213f; background: #ffffff; border: 1px solid #e3e0d8; transition: all .15s}
+           color: #13213f; background: #ffffff; border: 1px solid #e3e0d8}
 nav.toc a:hover {border-color: #1d428a}
 nav.toc a.on {background: #13213f; color: #ffffff; border-color: #13213f}
 .st-key-gamebar nav.toc {margin-top: .45rem}
@@ -196,18 +195,54 @@ h2, h3 {scroll-margin-top: 150px}
 /* ---- the data is behind: a game finished but the morning refresh hasn't brought it in */
 .behind {margin: .6rem 0 0 0; padding: .55rem .9rem; border-radius: 10px; background: #fff3e8; color: #8a3a12;
          border: 1px solid #f3c9a8; font-size: .9rem}
-/* ---- small motion: cards rise in, mini-charts draw left to right, cards lift on hover */
+/* ---- motion, after tasteskill's motion guide: three layers and nothing else moves.
+   1. each page's opening arrives once on load (the headline rises, then the line under it);
+   2. cards settle in as the page draws and the mini-charts draw left to right;
+   3. hover and press: linked cards lift 2px with a soft shadow, photos zoom 1.03 inside their frame,
+      buttons step up 1px and press down. Hover only with a mouse; nothing moves on scroll; transform and
+      opacity only; no bounce. Reduced motion turns all of it off. */
+:root {--m-in: 150ms; --m-out: 120ms; --m-press: 90ms; --m-card-in: 180ms; --m-image: 600ms; --m-image-out: 400ms;
+       --ease: cubic-bezier(.2, .8, .2, 1); --ease-enter: cubic-bezier(.22, 1, .36, 1)}
 @keyframes rise {from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none}}
+@keyframes enter {from {opacity: 0; transform: translateY(14px)} to {opacity: 1; transform: none}}
+@keyframes settle {from {transform: translateX(-50%) scale(1.05)} to {transform: translateX(-50%) scale(1)}}
 @keyframes draw {from {clip-path: inset(0 100% 0 0)} to {clip-path: inset(0 0 0 0)}}
-.vcard, .pcard, .nextup {animation: rise .45s ease-out both}
+/* 1. the opening: kicker and headline first, then what follows, about 1.1s in all */
+.kicker, .hero, [class*="st-key-band_light"] h1 {animation: enter 700ms var(--ease-enter) both}
+.hero {animation-delay: 60ms}
+.lede, .page-sub {animation: enter 520ms var(--ease-enter) 380ms both}
+.hc-photo img {animation: settle 1.1s var(--ease-enter) backwards}  /* a player's photo settles into its frame */
+/* 2. cards settle in as the page draws */
+.vcard, .pcard, .nextup {animation: rise .45s var(--ease-enter) backwards}  /* backwards: once done, hover can move it */
 .vcard:nth-child(2), .pcard:nth-child(2) {animation-delay: .05s}
 .vcard:nth-child(3), .pcard:nth-child(3) {animation-delay: .10s}
 .vcard:nth-child(4), .pcard:nth-child(4) {animation-delay: .15s}
 .vcard:nth-child(n+5), .pcard:nth-child(n+5) {animation-delay: .20s}
 .v-mini svg {animation: draw .8s ease-out .2s both}
-.pcard {transition: transform .12s, border-color .12s}
-.pcard:hover {transform: translateY(-3px); border-color: #4a4a45}
-@media (prefers-reduced-motion: reduce) {.vcard, .pcard, .nextup, .v-mini svg {animation: none}}
+/* 3. hover and press */
+a.vcard, .pcard {transition: transform var(--m-out) var(--ease), border-color var(--m-out) var(--ease),
+                             box-shadow var(--m-out) var(--ease)}
+.pc-top img, .hc-photo img {transition: transform var(--m-image-out) var(--ease)}
+nav.toc a, .jump a {transition: transform var(--m-out) var(--ease), border-color var(--m-out) var(--ease),
+                                color var(--m-out) var(--ease), background-color var(--m-out) var(--ease)}
+[data-testid^="stBaseButton"], [data-testid="stPageLink"] a {
+  transition: transform var(--m-out) var(--ease), background-color var(--m-out) var(--ease) !important}
+@media (hover: hover) and (pointer: fine) {
+  a.vcard:hover, .pcard:hover {transform: translateY(-2px); border-color: #4a5a85;
+                               box-shadow: 0 10px 24px rgba(19, 33, 63, .10);
+                               transition-duration: var(--m-card-in)}
+  .pcard:hover .pc-top img {transform: translateX(-50%) scale(1.03); transition-duration: var(--m-image)}
+  .hero-card:hover .hc-photo img {transform: translateX(-50%) scale(1.03); transition-duration: var(--m-image)}
+  nav.toc a:hover, .jump a:hover {transform: translateY(-1px); transition-duration: var(--m-in)}
+  [data-testid^="stBaseButton"]:hover, [data-testid="stPageLink"] a:hover {transform: translateY(-1px)}
+}
+nav.toc a:active, .jump a:active, [data-testid^="stBaseButton"]:active, [data-testid="stPageLink"] a:active {
+  transform: translateY(1px) scale(.985); transition-duration: var(--m-press)}
+a.vcard:focus-visible, nav.toc a:focus-visible {outline: 2px solid #1d428a; outline-offset: 2px}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {animation: none !important; transition: none !important}
+  a.vcard:hover, .pcard:hover, .pcard:hover .pc-top img, .hero-card:hover .hc-photo img {transform: none}
+}
 .gc-date {font-size: .78rem; opacity: .7}
 .gc-opp {font-weight: 750; font-size: 1.02rem}
 .gc-status {font-weight: 700; font-size: .9rem}
@@ -234,7 +269,7 @@ h2, h3 {scroll-margin-top: 150px}
 
 /* ---- headlines and big numbers in a condensed sports face; body text keeps the theme font */
 h1, h2, h3, .hero, .v-big, .rank, .gc-opp, .ledger-sum b, div[data-testid="stMetricValue"] {
-  font-family: 'Barlow Condensed', 'Source Sans Pro', sans-serif !important; letter-spacing: .005em}
+  font-family: 'Barlow Condensed', 'Schibsted Grotesk', sans-serif !important; letter-spacing: .005em}
 h1, .hero {font-weight: 800 !important}
 .hero {font-size: clamp(2.2rem, 4.6vw, 3.4rem)}
 .v-big {font-size: 2.2rem}
@@ -261,7 +296,7 @@ h1, .hero {font-weight: 800 !important}
 .o-top span {flex: 1; font-weight: 800; color: #f0efec}
 .o-top b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; color: #f0efec}
 .o-status {display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .02em; padding: .05rem .45rem;
-           border-radius: 999px; vertical-align: middle; font-family: 'Source Sans 3', sans-serif}
+           border-radius: 999px; vertical-align: middle; font-family: inherit}
 .o-out {background: #fbe3d9; color: #9a3a12}
 .o-doubtful {background: #fbe3d9; color: #9a3a12}
 .o-questionable {background: #fdf0d2; color: #7a5300}
