@@ -39,7 +39,7 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 .vcards.intro {grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))}  /* fit: no empty sixth column */
 #games-list {scroll-margin-top: 4rem}
 [data-testid="stLayoutWrapper"]:has(> .st-key-gamebar) {position: sticky; top: 3.6rem; z-index: 60}
-.st-key-gamebar {background: #f6f5f1; padding: .35rem 0 .55rem 0; border-bottom: 1px solid #dedbd2}
+.st-key-gamebar {background: #f6f5f1; padding: .3rem 0 .35rem 0; border-bottom: 1px solid #dedbd2; gap: .35rem}
 .lineup {display: flex; align-items: center; gap: .9rem; padding: .55rem .2rem; border-bottom: 1px solid #e3e0d8}
 .lineup .faces {display: flex}
 .lineup .faces img {width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: top;
@@ -193,8 +193,9 @@ nav.toc a {text-decoration: none; font-size: .85rem; font-weight: 600; padding: 
            color: #13213f; background: #ffffff; border: 1px solid #e3e0d8}
 nav.toc a:hover {border-color: #1d428a}
 nav.toc a.on {background: #13213f; color: #ffffff; border-color: #13213f}
-.st-key-gamebar nav.toc {margin-top: .45rem}
-h2, h3 {scroll-margin-top: 150px}
+.st-key-gamebar nav.toc {margin-top: 0; gap: .3rem}
+.st-key-gamebar nav.toc a {padding: .12rem .62rem; font-size: .8rem}  /* slimmer pills while pinned */
+h2, h3 {scroll-margin-top: 120px}
 /* ---- the data is behind: a game finished but the morning refresh hasn't brought it in */
 .behind {margin: .6rem 0 0 0; padding: .55rem .9rem; border-radius: 10px; background: #fff3e8; color: #8a3a12;
          border: 1px solid #f3c9a8; font-size: .9rem}

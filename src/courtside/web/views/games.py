@@ -287,17 +287,17 @@ def page_replay() -> None:
 
     # ---- the game picker: pinned to the top of the page while scrolling
     with st.container(key="gamebar"):
-        c_season, c_prev, c_pick, c_next, c_logo = st.columns([1.2, 0.45, 4, 0.45, 0.5], vertical_alignment="bottom",
+        c_season, c_prev, c_pick, c_next, c_logo = st.columns([1.2, 0.45, 4, 0.45, 0.5], vertical_alignment="center",
                                                                 gap="small")
-        c_season.selectbox("Season", data.seasons, key="game_season")
+        c_season.selectbox("Season", data.seasons, key="game_season", label_visibility="collapsed")
         c_prev.button("◀", key="prev_game", on_click=_step_game, args=(pick_key, labels, -1), help="Previous game",
                       width="stretch")
-        pick = c_pick.selectbox("Game", labels, key=pick_key)
+        pick = c_pick.selectbox("Game", labels, key=pick_key, label_visibility="collapsed")
         c_next.button("▶", key="next_game", on_click=_step_game, args=(pick_key, labels, 1), help="Next game",
                       width="stretch")
         idx = labels.index(pick)
         entry = entries[idx]
-        c_logo.image(D.logo_url(entry["opp_id"], dark=False), width=46)
+        c_logo.image(D.logo_url(entry["opp_id"], dark=False), width=36)
         nav_ = st.container()  # the On this page pills, filled once the report or plan is drawn
 
     # ---- the schedule around this game: played games and the ones coming up
