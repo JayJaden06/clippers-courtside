@@ -365,12 +365,12 @@ def page_replay() -> None:
                                                                       '<div class="gfx" style="padding:0">', 1),
                 unsafe_allow_html=True)
     with st.container(border=True):
+        if len(factors):  # the answer first: the report's headline
+            st.markdown(f'<div class="verdict-head">{R.verdict(factors, lvs)}</div>', unsafe_allow_html=True)
         tag = S.LEAD_TAG.get(row["lead_class"], "")
         if tag:
             st.badge(tag, color="orange" if row["lead_class"] == "blown_lead" else "blue")
         st.markdown(f'<div class="story">{S.game_story(row, halves, att)}</div>', unsafe_allow_html=True)
-        if len(factors):
-            st.markdown(f'<div class="takeaway"><b>{R.verdict(factors, lvs)}</b></div>', unsafe_allow_html=True)
 
     # ---- the tiles: best, worst, the runs, turnovers
     best, worst = R.best_and_worst(lines)
@@ -496,8 +496,10 @@ def page_replay() -> None:
                        unsafe_allow_html=True)
         right_.markdown(ledger(worse, BAD, "▼ Worse than a normal night", "Nothing stood out."),
                         unsafe_allow_html=True)
-        st.caption("Points each part of the game was worth compared with their average game this season. Better and "
-                   "worse add up to the difference between the two margins (plus a little the bookkeeping can't place).")
+        with st.expander("How these points are worked out"):
+            st.caption("Points each part of the game was worth compared with their average game this season. Better "
+                       "and worse add up to the difference between the two margins (plus a little the bookkeeping "
+                       "can't place).")
         if not won and lvs:
             st.markdown("**The fixes, biggest first**")
             st.markdown('<div class="takeaway">Each number is how many points that part of the game cost them '
@@ -518,15 +520,23 @@ def page_replay() -> None:
     _who_was_out(gid, opp, opp_id_, lines, opp_lines)
     heading("Who played well", "players")
     if len(lines):
-        st.markdown('<div class="takeaway">Every Clipper who played, best night first. The bar is his Game Score '
-                    '(a one-number box-score summary); the tick marks 10, a good night.</div>', unsafe_allow_html=True)
-        answer_cards([W.Verdict(
-            f"{r_.player_name}{' · starter' if r_.starter else ''}", f"{int(r_.pts)} pts",
-            f"{int(r_.reb)} reb · {int(r_.ast)} ast · {int(r_.tov)} TO · {int(r_.fgm)}/{int(r_.fga)} FG in "
-            f"{r_.minutes:.0f} min · {signed(r_.plus_minus, 0)} on the floor. Game Score {r_.game_score:.1f}.",
-            "good" if r_.game_score >= 10 else "bad" if r_.game_score < 3 else "info", "players",
-            ("share", max(r_.game_score, 0) / 25, 10 / 25), D.headshot_url(r_.player_id))
-            for r_ in lines.itertuples()], link=False, big_size="1.5rem")
+        st.markdown('<div class="takeaway">Ranked by Game Score, a one-number summary of a box score (points, '
+                    "rebounds, assists, shooting and turnovers together); 10 is a good night. The best three and "
+                    "the toughest two first, then everyone else.</div>", unsafe_allow_html=True)
+
+        def player_card(r_) -> W.Verdict:
+            return W.Verdict(
+                f"{r_.player_name}{' · starter' if r_.starter else ''}", f"{r_.game_score:.1f}",
+                f"{int(r_.pts)} pts · {int(r_.reb)} reb · {int(r_.ast)} ast · {int(r_.tov)} TO · "
+                f"{int(r_.fgm)}/{int(r_.fga)} FG in {r_.minutes:.0f} min · {signed(r_.plus_minus, 0)} on the floor.",
+                "good" if r_.game_score >= 10 else "bad" if r_.game_score < 3 else "info", "players",
+                ("share", max(r_.game_score, 0) / 25, 10 / 25), D.headshot_url(r_.player_id))
+
+        ranked = list(lines.itertuples())  # player_lines sorts best Game Score first
+        stars, rest = (ranked, []) if len(ranked) <= 6 else (ranked[:3] + ranked[-2:], ranked[3:-2])
+        answer_cards([player_card(r_) for r_ in stars], link=False, big_size="1.5rem")
+        if rest:
+            st.markdown(_box_rows(rest), unsafe_allow_html=True)
 
     # ---- who guarded whom
     mu = R.matchups_for_game(data.matchups, gid, "LAC", opp_lines) if len(data.matchups) else pd.DataFrame()
@@ -652,6 +662,16 @@ def _card_style(team_hex: str) -> str:
     return f"--tc:{top};--td:{deep};--ink:{ink}"
 
 
+def _box_rows(rows) -> str:
+    """Everyone between the best and toughest nights, as one compact box-score table."""
+    head = "".join(f"<th>{h}</th>" for h in ("", "Game Score", "Min", "Pts", "Reb", "Ast", "TO", "FG", "+/-"))
+    body = "".join(
+        f"<tr><td class='nm'>{r.player_name}</td><td><b>{r.game_score:.1f}</b></td><td>{r.minutes:.0f}</td>"
+        f"<td>{int(r.pts)}</td><td>{int(r.reb)}</td><td>{int(r.ast)}</td><td>{int(r.tov)}</td>"
+        f"<td>{int(r.fgm)}/{int(r.fga)}</td><td>{signed(r.plus_minus, 0)}</td></tr>" for r in rows)
+    return f'<table class="box-rest"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
+
+
 def _out_row(name: str, player_id, status: str, reason: str, note: str, right: str = "") -> str:
     """One player on an injury report: face, name, status, the report's reason, and a line about him."""
     pic = D.headshot_url(int(player_id), small=True) if pd.notna(player_id) else face(name)
@@ -738,7 +758,9 @@ def _whos_out(pv, opp_id: int) -> None:
     def card(team: str, logo: str, color: str, out: pd.DataFrame) -> str:
         total = min(float(out["expected"].sum()), A.TEAM_CAP) if len(out) else 0.0
         rows = []
-        for r in out.itertuples():
+        # G League assignments and two-way call-ups aren't injuries and never move the odds: one line for them all
+        g_league = out[out["reason"].fillna("").str.startswith("G League")] if len(out) else out
+        for r in out.drop(index=g_league.index).itertuples():
             reason = _reason(r.reason)
             note = A.explain(r)
             if r.expected >= 0.05:
@@ -746,6 +768,9 @@ def _whos_out(pv, opp_id: int) -> None:
                                                        f"{r.status.lower()}" if r.status != "Out" else "") + ".")
             rows.append(_out_row(r.player_name, r.player_id, r.status, reason, note,
                                  "−" + format(r.expected, ".1f") if r.expected >= 0.05 else ""))
+        if len(g_league):
+            rows.append(f'<div class="sc-foot">Also listed, on G League assignment or two-way deals (no effect on the '
+                        f'odds): {", ".join(g_league["player_name"])}.</div>')
         return _out_card(team, logo, color, "−" + format(total, ".1f") + " pts" if total >= 0.05 else "no effect",
                          rows)
 
