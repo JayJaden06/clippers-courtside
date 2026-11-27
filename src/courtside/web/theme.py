@@ -17,6 +17,7 @@ H1C, H2C = "#86847e", "#d95926"  # 1st half (context, 3.4:1 on the page) / 2nd h
 
 
 GOOD, BAD, GRAY = "#3987e5", "#d95926", "#898781"
+CLIPPERS = "#1d428a"  # the team itself in charts (9:1 on the page); orange stays "worse", never the opponent
 # The same blue and orange, deepened for small text: 4.5:1+ on the page (#f6f5f1), white cards and the orange tint.
 # Bars, dots and lines keep GOOD/BAD; words and small numbers use these.
 GOOD_TEXT, BAD_TEXT = "#2e6cb7", "#b64b20"
