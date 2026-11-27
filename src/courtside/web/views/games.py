@@ -20,7 +20,8 @@ from courtside.viz import graphics as G
 from courtside.viz import story as S
 from courtside.viz import whatnow as W
 from courtside.web.context import current
-from courtside.web.theme import BAD, BG, FOCUS, GOOD, GRAY, H1C, H2C, INK_MARK, LIGHT, MUTED_BAR, TONE_COLOR, _minus, signed
+from courtside.web.theme import (BAD, BAD_TEXT, BG, CLIPPERS, FOCUS, GOOD, GOOD_TEXT, GRAY, H1C, H2C, INK_MARK, LIGHT, MUTED_BAR,
+                                  TONE_COLOR, _minus, signed, text_tone)
 from courtside.web.ui import PHOTO_COL, answer_cards, clicked, face, fill_toc, heading, page_top, picture, section, show, with_photos
 
 
@@ -194,6 +195,9 @@ def next_up(box, up: pd.DataFrame, previews: list, teams: pd.DataFrame, shooting
                   on_click=_set_game, args=(f"pick_{season_now}", _future_label(t, pv, 0)))
 
 
+SMALL_UNIT_MIN = 4  # minutes together; below this a five-man unit's score is mostly noise
+
+
 def _unit_rows(units, names: dict) -> str:
     """The outscored five-man units as rows (faces, the five names, the score and minutes) instead of one run-on
     sentence."""
@@ -202,7 +206,8 @@ def _unit_rows(units, names: dict) -> str:
         '<div class="u-row"><div class="u-faces">'
         + "".join(f'<img src="{D.headshot_url(ids[n], small=True)}" alt="" title="{n}" loading="lazy">'
                   for n in unit if n in ids)
-        + f'</div><div class="u-pm">{signed(pm, 0)}</div><div class="u-min">{mins:.0f} min</div>'
+        + f'</div><div class="u-pm">{signed(pm, 0)}</div><div class="u-min">{mins:.0f} min'
+        + ('<span class="small-n">small sample</span>' if mins < SMALL_UNIT_MIN else '') + '</div>'
         f'<div class="u-who">{", ".join(short(n) for n in unit)}</div></div>'
         for unit, pm, mins in units)
 
@@ -288,7 +293,7 @@ def page_replay() -> None:
             color = GOOD if e["won"] else BAD if e["won"] is False else INK_MARK
             st.markdown(f'<div class="gc"><div class="gc-date">{e["date"]:%a %b} {e["date"].day}</div>'
                         f'<div class="gc-opp">{"vs" if e["home"] else "@"} {e["opp"]}</div>'
-                        f'<div class="gc-status" style="color:{color}">{e["status"]}</div></div>',
+                        f'<div class="gc-status" style="color:{text_tone(color)}">{e["status"]}</div></div>',
                         unsafe_allow_html=True)
             st.button("Showing" if sel else ("Report" if e["kind"] == "past" else "Game plan"), key=f"open_{k}",
                       on_click=_set_game, args=(pick_key, e["label"]), disabled=sel, width="stretch")
@@ -360,12 +365,12 @@ def page_replay() -> None:
                                                                       '<div class="gfx" style="padding:0">', 1),
                 unsafe_allow_html=True)
     with st.container(border=True):
+        if len(factors):  # the answer first: the report's headline
+            st.markdown(f'<div class="verdict-head">{R.verdict(factors, lvs)}</div>', unsafe_allow_html=True)
         tag = S.LEAD_TAG.get(row["lead_class"], "")
         if tag:
             st.badge(tag, color="orange" if row["lead_class"] == "blown_lead" else "blue")
         st.markdown(f'<div class="story">{S.game_story(row, halves, att)}</div>', unsafe_allow_html=True)
-        if len(factors):
-            st.markdown(f'<div class="takeaway"><b>{R.verdict(factors, lvs)}</b></div>', unsafe_allow_html=True)
 
     # ---- the tiles: best, worst, the runs, turnovers
     best, worst = R.best_and_worst(lines)
@@ -390,7 +395,7 @@ def page_replay() -> None:
     m = D.game_margin(data.margins, gid)
     end = max(48.0, float(m["minute"].max()))
     blown = row["lead_class"] == "blown_lead"
-    line_color = BAD if blown else H1C
+    line_color = CLIPPERS  # the Clippers' own margin, in the Clippers' color
     show_tov = st.toggle("Show Clippers turnovers on the chart", value=True,
                          help=f"Orange diamonds are {focus}'s turnovers; gray circles are everyone else's.")
     fig = go.Figure()
@@ -477,22 +482,24 @@ def page_replay() -> None:
             items = "".join(
                 f'<div class="ledger-row"><div class="lname">{n}</div><div class="lbar"><span style="width:'
                 f'{100 * abs(v) / top:.0f}%;background:{color}"></span></div>'
-                f'<div class="lval" style="color:{color}">{signed(v)}</div></div>'
+                f'<div class="lval" style="color:{text_tone(color)}">{signed(v)}</div></div>'
                 for n, v in zip(rows["name"], rows["points"]))
-            return (f'<div class="ledger"><div class="lhead" style="color:{color}">{title}</div>'
+            return (f'<div class="ledger"><div class="lhead" style="color:{text_tone(color)}">{title}</div>'
                     + (items or f'<div class="lempty">{empty}</div>') + "</div>")
 
         normal, final = factors.attrs["normal_margin"], factors.attrs["margin"]
         st.markdown(f'<div class="ledger-sum">A normal night: <b>{signed(normal)}</b> &nbsp;→&nbsp; this game: '
-                    f'<b style="color:{GOOD if final > 0 else BAD}">{signed(final, 0)}</b></div>',
+                    f'<b style="color:{GOOD_TEXT if final > 0 else BAD_TEXT}">{signed(final, 0)}</b></div>',
                     unsafe_allow_html=True)
         left_, right_ = st.columns(2, gap="large")
         left_.markdown(ledger(better, GOOD, "▲ Better than a normal night", "Nothing stood out."),
                        unsafe_allow_html=True)
         right_.markdown(ledger(worse, BAD, "▼ Worse than a normal night", "Nothing stood out."),
                         unsafe_allow_html=True)
-        st.caption("Points each part of the game was worth compared with their average game this season. Better and "
-                   "worse add up to the difference between the two margins (plus a little the bookkeeping can't place).")
+        with st.expander("How these points are worked out"):
+            st.caption("Points each part of the game was worth compared with their average game this season. Better "
+                       "and worse add up to the difference between the two margins (plus a little the bookkeeping "
+                       "can't place).")
         if not won and lvs:
             st.markdown("**The fixes, biggest first**")
             st.markdown('<div class="takeaway">Each number is how many points that part of the game cost them '
@@ -513,15 +520,23 @@ def page_replay() -> None:
     _who_was_out(gid, opp, opp_id_, lines, opp_lines)
     heading("Who played well", "players")
     if len(lines):
-        st.markdown('<div class="takeaway">Every Clipper who played, best night first. The bar is his Game Score '
-                    '(a one-number box-score summary); the tick marks 10, a good night.</div>', unsafe_allow_html=True)
-        answer_cards([W.Verdict(
-            f"{r_.player_name}{' · starter' if r_.starter else ''}", f"{int(r_.pts)} pts",
-            f"{int(r_.reb)} reb · {int(r_.ast)} ast · {int(r_.tov)} TO · {int(r_.fgm)}/{int(r_.fga)} FG in "
-            f"{r_.minutes:.0f} min · {signed(r_.plus_minus, 0)} on the floor. Game Score {r_.game_score:.1f}.",
-            "good" if r_.game_score >= 10 else "bad" if r_.game_score < 3 else "info", "players",
-            ("share", max(r_.game_score, 0) / 25, 10 / 25), D.headshot_url(r_.player_id))
-            for r_ in lines.itertuples()], link=False, big_size="1.5rem")
+        st.markdown('<div class="takeaway">Ranked by Game Score, a one-number summary of a box score (points, '
+                    "rebounds, assists, shooting and turnovers together); 10 is a good night. The best three and "
+                    "the toughest two first, then everyone else.</div>", unsafe_allow_html=True)
+
+        def player_card(r_) -> W.Verdict:
+            return W.Verdict(
+                f"{r_.player_name}{' · starter' if r_.starter else ''}", f"{r_.game_score:.1f}",
+                f"{int(r_.pts)} pts · {int(r_.reb)} reb · {int(r_.ast)} ast · {int(r_.tov)} TO · "
+                f"{int(r_.fgm)}/{int(r_.fga)} FG in {r_.minutes:.0f} min · {signed(r_.plus_minus, 0)} on the floor.",
+                "good" if r_.game_score >= 10 else "bad" if r_.game_score < 3 else "info", "players",
+                ("share", max(r_.game_score, 0) / 25, 10 / 25), D.headshot_url(r_.player_id))
+
+        ranked = list(lines.itertuples())  # player_lines sorts best Game Score first
+        stars, rest = (ranked, []) if len(ranked) <= 6 else (ranked[:3] + ranked[-2:], ranked[3:-2])
+        answer_cards([player_card(r_) for r_ in stars], link=False, big_size="1.5rem")
+        if rest:
+            st.markdown(_box_rows(rest), unsafe_allow_html=True)
 
     # ---- who guarded whom
     mu = R.matchups_for_game(data.matchups, gid, "LAC", opp_lines) if len(data.matchups) else pd.DataFrame()
@@ -540,11 +555,11 @@ def page_replay() -> None:
             rows = "".join(
                 f'<div class="sc-row"><img src="{face(d) or ""}" alt=""><div class="who">Guarded by '
                 f'<b>{short(d)}</b><br><span style="opacity:.65">{int(m_)}/{int(a_)} shooting, '
-                f'{pp:.0f} possessions</span></div><div class="pts" style="color:{BAD if p_ >= 10 else INK_MARK}">'
+                f'{pp:.0f} possessions</span></div><div class="pts" style="color:{BAD_TEXT if p_ >= 10 else INK_MARK}">'
                 f'{int(p_)}</div></div>'
                 for d, p_, m_, a_, pp in zip(grp["defender"], grp["pts"], grp["fgm"], grp["fga"], grp["poss"]))
             cards.append(
-                f'<div class="scard"><div class="sc-top" style="--tc:{tc};--td:{D.shade(tc)}">'
+                f'<div class="scard"><div class="sc-top" style="{_card_style(tc)}">'
                 f'<img class="logo" src="{D.logo_url(opp_id, dark=not D.is_light(tc))}" alt="">'
                 + (f'<img class="face" src="{D.headshot_url(int(pid.iloc[0]))}" alt="">' if len(pid) else "")
                 + f'<div class="sc-name">{scorer}</div></div><div class="sc-pts">{int(total)}<span>pts</span></div>'
@@ -567,13 +582,15 @@ def page_replay() -> None:
             faces = "".join(f'<img src="{D.headshot_url(ids_by_name[n])}" alt="{n}" title="{n}">' for n in u.unit
                             if n in ids_by_name)
             color = GOOD if u.plus_minus > 0 else BAD if u.plus_minus < 0 else GRAY
+            small = '<span class="small-n">small sample</span>' if u.minutes < SMALL_UNIT_MIN else ""
             rows_html.append(
                 f'<div class="lineup"><div class="faces">{faces}</div>'
                 f'<div class="who">{", ".join(short(n) for n in u.unit)}</div>'
-                f'<div class="min">{u.minutes:.0f} min</div>'
-                f'<div class="pm" style="color:{color}">{signed(u.plus_minus, 0)}</div></div>')
+                f'<div class="min">{u.minutes:.0f} min{small}</div>'
+                f'<div class="pm" style="color:{text_tone(color)}">{signed(u.plus_minus, 0)}</div></div>')
         st.markdown('<div class="takeaway">The best and worst five-man units (2+ minutes together): points scored '
-                    "minus allowed while they shared the floor.</div>" + "".join(rows_html), unsafe_allow_html=True)
+                    "minus allowed while they shared the floor. Under 4 minutes is marked as a small sample: a "
+                    "couple of possessions can swing it.</div>" + "".join(rows_html), unsafe_allow_html=True)
         with st.expander("Every unit, as a chart"):
             gu2 = gu.sort_values("plus_minus")
             fig = go.Figure(go.Bar(
@@ -639,6 +656,22 @@ def _rating_line(who: str, t: pd.Series) -> str:
             f"({P._ord(t['ortg_rank'])}) and allow {t['drtg']:.1f} ({P._ord(t['drtg_rank'])}).")
 
 
+def _card_style(team_hex: str) -> str:
+    """CSS variables for a team-colored card header whose text reads at 4.5:1 or better (D.card_colors)."""
+    top, deep, ink = D.card_colors(team_hex)
+    return f"--tc:{top};--td:{deep};--ink:{ink}"
+
+
+def _box_rows(rows) -> str:
+    """Everyone between the best and toughest nights, as one compact box-score table."""
+    head = "".join(f"<th>{h}</th>" for h in ("", "Game Score", "Min", "Pts", "Reb", "Ast", "TO", "FG", "+/-"))
+    body = "".join(
+        f"<tr><td class='nm'>{r.player_name}</td><td><b>{r.game_score:.1f}</b></td><td>{r.minutes:.0f}</td>"
+        f"<td>{int(r.pts)}</td><td>{int(r.reb)}</td><td>{int(r.ast)}</td><td>{int(r.tov)}</td>"
+        f"<td>{int(r.fgm)}/{int(r.fga)}</td><td>{signed(r.plus_minus, 0)}</td></tr>" for r in rows)
+    return f'<table class="box-rest"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
+
+
 def _out_row(name: str, player_id, status: str, reason: str, note: str, right: str = "") -> str:
     """One player on an injury report: face, name, status, the report's reason, and a line about him."""
     pic = D.headshot_url(int(player_id), small=True) if pd.notna(player_id) else face(name)
@@ -650,7 +683,7 @@ def _out_row(name: str, player_id, status: str, reason: str, note: str, right: s
 
 def _out_card(team: str, logo: str, color: str, right: str, rows: list[str]) -> str:
     """A team's injury-report card: a team-colored header, then one row per player."""
-    return (f'<div class="scard"><div class="o-top" style="--tc:{color};--td:{D.shade(color)}">'
+    return (f'<div class="scard"><div class="o-top" style="{_card_style(color)}">'
             f'<img src="{logo}" alt=""><span>{team}</span><b>{right}</b></div>'
             + ("".join(rows) or '<div class="sc-foot">Nobody listed.</div>') + '<div class="sc-foot"></div></div>')
 
@@ -725,7 +758,9 @@ def _whos_out(pv, opp_id: int) -> None:
     def card(team: str, logo: str, color: str, out: pd.DataFrame) -> str:
         total = min(float(out["expected"].sum()), A.TEAM_CAP) if len(out) else 0.0
         rows = []
-        for r in out.itertuples():
+        # G League assignments and two-way call-ups aren't injuries and never move the odds: one line for them all
+        g_league = out[out["reason"].fillna("").str.startswith("G League")] if len(out) else out
+        for r in out.drop(index=g_league.index).itertuples():
             reason = _reason(r.reason)
             note = A.explain(r)
             if r.expected >= 0.05:
@@ -733,6 +768,9 @@ def _whos_out(pv, opp_id: int) -> None:
                                                        f"{r.status.lower()}" if r.status != "Out" else "") + ".")
             rows.append(_out_row(r.player_name, r.player_id, r.status, reason, note,
                                  "−" + format(r.expected, ".1f") if r.expected >= 0.05 else ""))
+        if len(g_league):
+            rows.append(f'<div class="sc-foot">Also listed, on G League assignment or two-way deals (no effect on the '
+                        f'odds): {", ".join(g_league["player_name"])}.</div>')
         return _out_card(team, logo, color, "−" + format(total, ".1f") + " pts" if total >= 0.05 else "no effect",
                          rows)
 
@@ -791,11 +829,10 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                       f"{'won' if r.result == 'W' else 'lost'} {int(r.team_pts)}-{int(r.opp_pts)}"
                       for r in h2h.itertuples()) + ".", "info", "plan"))
 
-    _whos_out(pv, opp_id)
-
     section(f"How to beat the {pv.opponent_name.split(' ')[-1]}", "plan",
-            "The keys to this game from both teams' season numbers. Switch them on and off: the odds above "
-            "update.")
+            "The keys to this game from both teams' season numbers. Switch them on and the win chance updates "
+            "right here.")
+    live = st.empty()  # the running win chance, filled once the keys are read
     chosen = []
     if keys:
         for j, k in enumerate(keys):
@@ -814,6 +851,13 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
         st.write("Nothing in either team's numbers points to a specific key: it's about playing their usual game.")
     pts = sum(k.points for k in chosen)
     chance = P.win_chance(pv.margin + pts)
+    if keys:  # feedback where the switches are, not only in the odds bar a screen above
+        live.markdown(
+            '<div class="odds-live" aria-live="polite">Win chance <b>' + f"{pv.chance:.0%}</b>"
+            + (f' <span class="arrow">→</span> <b class="up">{chance:.0%}</b> with {len(chosen)} '
+               f'key{"s" if len(chosen) != 1 else ""} (+{pts:.1f} pts a game)' if chosen
+               else '<span class="hint">switch on a key below to see what it&#39;s worth</span>') + "</div>",
+            unsafe_allow_html=True)
     with odds.container():
         picture(G.odds_bar("LAC", pv.opponent, chance, pv.margin + pts, team_logo=D.logo_url(tid, dark=False),
                            opp_logo=D.logo_url(opp_id, dark=False)), max_width="900px")
@@ -826,6 +870,8 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                        '<a href="#out">Who&#39;s out</a></div>' if abs(pv.injury_edge) >= 0.05 else ""),
                     unsafe_allow_html=True)
         answer_cards(tiles, link=False)
+
+    _whos_out(pv, opp_id)  # after the keys, so the odds and the keys sit together
 
     # ---- matchups
     # 30+ tracked possessions, so there are enough Clippers to give each scorer his own (the biggest scorer picks
@@ -855,7 +901,7 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
                 guard = (f'<div class="sc-row"><img src="{face(r.guard_with) or ""}" alt=""><div class="who">'
                          f'Guard him with <b>{r.guard_with}</b><br><span style="opacity:.65">{vs}</span></div></div>')
             cards.append(
-                f'<div class="scard"><div class="sc-top" style="--tc:{tc};--td:{D.shade(tc)}">'
+                f'<div class="scard"><div class="sc-top" style="{_card_style(tc)}">'
                 f'<img class="logo" src="{D.logo_url(opp_id, dark=not D.is_light(tc))}" alt="">'
                 f'<img class="face" src="{D.headshot_url(int(r.player_id))}" alt="">'
                 f'<div class="sc-name">{r.player_name}</div></div>'
@@ -875,7 +921,7 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
     section("Tale of the tape", "tape", "League rank on each part of the game (1st = best). Further right is better.")
     fig = go.Figure()
     labels = [x[0] for x in TAPE]
-    for name, row_, color in (("LAC", lac, H1C), (pv.opponent, opp, FOCUS)):
+    for name, row_, color in (("LAC", lac, CLIPPERS), (pv.opponent, opp, LIGHT)):  # Clippers navy vs a neutral
         fig.add_trace(go.Scatter(
             x=[row_[f"{c}_rank"] for _, c, _ in TAPE], y=labels, mode="markers+text", name=name,
             text=[P._ord(row_[f"{c}_rank"]) for _, c, _ in TAPE], textposition="top center",
