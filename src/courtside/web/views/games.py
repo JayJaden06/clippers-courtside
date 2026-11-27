@@ -141,8 +141,8 @@ def _intro() -> None:
                 "the league.\n"
                 "- **Updates:** each morning, a refresh pulls the newest games and reruns everything. Every page "
                 "and every number moves with it.\n"
-                "- **Odds** for upcoming games come from a simple team-strength model: no injuries, rest or "
-                "betting lines.\n"
+                "- **Odds** for upcoming games come from a simple team-strength model, adjusted for who's on the "
+                "NBA's official injury report. It knows nothing about rest or travel, and it isn't a betting line.\n"
                 "- Not affiliated with the NBA or the Clippers. Words you don't know? Try the "
                 "**What do these words mean?** button.")
     right.button("Hide intro", icon=":material/close:", on_click=_hide_intro, width="stretch", type="tertiary")
@@ -900,7 +900,11 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
             "usual spread of an NBA game.\n"
             "- **Keys** only appear when the numbers point to them; each rule (and how its points are counted) is "
             "written at the top of src/courtside/analysis/gameplan.py.\n"
-            "- It doesn't know about injuries, rest or travel, and isn't betting advice. Models this simple pick "
-            "roughly two in three NBA games correctly.")
+            f"- **Injuries:** each player on the NBA's injury report counts for his on/off value times the share "
+            f"of him already in his team's rating (Out 100%, Doubtful {A.STATUS_WEIGHT['Doubtful']:.0%}, "
+            f"Questionable {A.STATUS_WEIGHT['Questionable']:.0%}), at most {A.PLAYER_CAP:.0f} points a player and "
+            f"{A.TEAM_CAP:.0f} a team. Who's out lists each one.\n"
+            "- It doesn't know about rest or travel, and isn't betting advice. Models this simple pick roughly two in "
+            "three NBA games correctly.")
         st.dataframe(teams[["team_name", "gp", "net", "prior_net", "blend_net", "pace"]].sort_values(
             "blend_net", ascending=False).round(1), hide_index=True, width="stretch")
