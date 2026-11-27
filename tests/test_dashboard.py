@@ -284,3 +284,19 @@ def test_small_text_in_the_result_colors_is_readable():
     for text in (GOOD_TEXT, BAD_TEXT):
         for ground in ("#f6f5f1", "#ffffff", "#fbefe8"):  # the page, white cards, the selected game card
             assert D.contrast(text, ground) >= 4.5, (text, ground)
+
+
+def test_switching_on_a_key_updates_the_win_chance_beside_the_keys(data):
+    at = _app("replay")
+    key = f"pick_{data.seasons[0]}"
+    nxt = [o for o in at.selectbox(key=key).options if "next game" in o]
+    if not nxt:
+        pytest.skip("no upcoming games in the schedule")
+    at.selectbox(key=key).set_value(nxt[0]).run()
+    if not at.toggle or not any(t.key and t.key.startswith("plan_") for t in at.toggle):
+        pytest.skip("no keys for this game")
+    live = lambda: next(m.value for m in at.markdown if 'class="odds-live"' in m.value)  # noqa: E731
+    assert "switch on a key" in live()
+    next(t for t in at.toggle if t.key and t.key.startswith("plan_")).set_value(True).run()
+    assert not at.exception
+    assert "with 1 key" in live() and "→" in live()
