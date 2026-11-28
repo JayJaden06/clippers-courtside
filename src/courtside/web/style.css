@@ -141,6 +141,9 @@ h1, .hero {color: #13213f}
 .rcards .pc-top {height: 140px}
 .rcards .pc-top img {height: 132px}
 .pc-status {font-size: .78rem; opacity: .75; margin-top: .15rem}
+/* the card's change, before -> after halftime: colored only when it beats the normal swing (dark-card tones) */
+.pc-stats b.chg {white-space: nowrap}
+.pc-stats b.chg.up {color: #f08a5d} .pc-stats b.chg.down {color: #7fb2f0}
 .chips {display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem}
 .chip {font-size: .74rem; font-weight: 700; padding: .14rem .55rem; border-radius: 999px; color: #fff}
 /* ---- one player: a wide card with his numbers */

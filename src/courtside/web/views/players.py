@@ -90,21 +90,25 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
               else pd.DataFrame(columns=["number", "position"]))
     cards = []
     ok = S.enough_plays(ph)
+    calls = S.change_calls(ph)
     fewest = ph.groupby("player_name")["plays"].min()  # the short half is what makes a sample small
     for r in h2.itertuples():
         info = roster.loc[r.player_id] if r.player_id in roster.index else None
         num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
         pos = info["position"] if info is not None else ""
-        rate = f"{r.tov_pct:.0%}"  # the page's one unit for "how often his plays end in a turnover"
+        c_ = calls.loc[r.player_name]
+        rate = f"{c_['h1']:.0%} → {c_['h2']:.0%}"  # the page's question on the card: before and after halftime
+        tone = {"Sloppier": " up", "Safer": " down"}.get(c_["call"], "")
         cards.append(
             f'<div class="pcard" title="{r.player_name}">{card_link(r.player_name, season)}'
             f'<div class="pc-top"><span class="pc-num">{num}</span>'
             f'<span class="pc-pos">{pos}</span><img src="{D.headshot_url(int(r.player_id))}" alt="" loading="lazy">'
             f'</div><div class="pc-body"><div class="pc-name">{r.player_name}</div><div class="pc-stats">'
             f'<div><b>{r.play_share:.0%}</b><span>of the plays after halftime</span></div>'
-            + (f'<div><b>{rate}</b><span>of his plays end in a turnover</span></div></div></div></div>'
+            + (f'<div><b class="chg{tone}">{rate}</b><span>of his plays end in a turnover, before → after '
+               f'halftime</span></div></div></div></div>'
                if r.player_name in ok else  # a small sample: dimmed, with how few plays it rests on
-               f'<div><b class="few">{rate}</b><span>of his plays end in a turnover · only '
+               f'<div><b class="chg few">{rate}</b><span>of his plays end in a turnover · only '
                f'{int(fewest[r.player_name])} plays in a half</span></div></div></div></div>'))
     # every card on show, in balanced rows (11 players = 6 + 5), never a sideways scroll
     per_row = math.ceil(len(cards) / math.ceil(len(cards) / 8)) if cards else 1
@@ -149,15 +153,17 @@ def turnover_bars(g: pd.DataFrame, team_games: pd.DataFrame) -> go.Figure:
          + " " + allg["opponent_abbreviation"]).tolist()
     m = allg[["game_id"]].merge(g[["game_id", "tov_h1", "tov_h2"]], on="game_id", how="left")
     played = m["tov_h1"].notna() | m["tov_h2"].notna()
-    clean = played & (m["tov_h1"].fillna(0) + m["tov_h2"].fillna(0) == 0)
+    zero = lambda s: ["0" if v == 0 else "" for v in s]  # noqa: E731  (a half with no turnovers says so)
     fig = go.Figure([
-        go.Bar(x=x, y=m["tov_h1"], name="1st half", marker_color=H1C,
+        go.Bar(x=x, y=m["tov_h1"], name="1st half", marker_color=H1C, text=zero(m["tov_h1"]),
+               textposition="outside", textfont=dict(size=11, color="#6b6964"), cliponaxis=False,
                hovertemplate="%{x}: %{y} turnovers<extra>1st half</extra>"),
         # the second half in neutral ink: orange would call every game worse before the numbers say so
-        go.Bar(x=x, y=m["tov_h2"], name="2nd half", marker_color=INK_MARK,
+        go.Bar(x=x, y=m["tov_h2"], name="2nd half", marker_color=INK_MARK, text=zero(m["tov_h2"]),
+               textposition="outside", textfont=dict(size=11, color="#6b6964"), cliponaxis=False,
                hovertemplate="%{x}: %{y} turnovers<extra>2nd half</extra>"),
     ])
-    for mask, word, tip in ((~played, "out", "didn't play"), (clean, "0", "no turnovers")):
+    for mask, word, tip in ((~played, "out", "didn't play"),):
         if mask.any():
             fig.add_trace(go.Scatter(
                 x=[x_ for x_, k in zip(x, mask) if k], y=[0] * int(mask.sum()), mode="text", text=word,
@@ -233,8 +239,9 @@ def page_players() -> None:
         name = clicked(event, "customdata", f"who_click_{season_p}")
         if name in names:
             st.session_state["player_pick"] = name
-        st.caption("Each face is a player: across, how much of the offense he runs; up, how many of the turnovers "
-                   "he makes. Above the dotted line = more than his share. Click a face to see his games.")
+        st.caption("Who has the ball, not who changed: across, how much of the offense he runs after halftime; "
+                   "up, how many of the turnovers he makes. Above the dotted line = more than his share. Click a "
+                   "face to see his games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
                 "How often one of his plays ends in a turnover: before halftime (ring) and after it (dot). "
@@ -302,6 +309,7 @@ def page_players() -> None:
             f'{t.loc["H2", "play_share"]:.0%} of its plays</span></div>'
             f'<div>{steals}</div></div></div></div>', unsafe_allow_html=True)
         show(turnover_bars(g, data.game_leads[data.game_leads["season"] == season_p]), 300, yaxis_title="Turnovers")
+        st.caption(S.counts_vs_rate(player, c, int(t.loc["H1", "tov"]), int(t.loc["H2", "tov"])))
         with st.expander("Game-by-game table"):
             st.dataframe(game_table(g), hide_index=True, width="stretch", column_config=TABLE_FORMAT)
     fill_toc(nav_)
