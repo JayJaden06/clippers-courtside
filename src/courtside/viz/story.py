@@ -414,6 +414,18 @@ def _first_sentence(text: str) -> str:
     return text if end < 0 else text[: end + 1]
 
 
+SHOOTING_SAME = 0.01  # within a percentage point of eFG, the halves count as the same
+
+
+def shooting_title(before: float, after: float) -> str:
+    """The shooting card's headline, written from the numbers: it can't say the shots stop falling when they don't."""
+    if after < before - SHOOTING_SAME:
+        return "Shots stop falling after halftime"
+    if after > before + SHOOTING_SAME:
+        return "Their shots fall more after halftime"
+    return "Their own shooting holds steady"
+
+
 def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_season: str) -> list[Verdict]:
     out = [
         Verdict("Fine before halftime, behind after it", f"{hl['h1_per_game']:+.1f} → {hl['h2_per_game']:+.1f}",
@@ -423,9 +435,10 @@ def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_seaso
         Verdict("Early leads blown", f"{hl['blown']} of {hl['leads']}",
                 f"Games where they led by {hl.get('lead_threshold', 8)} or more early on and still lost.", "bad" if hl["blown"] else "good",
                 "changes", ("dots", hl["blown"], hl["leads"])),
-        Verdict("Shots stop falling after halftime", f"{hl['efg_h1']:.0%} → {hl['efg_h2']:.0%}",
-                "Shooting accuracy (threes count extra), first half then second half.",
-                "bad" if hl["efg_h2"] < hl["efg_h1"] else "good", "reasons",
+        Verdict(shooting_title(hl["efg_h1"], hl["efg_h2"]), f"{hl['efg_h1']:.1%} → {hl['efg_h2']:.1%}",
+                "Their shooting accuracy (threes count extra), first half then second half.",
+                "bad" if hl["efg_h2"] < hl["efg_h1"] - SHOOTING_SAME else
+                "good" if hl["efg_h2"] > hl["efg_h1"] + SHOOTING_SAME else "info", "reasons",
                 ("pair", hl["efg_h1"], hl["efg_h2"], "1st half", "2nd half")),
     ]
     hurts = [r for r in reasons if r.per_game < 0]
