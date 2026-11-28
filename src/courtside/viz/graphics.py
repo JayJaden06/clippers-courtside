@@ -381,7 +381,8 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
     - ``("pair", a, b, label_a, label_b)``: two bars, before and after ("58% -> 52%");
     - ``("share", p, mark)``: a filled bar from 0 to 1, with a tick at ``mark`` (a threshold);
     - ``("rank", r, n)``: n dots from best (right) to worst (left), the r-th one highlighted;
-    - ``("diverge", values, labels)``: bars either side of zero, blue up / orange down.
+    - ``("diverge", values, labels)``: bars either side of zero, blue up / orange down;
+    - ``("swing", before, after, swing)``: a ring at ``before`` inside a band of +/- ``swing``, a dot at ``after``.
     """
     color = getattr(c, TONES.get(tone, "gray"))
     kind, *a = viz
@@ -431,6 +432,17 @@ def mini(viz: tuple, tone: str = "info", c: Ink = DARK) -> str:
             out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{slot * 0.4:.1f}" height="{hgt:.1f}" rx="2" '
                        f'fill="{c.good if v > 0 else c.bad if v < 0 else c.gray}"/>')
             out.append(_text(x + slot * 0.2, 45 if v >= 0 else 8, label, 11, c.muted))
+    elif kind == "swing":
+        va, vb, sw = float(a[0]), float(a[1]), float(a[2])
+        lo, hi = min(va - sw, vb, 0.0), max(va + sw, vb) * 1.1
+        x = lambda v: 6 + (w - 12) * (v - lo) / max(hi - lo, 1e-9)  # noqa: E731
+        out.append(f'<rect x="{x(va - sw):.1f}" y="10" width="{x(va + sw) - x(va - sw):.1f}" height="20" rx="4" '
+                   f'fill="{c.ink}" fill-opacity=".12"/>')
+        out.append(f'<line x1="6" y1="20" x2="{w - 6}" y2="20" stroke="{c.muted}" stroke-width="1"/>')
+        out.append(f'<line x1="{x(va):.1f}" y1="20" x2="{x(vb):.1f}" y2="20" stroke="{color}" stroke-width="2"/>')
+        out.append(f'<circle cx="{x(va):.1f}" cy="20" r="5" fill="none" stroke="{c.ink}" stroke-width="2"/>')
+        out.append(f'<circle cx="{x(vb):.1f}" cy="20" r="5.5" fill="{color}"/>')
+        out.append(_text(x(va), 44, "normal swing", 11, c.muted))
     else:
         return ""
     return (f'<svg class="mini" viewBox="0 0 {w} {h}" preserveAspectRatio="xMinYMid meet" aria-hidden="true" '

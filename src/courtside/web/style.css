@@ -160,6 +160,8 @@ h1, .hero {color: #13213f}
 .hc-stats b.hc-few {color: #8d8a83}
 .pc-stats b.few {color: #9a978f}
 .slop-row .moe {grid-column: 2 / 4; font-size: .78rem; color: #6b6964}
+/* too few plays to tell: the numbers and track fade, so the least certain row isn't the loudest */
+.slop-row.few .vals, .slop-row.few .trk {opacity: .45}
 /* ---- white panels on the off-white page: every chart and drawing sits on its own card */
 /* the panel goes on the chart's wrapper, so the chart sizes itself to the inside of the panel */
 [data-testid="stElementContainer"]:has(.stPlotlyChart) {background: #ffffff; border-radius: 16px;
@@ -184,6 +186,7 @@ h1, .hero {color: #13213f}
 .trk .ln {position: absolute; top: 6px; height: 2px; opacity: .6}
 .trk .dot {position: absolute; top: 1px; width: 12px; height: 12px; border-radius: 50%; transform: translateX(-50%)}
 .trk .dot.b {background: #ffffff; border: 2.5px solid; box-sizing: border-box; z-index: 1}  /* before: a ring */
+.trk .band {position: absolute; top: 0; height: 14px; border-radius: 4px; background: rgba(29, 66, 138, .10)}
 .who-row {display: flex; align-items: center; gap: .65rem; padding: .5rem 0; border-top: 1px solid #f0ede6}
 .who-row img {width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top;
               background: #e3e0d8}
