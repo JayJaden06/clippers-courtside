@@ -589,6 +589,12 @@ def change_calls(ph: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def short_half(c: pd.Series) -> str:
+    """For a small sample: which half is short and by how much ("only 49 plays before halftime")."""
+    n, half = (c["n1"], "before") if c["n1"] <= c["n2"] else (c["n2"], "after")
+    return f"only {int(n)} plays {half} halftime"
+
+
 def counts_vs_rate(name: str, c: pd.Series, tov1: int, tov2: int) -> str:
     """Under the game-by-game bars: the bars are counts, so say what the rate and the swing make of them."""
     first = f"These are counts: {tov1} turnover{'s' if tov1 != 1 else ''} before halftime, {tov2} after. "
@@ -599,12 +605,6 @@ def counts_vs_rate(name: str, c: pd.Series, tov1: int, tov2: int) -> str:
         return first + per + f", inside {short(name)}'s normal swing (±{100 * c['swing']:.0f})."
     return first + per + f": {short(name)} is {c['call'].lower()} after halftime, beyond his normal swing " \
                          f"(±{100 * c['swing']:.0f})."
-
-
-def short_half(c: pd.Series) -> str:
-    """For a small sample: which half is short and by how much ("only 49 plays before halftime")."""
-    n, half = (c["n1"], "before") if c["n1"] <= c["n2"] else (c["n2"], "after")
-    return f"only {int(n)} plays {half} halftime"
 
 
 def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
