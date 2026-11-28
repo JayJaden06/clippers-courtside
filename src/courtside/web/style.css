@@ -95,7 +95,10 @@ h1, .hero {color: #13213f}
 .nu-key {position: relative; font-size: 1.02rem; opacity: .92; max-width: 46rem}
 .nu-key b {color: #f0efec}
 /* ---- player cards: trading-card style, one row that scrolls sideways */
-.pcards {display: flex; gap: .8rem; overflow-x: auto; padding: .2rem .1rem .8rem .1rem; margin-bottom: .6rem}
+.pcards {display: grid; grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr)); gap: .8rem;
+         padding: .2rem 0 .4rem 0; margin-bottom: .6rem}
+.pcards .pcard {flex: none}
+.st-key-card_clicks {display: none}  /* the card-click listener draws nothing; don't let it add a gap */
 .pcard {flex: 0 0 172px; border-radius: 14px; overflow: hidden; border: 1px solid #2c2c29; background: #1b1b19}
 .pcards .pcard {position: relative; transition: transform 120ms var(--ease-out), border-color 120ms ease}
 /* the whole card is one link to that player's games; it sits over the card so the card keeps its layout */

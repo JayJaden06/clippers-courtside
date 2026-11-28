@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import math
 from html import escape
 from urllib.parse import urlencode
 
@@ -18,10 +19,52 @@ from courtside.web.theme import BAD, GOOD, H1C, H2C, INK_MARK, MUTED_BAR
 from courtside.web.ui import answer_cards, clicked, face, fill_toc, next_step, page_top, section, show, toc_slot, track
 
 
+# A card click stays on the page: this script hands the player to Python and glides down to his games while
+# they redraw. The link's address is the fallback (a new tab, or a click before the script has loaded).
+CARD_CLICK_JS = """
+// the "One player" pill's own glide: lands the heading just below the pinned bar, instant under reduced motion
+const goToGames = () => {
+  const pill = document.querySelector('nav.toc a[data-a="one"]');
+  if (pill) pill.click(); else document.getElementById('one')?.scrollIntoView({ block: 'start' });
+};
+
+export default function ({ setTriggerValue }) {
+  window.__pcPick = setTriggerValue;  // the latest mount's sender; the listener below is bound once
+  if (window.__pcGlide) {  // this is the redraw a click asked for: the page above may have shifted, so re-aim once
+    window.__pcGlide = false;
+    setTimeout(() => {
+      const h = document.getElementById('one');
+      const n = document.querySelector('nav.toc');
+      const bar = n ? n.getBoundingClientRect().bottom : 120;
+      if (h && Math.abs(h.getBoundingClientRect().top - bar - 12) > 24) goToGames();
+    }, 350);
+  }
+  if (window.__pcBound) return;
+  window.__pcBound = true;
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a.pc-link[data-pick]');
+    if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    window.__pcGlide = true;
+    window.__pcPick('pick', a.dataset.pick);
+    goToGames();
+  });
+}
+"""
+card_clicks = st.components.v2.component("player_card_clicks", js=CARD_CLICK_JS)
+
+
+def _picked_on_card() -> None:
+    name = (st.session_state.get("card_clicks") or {}).get("pick")
+    if name:
+        st.session_state["player_pick"] = name
+
+
 def card_link(name: str, season: str) -> str:
-    """A link laid over the whole card: it reopens the page on this player's games (the card stays a card)."""
+    """A link laid over the whole card: a click picks this player and scrolls to his games."""
     href = escape("?" + urlencode({"pick": name, "season": season}))
-    return f'<a class="pc-link" href="{href}" target="_self" aria-label="See {escape(name)}&#39;s games"></a>'
+    return (f'<a class="pc-link" href="{href}" target="_self" data-pick="{escape(name)}" '
+            f'aria-label="See {escape(name)}&#39;s games"></a>')
 
 
 def opened_from_card(seasons: list[str]) -> None:
@@ -58,7 +101,10 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
             f'</div><div class="pc-body"><div class="pc-name">{r.player_name}</div><div class="pc-stats">'
             f'<div><b>{r.play_share:.0%}</b><span>of the plays after halftime</span></div>'
             f'<div><b>{rate}</b><span>of his plays end in a turnover</span></div></div></div></div>')
-    st.markdown(f'<div class="pcards">{"".join(cards)}</div>', unsafe_allow_html=True)
+    # every card on show, in balanced rows (11 players = 6 + 5), never a sideways scroll
+    per_row = math.ceil(len(cards) / math.ceil(len(cards) / 8)) if cards else 1
+    st.markdown(f'<div class="pcards" style="--cols:{per_row}">{"".join(cards)}</div>', unsafe_allow_html=True)
+    card_clicks(key="card_clicks", on_pick_change=_picked_on_card)
 
 
 def game_table(g: pd.DataFrame) -> pd.DataFrame:
@@ -172,7 +218,8 @@ def page_players() -> None:
 
         section("One player, game by game", "one")
         if st.session_state.pop("player_jump", False):  # opened from a card: bring his games into view
-            st.html("<script>setTimeout(() => document.getElementById('one')?.scrollIntoView({block: 'start'}), 400)"
+            st.html("<script>setTimeout(() => { const p = document.querySelector('nav.toc a[data-a=\"one\"]'); "
+                    "if (p) p.click(); else document.getElementById('one')?.scrollIntoView({block: 'start'}); }, 400)"
                     "</script>", unsafe_allow_javascript=True)
         player = st.selectbox("Player", names, key="player_pick")
         t = ph[ph["player_name"] == player].set_index("split")
