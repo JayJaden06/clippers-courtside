@@ -36,6 +36,11 @@ GLOSSARY = {
     "Blown lead": "Here: the Clippers led by 8 or more points at some point in the first 30 minutes and still "
                   "lost.",
     "Halftime": "Games are four 12-minute quarters. Halftime comes after the 2nd quarter, at minute 24.",
+    "Normal swing": "How much a player's turnover rate bounces around from game to game anyway, worked out from "
+                    "how many plays he's had. A change inside it could be luck; only a change bigger than it is "
+                    "called sloppier or safer. (Statistically: two standard errors.)",
+    "Up 5 in every 100 plays": "A change in a rate, not in points scored: 17% of his plays ending in a turnover "
+                               "going to 22% is up 5 in every 100 plays (5 percentage points).",
 }
 
 # factor -> (plain name, what it means)
@@ -589,6 +594,28 @@ def change_calls(ph: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def change_words(c: pd.Series) -> str:
+    """The change in plain words, matching the rounded percents shown beside it: "up 5 in every 100 plays"."""
+    step = round(100 * c["h2"]) - round(100 * c["h1"])
+    moved = "no change per 100 plays" if step == 0 else f"{'up' if step > 0 else 'down'} {abs(step)} in every 100 plays"
+    return f"{moved} · his games usually swing ±{100 * c['swing']:.0f}"
+
+
+def swing_summary(calls: pd.DataFrame) -> str:
+    """One sentence for the whole rotation, from the calls: who (if anyone) moved beyond his normal swing."""
+    sure = calls[calls["call"] != "Too few plays to tell"]
+    if sure.empty:
+        return "Nobody has enough plays yet to tell."
+    moved = sure[sure["call"].isin(["Sloppier", "Safer"])]
+    if moved.empty:
+        return (f"All {len(sure)} players with enough plays stayed within their normal swing after halftime: "
+                "it isn't one player.")
+    parts = [f"{short(n)} {r['call'].lower()}" for n, r in moved.sort_values("d", ascending=False).iterrows()]
+    listed = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
+    rest = len(sure) - len(moved)
+    return f"Beyond their normal swing: {listed}." + (f" The other {rest} stayed within it." if rest else "")
+
+
 def short_half(c: pd.Series) -> str:
     """For a small sample: which half is short and by how much ("only 49 plays before halftime")."""
     n, half = (c["n1"], "before") if c["n1"] <= c["n2"] else (c["n2"], "after")
@@ -614,17 +641,17 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
         if len(c):
             top = c.sort_values("d").iloc[-1]
             name = top.name
-            pair = ("pair", top["h1"], top["h2"], "1st half", "2nd half")
+            pair = ("swing", top["h1"], top["h2"], top["swing"])
             if top["call"] == "Sloppier":
                 out.append(Verdict(f"Sloppiest after halftime: {short(name)}", f"{top['h1']:.0%} → {top['h2']:.0%}",
-                                   f"Share of {short(name)}'s plays that end in a turnover, first half then second "
-                                   f"({pts(top['d'])} pts; normal swing ±{100 * top['swing']:.0f}).",
+                                   f"Share of {short(name)}'s plays that end in a turnover, first half then second: "
+                                   f"{change_words(top)}.",
                                    "warn", "sloppier", pair))
             else:  # the honest answer: nobody's change is bigger than his games bounce around by
-                out.append(Verdict("Sloppier after halftime: nobody clearly", "None",
-                                   f"No regular's change beats the normal game-to-game swing. Biggest: {short(name)}, "
-                                   f"{top['h1']:.0%} → {top['h2']:.0%} ({pts(top['d'])} pts, swing "
-                                   f"±{100 * top['swing']:.0f}).", "info", "sloppier", pair))
+                out.append(Verdict("Sloppier after halftime: nobody clearly", "Nobody",
+                                   f"No regular's change is bigger than his normal swing. Biggest: {short(name)}, "
+                                   f"{top['h1']:.0%} → {top['h2']:.0%} ({change_words(top)}).", "info", "sloppier",
+                                   pair))
     regular = h2[(h2["play_share"] >= 0.08) & h2["player_name"].isin(enough_plays(ph))]
     if len(regular):
         safe = regular.sort_values("tov_pct").iloc[0]

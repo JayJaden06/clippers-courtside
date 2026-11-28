@@ -102,13 +102,16 @@ def next_step(page, blurb: str) -> None:
     right.page_link(page, label=f"Next: {page.title} →", width="stretch")
 
 
-def track(before: float, after: float, lo: float, hi: float, after_color: str) -> str:
+def track(before: float, after: float, lo: float, hi: float, after_color: str, band: float | None = None) -> str:
     """A thin before -> after track: a hollow ring at ``before``, a filled dot at ``after``, a line between.
 
-    The ring and the dot differ in shape, not just color, so the direction still reads when both are gray."""
+    The ring and the dot differ in shape, not just color, so the direction still reads when both are gray.
+    ``band``: a pale range of +/- band around the ring; a dot inside it is within the normal swing."""
     pos = lambda v: max(0.0, min(100.0, 100 * (v - lo) / (hi - lo) if hi > lo else 0.0))  # noqa: E731
     a, b = pos(before), pos(after)
-    return (f'<div class="trk"><span class="ln" style="left:{min(a, b):.1f}%;width:{abs(b - a):.1f}%;'
+    zone = (f'<span class="band" style="left:{pos(before - band):.1f}%;width:{pos(before + band) - pos(before - band):.1f}%">'
+            '</span>' if band else "")
+    return (f'<div class="trk">{zone}<span class="ln" style="left:{min(a, b):.1f}%;width:{abs(b - a):.1f}%;'
             f'background:{after_color}"></span><span class="dot b" style="left:{a:.1f}%;border-color:{MUTED_BAR}">'
             f'</span><span class="dot" style="left:{b:.1f}%;background:{after_color}"></span></div>')
 

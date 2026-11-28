@@ -237,8 +237,10 @@ def page_players() -> None:
                    "he makes. Above the dotted line = more than his share. Click a face to see his games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
-                "How often one of his plays ends in a turnover: before halftime (ring) and after it (dot). "
-                "Biggest rise after halftime first; players with too few plays to tell come last.")
+                "How often one of his plays ends in a turnover: before halftime (ring) and after it (dot). The pale "
+                "band is his normal swing: a dot inside it is a change his games make anyway.")
+        st.markdown(f'<div class="takeaway"><b>{S.swing_summary(S.change_calls(ph))}</b></div>',
+                    unsafe_allow_html=True)
         wl = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2", ascending=False)
         pct = lambda v: f"{v:.0%}"  # noqa: E731  (one unit: "1 in N" rounding made 10% → 12% look like a jump)
         hi_ = float(wl.to_numpy().max()) * 1.08
@@ -250,18 +252,23 @@ def page_players() -> None:
             c_ = calls.loc[n_]
             verdict = c_["call"]
             color = BAD if verdict == "Sloppier" else GOOD if verdict == "Safer" else MUTED_BAR
-            moe = (f"{S.pts(c_['d'])} pts · normal swing ±{100 * c_['swing']:.0f}" if verdict != "Too few plays to tell"
-                   else S.short_half(c_))
+            few = verdict == "Too few plays to tell"
+            moe = S.short_half(c_) if few else S.change_words(c_)
+            # a chip only when there's something to say; "within normal swing" is what the band already shows
+            chip = (f'<span class="chip sm" style="background:{CHIP_INK.get(color, color)}">{verdict}</span>'
+                    if verdict != "Within normal swing" else "")
             rows_.append(
-                f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{short(n_)} '
-                f'<span class="chip sm" style="background:{CHIP_INK.get(color, color)}">{verdict}</span></div>'
+                f'<div class="slop-row{" few" if few else ""}"><img src="{face(n_) or ""}" alt="">'
+                f'<div class="nm">{short(n_)} {chip}</div>'
                 f'<div class="vals"><span class="b">{pct(r_["H1"])}</span> → '
                 f'<span style="color:{color}">{pct(r_["H2"])}</span></div>'
-                + track(r_["H1"], r_["H2"], 0, hi_, color) + f'<div class="moe">{moe}</div></div>')
+                + track(r_["H1"], r_["H2"], 0, hi_, color, band=None if few else c_["swing"])
+                + f'<div class="moe">{moe}</div></div>')
         st.markdown(f'<div class="slop">{"".join(rows_)}</div>', unsafe_allow_html=True)
-        st.caption("Plays = shots, free-throw trips and turnovers. Sloppier or safer only when the change is bigger "
-                   "than the normal swing: two standard errors, from his plays and turnovers in each half. Players "
-                   f"with 40+ minutes in each half; too few plays to tell = under {S.MIN_PLAYS} in a half.")
+        st.caption("Plays = shots, free-throw trips and turnovers. A player is called sloppier or safer only when "
+                   "his change is bigger than his normal swing, the amount his rate moves around anyway given how "
+                   "many plays he's had (two standard errors). Players with 40+ minutes in each half; too few plays "
+                   f"to tell = under {S.MIN_PLAYS} in a half.")
 
         section("One player, game by game", "one")
         if st.session_state.pop("player_jump", False):  # opened from a card: bring his games into view
@@ -281,7 +288,7 @@ def page_players() -> None:
         sure = c["call"] != "Too few plays to tell"
         # only a change bigger than the normal swing is colored as a finding; a small sample is dimmed
         trend = {"Sloppier": "hc-up", "Safer": "hc-down"}.get(c["call"], "" if sure else "hc-few")
-        how = (f'({S.pts(c["d"])} pts, normal swing ±{100 * c["swing"]:.0f}: {c["call"].lower()})' if sure
+        how = (f'({S.change_words(c)}: {c["call"].lower()})' if sure
                else f'(too few plays to tell: {S.short_half(c)})')
         tov2, plays2 = int(t.loc["H2", "tov"]), int(t.loc["H2", "plays"])
         sample = f"{tov2} turnover{'s' if tov2 != 1 else ''} on {plays2} plays after halftime · {len(g)} game{"s" if len(g) != 1 else ""}"
