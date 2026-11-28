@@ -80,7 +80,7 @@ def _moves(before: float, after: float, same: float = 0.01) -> str:
 
 def share_text(share: float) -> str:
     """A share of the second-half drop in words; over 100% means other parts of the game made some of it back."""
-    return ("more than the whole drop (other parts of their game make some of it back)" if share > 1.0
+    return ("more than the whole drop, since other parts of their game make some of it back" if share > 1.0
             else f"about {share:.0%} of the drop")
 
 

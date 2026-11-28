@@ -42,4 +42,4 @@ def test_rates_and_shares_are_worded_by_their_numbers():
     from courtside.viz import story as S
     assert S._moves(0.533, 0.535) == "holds about steady"
     assert S._moves(0.56, 0.52) == "drops" and S._moves(0.52, 0.56) == "rises"
-    assert S.share_text(1.03).startswith("more than the whole drop") and S.share_text(0.42) == "about 42% of the drop"
+    assert S.share_text(1.03).startswith("more than the whole drop, since") and S.share_text(0.42) == "about 42% of the drop"

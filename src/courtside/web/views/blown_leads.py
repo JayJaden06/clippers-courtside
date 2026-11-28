@@ -120,7 +120,7 @@ def page_answer() -> None:
                 f'<div class="lede">{hl["wins"]}-{hl["losses"]}, and {hl["blown"]} of {hl["leads"]} early leads '
                 "blown. "
                 + (f"The biggest reason: <b>{first.name.split(',')[0].lower()}</b>, {-first.per_game:.1f} points a game "
-                   f"after halftime ({S.share_text(first.share)}). " if first and first.per_game < 0 else "")
+                   f"after halftime, {S.share_text(first.share)}. " if first and first.per_game < 0 else "")
                 + f"Is it {focus}'s turnovers? " + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
                 + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
             glossary_button()
