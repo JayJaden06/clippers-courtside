@@ -112,6 +112,11 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
     card_clicks(key="card_clicks", on_pick_change=_picked_on_card)
 
 
+# the verdict chips carry white text, so each takes a darker shade of its color: 5.1:1 or better, measured on the
+# chip's own background (a wash layered on top looked right but checkers and screen-reader audits read the base)
+CHIP_INK = {BAD: "#b2491f", GOOD: "#2f6fbc", MUTED_BAR: "#686662"}
+
+
 def game_table(g: pd.DataFrame) -> pd.DataFrame:
     """The game-by-game table in words: dates, results, and halves side by side, rates as percents."""
     when = pd.to_datetime(g["game_date"])
@@ -228,9 +233,8 @@ def page_players() -> None:
         name = clicked(event, "customdata", f"who_click_{season_p}")
         if name in names:
             st.session_state["player_pick"] = name
-        st.caption("Each face is a player, placed by how much of the offense he runs (across) and how many of the "
-                   "turnovers he makes (up). Above the dotted line = more than his share. Click a face to see his "
-                   "games.")
+        st.caption("Each face is a player: across, how much of the offense he runs; up, how many of the turnovers "
+                   "he makes. Above the dotted line = more than his share. Click a face to see his games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
                 "How often one of his plays ends in a turnover: before halftime (ring) and after it (dot). "
@@ -249,8 +253,8 @@ def page_players() -> None:
             moe = (f"{S.pts(c_['d'])} pts · normal swing ±{100 * c_['swing']:.0f}" if verdict != "Too few plays to tell"
                    else S.short_half(c_))
             rows_.append(
-                f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{short(n_)}'
-                f'<span class="chip sm" style="background:{color}">{verdict}</span></div>'
+                f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{short(n_)} '
+                f'<span class="chip sm" style="background:{CHIP_INK.get(color, color)}">{verdict}</span></div>'
                 f'<div class="vals"><span class="b">{pct(r_["H1"])}</span> → '
                 f'<span style="color:{color}">{pct(r_["H2"])}</span></div>'
                 + track(r_["H1"], r_["H2"], 0, hi_, color) + f'<div class="moe">{moe}</div></div>')
