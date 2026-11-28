@@ -51,7 +51,7 @@ div[data-testid="stMetricValue"] {font-size: 1.9rem}
 .v-faces img:first-child {margin-left: 0}
 .lineup .who {flex: 1; font-size: .92rem; opacity: .85}
 .lineup .pm {font-size: 1.35rem; font-weight: 800; min-width: 4.5rem; text-align: right}
-.lineup .min {font-size: .82rem; opacity: .6; min-width: 3.5rem}
+.lineup .min {font-size: .82rem; opacity: .78; min-width: 3.5rem}  /* 4.5:1+ with the small-sample note inside */
 [class*="st-key-gcard_"] {padding: .55rem .6rem !important; gap: .25rem}
 .st-key-gcard_sel {border-color: #d95926 !important; background: #fbefe8}
 .gc {padding-bottom: .9rem}
@@ -292,7 +292,8 @@ h1, .hero {font-weight: 800 !important}
 .o-questionable {background: #fdf0d2; color: #7a5300}
 .o-blank {width: 30px; height: 30px; border-radius: 50%; background: #e3e0d8; flex: none}
 .o-why {display: inline-block; font-size: .8rem; line-height: 1.3; opacity: .85; margin-top: .15rem}
-.small-n {display: block; font-size: .74rem; letter-spacing: .02em; opacity: .8; font-style: italic}
+.small-n {display: block; font-size: .74rem; letter-spacing: .02em; font-style: italic}
+[class*="st-key-open_"] button p {white-space: nowrap; overflow: hidden; text-overflow: ellipsis}  /* strip buttons stay one line */
 /* the running win chance above the game-plan keys */
 .odds-live {display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; margin: .2rem 0 .7rem 0; padding: .55rem .95rem;
             background: #ffffff; border: 1px solid #e3e0d8; border-radius: 12px; font-size: 1rem}
