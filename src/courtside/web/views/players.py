@@ -158,8 +158,7 @@ def page_players() -> None:
         lim = min(xmax, ymax)
         # every face is named; neighbors along the x-axis alternate above and below so close faces don't collide
         h2 = h2.sort_values("play_share")
-        ymax_ = float(h2["tov_share"].max()) * 1.15
-        above = [i % 2 == 1 or y_ < ymax_ * 0.15 for i, y_ in enumerate(h2["tov_share"])]  # low faces: name above
+        above = [i % 2 == 1 or y_ < ymax * 0.15 for i, y_ in enumerate(h2["tov_share"])]  # low faces: name above
         fig = go.Figure()
         # above the diagonal = more of the turnovers than of the plays
         fig.add_shape(type="path", path=f"M 0 0 L {lim} {lim} L {lim} {ymax} L 0 {ymax} Z",
