@@ -89,6 +89,7 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
     roster = (data.roster.set_index("player_id") if len(data.roster) and season == season_now
               else pd.DataFrame(columns=["number", "position"]))
     cards = []
+    ok = S.enough_plays(ph)
     for r in h2.itertuples():
         info = roster.loc[r.player_id] if r.player_id in roster.index else None
         num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
@@ -100,7 +101,10 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
             f'<span class="pc-pos">{pos}</span><img src="{D.headshot_url(int(r.player_id))}" alt="" loading="lazy">'
             f'</div><div class="pc-body"><div class="pc-name">{r.player_name}</div><div class="pc-stats">'
             f'<div><b>{r.play_share:.0%}</b><span>of the plays after halftime</span></div>'
-            f'<div><b>{rate}</b><span>of his plays end in a turnover</span></div></div></div></div>')
+            + (f'<div><b>{rate}</b><span>of his plays end in a turnover</span></div></div></div></div>'
+               if r.player_name in ok else  # a small sample: dimmed, with how few plays it rests on
+               f'<div><b class="few">{rate}</b><span>of his plays end in a turnover · only {int(r.plays)} '
+               f'plays</span></div></div></div></div>'))
     # every card on show, in balanced rows (11 players = 6 + 5), never a sideways scroll
     per_row = math.ceil(len(cards) / math.ceil(len(cards) / 8)) if cards else 1
     st.markdown(f'<div class="pcards" style="--cols:{per_row}">{"".join(cards)}</div>', unsafe_allow_html=True)
@@ -195,26 +199,26 @@ def page_players() -> None:
         wl = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2", ascending=False)
         pct = lambda v: f"{v:.0%}"  # noqa: E731  (one unit: "1 in N" rounding made 10% → 12% look like a jump)
         hi_ = float(wl.to_numpy().max()) * 1.08
-        ok_ = S.enough_plays(ph)  # rank by the change itself, the same measure as the "sloppiest" card
-        wl = wl.assign(_ok=wl.index.isin(ok_), _d=wl["H2"] - wl["H1"]).sort_values(
+        calls = S.change_calls(ph)  # rank by the change itself, the same measure as the "sloppiest" card
+        wl = wl.assign(_ok=calls["call"] != "Too few plays to tell", _d=calls["d"]).sort_values(
             ["_ok", "_d"], ascending=False)[["H1", "H2"]]
         rows_ = []
         for n_, r_ in wl.iterrows():
-            d_ = r_["H2"] - r_["H1"]
-            color, verdict = ((BAD, "Sloppier") if d_ >= 0.02 else (GOOD, "Safer") if d_ <= -0.02
-                              else (MUTED_BAR, "About the same"))
-            if n_ not in ok_:
-                color, verdict = MUTED_BAR, "Too few plays to tell"
+            c_ = calls.loc[n_]
+            verdict = c_["call"]
+            color = BAD if verdict == "Sloppier" else GOOD if verdict == "Safer" else MUTED_BAR
+            moe = (f"{S.pts(c_['d'])} pts · normal swing ±{100 * c_['swing']:.0f}" if verdict != "Too few plays to tell"
+                   else S.short_half(c_))
             rows_.append(
                 f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{short(n_)}'
                 f'<span class="chip sm" style="background:{color}">{verdict}</span></div>'
                 f'<div class="vals"><span class="b">{pct(r_["H1"])}</span> → '
                 f'<span style="color:{color}">{pct(r_["H2"])}</span></div>'
-                + track(r_["H1"], r_["H2"], 0, hi_, color) + "</div>")
+                + track(r_["H1"], r_["H2"], 0, hi_, color) + f'<div class="moe">{moe}</div></div>')
         st.markdown(f'<div class="slop">{"".join(rows_)}</div>', unsafe_allow_html=True)
-        st.caption("Plays = shots, free-throw trips and turnovers. Sloppier or safer = a change of 2+ percentage "
-                   "points in how often his plays end in a turnover. Players with 40+ minutes in each half. "
-                   f"Too few plays to tell = under {S.MIN_PLAYS} plays in a half.")
+        st.caption("Plays = shots, free-throw trips and turnovers. Sloppier or safer only when the change is bigger "
+                   "than the normal swing: two standard errors, from his plays and turnovers in each half. Players "
+                   f"with 40+ minutes in each half; too few plays to tell = under {S.MIN_PLAYS} in a half.")
 
         section("One player, game by game", "one")
         if st.session_state.pop("player_jump", False):  # opened from a card: bring his games into view
@@ -227,24 +231,28 @@ def page_players() -> None:
         info = data.roster.set_index("player_id").loc[pid_] if len(data.roster) and pid_ in set(
             data.roster["player_id"]) and season_p == season_now else None
         num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
-        d = 100 * (t.loc["H2", "tov_pct"] - t.loc["H1", "tov_pct"])
         g = D.player_games(data.player_stats, data.game_leads, season_p, player)
-        sure = player in S.enough_plays(ph)
-        trend = ("hc-up" if d > 0 else "hc-down") if sure else ""  # a small sample isn't colored as a finding
-        tov2, plays2 = int(t.loc["H2", "tov"]), round(t.loc["H2", "plays"])
+        c = S.change_calls(ph).loc[player]
+        sure = c["call"] != "Too few plays to tell"
+        # only a change bigger than the normal swing is colored as a finding; a small sample is dimmed
+        trend = {"Sloppier": "hc-up", "Safer": "hc-down"}.get(c["call"], "" if sure else "hc-few")
+        how = (f'({S.pts(c["d"])} pts, normal swing ±{100 * c["swing"]:.0f}: {c["call"].lower()})' if sure
+               else f'(too few plays to tell: {S.short_half(c)})')
+        tov2, plays2 = int(t.loc["H2", "tov"]), int(t.loc["H2", "plays"])
         sample = f"{tov2} turnover{'s' if tov2 != 1 else ''} on {plays2} plays after halftime · {len(g)} game{"s" if len(g) != 1 else ""}"
         steals = (f'<b>{t.loc["H2", "live_share"]:.0%}</b><span>of his second-half turnovers were steals (live balls '
-                  f'that lead to fast breaks)</span>' if tov2 else
-                  '<b>0</b><span>second-half turnovers, so no steals against him</span>')
+                  f'that lead to fast breaks)</span>' if tov2 >= 10 else
+                  f'<b>{tov2}</b><span>second-half turnover{"s" if tov2 != 1 else ""}: too few to say how many were '
+                  'steals</span>' if tov2 else '<b>0</b><span>second-half turnovers, so no steals against him</span>')
         st.markdown(
             f'<div class="hero-card"><div class="hc-photo"><span class="pc-num">{num}</span>'
             f'<img src="{D.headshot_url(pid_)}" alt=""></div><div class="hc-body">'
             f'<div class="kicker">{info["position"] + " · " if info is not None else ""}after halftime, {season_p}</div>'
             f'<div class="hc-name">{player}</div><div class="hc-n">{sample}</div><div class="hc-stats">'
-            f'<div><b>{t.loc["H1", "tov_pct"]:.0%}</b><span>of his plays end in a turnover before halftime</span></div>'
+            f'<div><b class="{"" if sure else "hc-few"}">{t.loc["H1", "tov_pct"]:.0%}</b><span>of his plays end in a '
+            f'turnover before halftime</span></div>'
             f'<div><b class="{trend}">{t.loc["H2", "tov_pct"]:.0%}</b><span>after halftime '
-            + (f'({"+" if d > 0 else "−"}{abs(d):.1f} pts)' if sure else
-               f'(too few plays to tell: under {S.MIN_PLAYS} in a half)') + '</span></div>'
+            + how + '</span></div>'
             f'<div><b>{t.loc["H2", "tov_share"]:.0%}</b><span>of the team\'s turnovers after halftime, on '
             f'{t.loc["H2", "play_share"]:.0%} of its plays</span></div>'
             f'<div>{steals}</div></div></div></div>', unsafe_allow_html=True)

@@ -556,6 +556,45 @@ def enough_plays(ph: pd.DataFrame) -> set[str]:
     return set(low[low >= MIN_PLAYS].index)
 
 
+SWING_Z = 2.0  # a change has to clear two standard errors before it's called sloppier or safer
+
+
+def pts(v: float, digits: int = 1) -> str:
+    """A change in percentage points, signed with a real minus."""
+    return f"{100 * v:+.{digits}f}".replace("-", "\u2212")
+
+
+def change_calls(ph: pd.DataFrame) -> pd.DataFrame:
+    """Per player: the rate before and after halftime, the change, its normal swing and the call.
+
+    ``swing`` is two standard errors of the change (a two-proportion test on plays and turnovers): a change smaller
+    than that is what a player's games bounce around by anyway. Without play counts, the old 2-point line stands in.
+    """
+    w = ph.pivot(index="player_name", columns="split", values="tov_pct")
+    out = pd.DataFrame({"h1": w["H1"], "h2": w["H2"]})
+    out["d"] = out["h2"] - out["h1"]
+    if {"plays", "tov"} <= set(ph.columns):
+        n = ph.pivot(index="player_name", columns="split", values="plays")
+        t = ph.pivot(index="player_name", columns="split", values="tov")
+        p = (t["H1"] + t["H2"]) / (n["H1"] + n["H2"])
+        out["swing"] = SWING_Z * (p * (1 - p) * (1 / n["H1"] + 1 / n["H2"])) ** 0.5
+        out["n1"], out["n2"] = n["H1"], n["H2"]
+    else:
+        out["swing"], out["n1"], out["n2"] = 0.02, float("inf"), float("inf")
+    ok = out.index.isin(enough_plays(ph))
+    out["call"] = "Within normal swing"
+    out.loc[out["d"] > out["swing"], "call"] = "Sloppier"
+    out.loc[out["d"] < -out["swing"], "call"] = "Safer"
+    out.loc[~ok, "call"] = "Too few plays to tell"
+    return out
+
+
+def short_half(c: pd.Series) -> str:
+    """For a small sample: which half is short and by how much ("only 49 plays before halftime")."""
+    n, half = (c["n1"], "before") if c["n1"] <= c["n2"] else (c["n2"], "after")
+    return f"only {int(n)} plays {half} halftime"
+
+
 def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
     """Who loses the ball most after halftime, who falls off most, and who is safest."""
     h2 = ph[ph["split"] == "H2"]
@@ -567,19 +606,26 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
                        f"{most['tov_share']:.0%} of the team's second-half turnovers, while handling "
                        f"{most['play_share']:.0%} of its plays.", "bad", "who",
                        ("pair", most["play_share"], most["tov_share"], "plays", "turnovers")))
-    w = ph.pivot(index="player_name", columns="split", values="tov_pct")
-    jump = pd.Series(dtype=float)
-    if {"H1", "H2"} <= set(w.columns):
-        # the same bar as "safest": a regular ball-handler with enough plays, not a 2%-of-plays bench call
-        busy = set(h2.loc[h2["play_share"] >= 0.08, "player_name"]) & enough_plays(ph)
-        jump = (w["H2"] - w["H1"])[w.index.isin(busy)].sort_values()
-    if len(jump) and jump.iloc[-1] >= 0.02:  # a "sloppiest" who got safer, or barely moved, is no answer
-        name = jump.index[-1]
-        out.append(Verdict(f"Sloppiest after halftime: {short(name)}",
-                           f"{w.loc[name, 'H1']:.0%} → {w.loc[name, 'H2']:.0%}",
-                           f"Share of {short(name)}'s plays that end in a turnover, first half then second.",
-                           "warn", "sloppier", ("pair", w.loc[name, "H1"], w.loc[name, "H2"], "1st half", "2nd half")))
-    regular = h2[h2["play_share"] >= 0.08]
+    if {"H1", "H2"} <= set(ph["split"]):
+        # regular ball-handlers with enough plays; "sloppiest" only when the change clears the normal swing
+        c = change_calls(ph)
+        busy = set(h2.loc[h2["play_share"] >= 0.08, "player_name"])
+        c = c[c.index.isin(busy) & (c["call"] != "Too few plays to tell")]
+        if len(c):
+            top = c.sort_values("d").iloc[-1]
+            name = top.name
+            pair = ("pair", top["h1"], top["h2"], "1st half", "2nd half")
+            if top["call"] == "Sloppier":
+                out.append(Verdict(f"Sloppiest after halftime: {short(name)}", f"{top['h1']:.0%} → {top['h2']:.0%}",
+                                   f"Share of {short(name)}'s plays that end in a turnover, first half then second "
+                                   f"({pts(top['d'])} pts; normal swing ±{100 * top['swing']:.0f}).",
+                                   "warn", "sloppier", pair))
+            else:  # the honest answer: nobody's change is bigger than his games bounce around by
+                out.append(Verdict("Sloppier after halftime: nobody clearly", "None",
+                                   f"No regular's change beats the normal game-to-game swing. Biggest: {short(name)}, "
+                                   f"{top['h1']:.0%} → {top['h2']:.0%} ({pts(top['d'])} pts, swing "
+                                   f"±{100 * top['swing']:.0f}).", "info", "sloppier", pair))
+    regular = h2[(h2["play_share"] >= 0.08) & h2["player_name"].isin(enough_plays(ph))]
     if len(regular):
         safe = regular.sort_values("tov_pct").iloc[0]
         last = short(safe["player_name"])
