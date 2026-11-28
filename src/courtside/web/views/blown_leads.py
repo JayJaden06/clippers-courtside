@@ -335,9 +335,11 @@ def page_answer() -> None:
     with st.expander("Open the full stat sheet", icon=":material/table:"):
         sheet = D.full_stat_sheet(data.ranks, season_now)
         st.dataframe(sheet, hide_index=True, width="stretch", height=38 + 35 * len(sheet))
-    st.caption("League ranks: 1st = best of 30 teams. The change rank compares each team's second half with its "
-               "own first half. These values come from the league's own team stats, so every team is measured the "
-               "same way; they can differ slightly from the box-score totals above. Data: stats.nba.com via the open-source nba_api package; not affiliated with the "
-               "NBA or the Clippers. Full method: reports/findings.md.")
+    st.caption("League ranks: 1st = best of 30 teams. The change rank compares each team's second half with its own "
+               "first half. These come from the league's own team stats, so every team is measured the same way; "
+               "they can differ slightly from the box-score totals above.")
+    st.caption("Data: stats.nba.com via the open-source nba_api package; not affiliated with the NBA or the Clippers. "
+               "[The full method and findings](https://github.com/JayJaden06/clippers-courtside/blob/main/reports/"
+               "findings.md), rewritten after every game.")
     fill_toc(nav_)
     next_step(PAGE_PLAYERS, "Who is losing the ball after halftime, player by player.")

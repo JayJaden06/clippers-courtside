@@ -323,3 +323,5 @@ h1, .hero {font-weight: 800 !important}
 [data-testid="stAlertContainer"] p {max-width: 72ch}
 /* the strip's selected game: its disabled 'Showing' label stays readable */
 .st-key-gcard_sel button:disabled {color: #13213f !important; opacity: 1 !important; font-weight: 650}
+/* captions keep a reading measure too (a footnote ran to ~196 characters a line) */
+[data-testid="stCaptionContainer"] {max-width: 78ch}
