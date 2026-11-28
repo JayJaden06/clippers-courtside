@@ -90,6 +90,7 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
               else pd.DataFrame(columns=["number", "position"]))
     cards = []
     ok = S.enough_plays(ph)
+    fewest = ph.groupby("player_name")["plays"].min()  # the short half is what makes a sample small
     for r in h2.itertuples():
         info = roster.loc[r.player_id] if r.player_id in roster.index else None
         num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
@@ -103,8 +104,8 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
             f'<div><b>{r.play_share:.0%}</b><span>of the plays after halftime</span></div>'
             + (f'<div><b>{rate}</b><span>of his plays end in a turnover</span></div></div></div></div>'
                if r.player_name in ok else  # a small sample: dimmed, with how few plays it rests on
-               f'<div><b class="few">{rate}</b><span>of his plays end in a turnover · only {int(r.plays)} '
-               f'plays</span></div></div></div></div>'))
+               f'<div><b class="few">{rate}</b><span>of his plays end in a turnover · only '
+               f'{int(fewest[r.player_name])} plays in a half</span></div></div></div></div>'))
     # every card on show, in balanced rows (11 players = 6 + 5), never a sideways scroll
     per_row = math.ceil(len(cards) / math.ceil(len(cards) / 8)) if cards else 1
     st.markdown(f'<div class="pcards" style="--cols:{per_row}">{"".join(cards)}</div>', unsafe_allow_html=True)
