@@ -180,8 +180,13 @@ def headline(analysis: dict, comparison: pd.DataFrame, games: pd.DataFrame, seas
     }
 
 
-def game_story(leads_row: pd.Series, halves: pd.DataFrame, attribution: pd.DataFrame) -> str:
-    """A short paragraph about one game, from its halves and its decomposition."""
+def game_story(leads_row: pd.Series, halves: pd.DataFrame, attribution: pd.DataFrame,
+               first_half_clause: bool = True) -> str:
+    """A short paragraph about one game, from its halves and its decomposition.
+
+    ``first_half_clause=False`` leaves out the "biggest drop from their own first half" sentence: beside a verdict
+    and a ledger measured against a normal night, the same factor named against the first half reads as a
+    contradiction (critique, Nov 2026)."""
     h = halves.assign(split=halves["split"].astype(str)).set_index("split")
     hm, final, mx = int(leads_row["halftime_margin"]), int(leads_row["final_margin"]), int(leads_row["max_lead"])
     opp = leads_row["opponent_abbreviation"]
@@ -196,6 +201,8 @@ def game_story(leads_row: pd.Series, halves: pd.DataFrame, attribution: pd.DataF
            f"{abs(final)}{' in overtime' if ot else ''}.")
     a = attribution[attribution["factor"] != "residual"].set_index("factor")["points"]
     change = float(attribution["margin_change"].iloc[0])
+    if not first_half_clause:
+        return out
     if change < 0:
         f = a.idxmin()
         pts = f"{a[f]:+.0f}".replace("-", "−")  # a true minus sign, as everywhere else on the site
