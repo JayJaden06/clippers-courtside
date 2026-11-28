@@ -22,7 +22,8 @@ from courtside.viz import whatnow as W
 from courtside.web.context import current
 from courtside.web.theme import (BAD, BAD_TEXT, BG, CLIPPERS, FOCUS, GOOD, GOOD_TEXT, GRAY, H1C, H2C, INK_MARK, LIGHT, MUTED_BAR,
                                   TONE_COLOR, _minus, signed, text_tone)
-from courtside.web.ui import PHOTO_COL, answer_cards, clicked, face, fill_toc, heading, page_top, picture, section, show, with_photos
+from courtside.web.ui import (PHOTO_COL, answer_cards, clicked, face, fill_toc, heading, next_step, page_top, picture,
+                              section, show, with_photos)
 
 
 def _step_game(key: str, labels: list[str], step: int) -> None:
@@ -321,6 +322,8 @@ def page_replay() -> None:
 
     if entry["kind"] == "future":
         _game_plan(up.iloc[entry["idx"]], previews[entry["idx"]], teams, shooting)
+        next_step(ctx.pages["answer"], "Where these keys come from: why the Clippers keep losing leads after "
+                                       "halftime.")
         fill_toc(nav_)
         return
 
@@ -534,8 +537,9 @@ def page_replay() -> None:
     heading("Who played well", "players")
     if len(lines):
         st.markdown('<div class="takeaway">Ranked by Game Score, a one-number summary of a box score (points, '
-                    "rebounds, assists, shooting and turnovers together); 10 is a good night. The best three and "
-                    "the toughest two first, then everyone else.</div>", unsafe_allow_html=True)
+                    "rebounds, assists, shooting and turnovers together); 10 is a good night. The best three, and "
+                    f"the toughest two among players with {TOUGH_MIN}+ minutes; everyone who played is in the Box "
+                    "score at the bottom.</div>", unsafe_allow_html=True)
 
         def player_card(r_) -> W.Verdict:
             return W.Verdict(
@@ -546,10 +550,10 @@ def page_replay() -> None:
                 ("share", max(r_.game_score, 0) / 25, 10 / 25), D.headshot_url(r_.player_id))
 
         ranked = list(lines.itertuples())  # player_lines sorts best Game Score first
-        stars, rest = (ranked, []) if len(ranked) <= 6 else (ranked[:3] + ranked[-2:], ranked[3:-2])
-        answer_cards([player_card(r_) for r_ in stars], link=False, big_size="1.5rem")
-        if rest:
-            st.markdown(_box_rows(rest), unsafe_allow_html=True)
+        best3 = ranked[:3]
+        # a toughest night needs real minutes: five garbage-time minutes aren't a verdict on anyone
+        tough = [r_ for r_ in ranked[3:] if r_.minutes >= TOUGH_MIN][-2:]
+        answer_cards([player_card(r_) for r_ in best3 + tough], link=False, big_size="1.5rem")
 
     # ---- who guarded whom
     mu = R.matchups_for_game(data.matchups, gid, "LAC", opp_lines) if len(data.matchups) else pd.DataFrame()
@@ -641,6 +645,9 @@ def page_replay() -> None:
     with st.expander("Every Clippers turnover in this game"):
         st.dataframe(with_photos(D.game_turnovers(data.turnovers, gid), "player"), hide_index=True, width="stretch",
                      column_config=PHOTO_COL)
+    final_ = int(row["final_margin"])
+    next_step(ctx.pages["answer"], f"{'Won' if final_ > 0 else 'Lost'} by {abs(final_)}. Why the second half keeps "
+                                   "deciding Clippers games, across the whole season:")
     fill_toc(nav_)
 
 
@@ -675,14 +682,7 @@ def _card_style(team_hex: str) -> str:
     return f"--tc:{top};--td:{deep};--ink:{ink}"
 
 
-def _box_rows(rows) -> str:
-    """Everyone between the best and toughest nights, as one compact box-score table."""
-    head = "".join(f"<th>{h}</th>" for h in ("", "Game Score", "Min", "Pts", "Reb", "Ast", "TO", "FG", "+/-"))
-    body = "".join(
-        f"<tr><td class='nm'>{r.player_name}</td><td><b>{r.game_score:.1f}</b></td><td>{r.minutes:.0f}</td>"
-        f"<td>{int(r.pts)}</td><td>{int(r.reb)}</td><td>{int(r.ast)}</td><td>{int(r.tov)}</td>"
-        f"<td>{int(r.fgm)}/{int(r.fga)}</td><td>{signed(r.plus_minus, 0)}</td></tr>" for r in rows)
-    return f'<table class="box-rest"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
+TOUGH_MIN = 12  # minutes before a night can be called one of the toughest
 
 
 def _out_row(name: str, player_id, status: str, reason: str, note: str, right: str = "") -> str:
