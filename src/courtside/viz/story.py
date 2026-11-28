@@ -545,6 +545,17 @@ def game_cards(row: pd.Series, halves: pd.DataFrame, turnovers: pd.DataFrame, fo
     ]
 
 
+MIN_PLAYS = 50  # plays in each half before a player gets a sloppier/safer call (about five games for a starter)
+
+
+def enough_plays(ph: pd.DataFrame) -> set[str]:
+    """Players with MIN_PLAYS+ plays in both halves: under that, one bad night swings the rate by points."""
+    if "plays" not in ph:
+        return set(ph["player_name"])
+    low = ph.groupby("player_name")["plays"].min()
+    return set(low[low >= MIN_PLAYS].index)
+
+
 def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
     """Who loses the ball most after halftime, who falls off most, and who is safest."""
     h2 = ph[ph["split"] == "H2"]
@@ -557,8 +568,12 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
                        f"{most['play_share']:.0%} of its plays.", "bad", "who",
                        ("pair", most["play_share"], most["tov_share"], "plays", "turnovers")))
     w = ph.pivot(index="player_name", columns="split", values="tov_pct")
+    jump = pd.Series(dtype=float)
     if {"H1", "H2"} <= set(w.columns):
-        jump = (w["H2"] - w["H1"]).sort_values()
+        # the same bar as "safest": a regular ball-handler with enough plays, not a 2%-of-plays bench call
+        busy = set(h2.loc[h2["play_share"] >= 0.08, "player_name"]) & enough_plays(ph)
+        jump = (w["H2"] - w["H1"])[w.index.isin(busy)].sort_values()
+    if len(jump) and jump.iloc[-1] >= 0.02:  # a "sloppiest" who got safer, or barely moved, is no answer
         name = jump.index[-1]
         out.append(Verdict(f"Sloppiest after halftime: {short(name)}",
                            f"{w.loc[name, 'H1']:.0%} → {w.loc[name, 'H2']:.0%}",

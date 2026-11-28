@@ -143,6 +143,7 @@ h1, .hero {color: #13213f}
 .hc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; display: block; line-height: 1}
 .hc-stats span {font-size: .8rem; opacity: .7; line-height: 1.2; display: block; margin-top: .2rem}
 .hc-up {color: #b64b20} .hc-down {color: #2e6cb7}
+.hc-n {font-size: .85rem; color: #5c5a55; margin-top: .25rem; font-variant-numeric: tabular-nums}
 /* ---- white panels on the off-white page: every chart and drawing sits on its own card */
 /* the panel goes on the chart's wrapper, so the chart sizes itself to the inside of the panel */
 [data-testid="stElementContainer"]:has(.stPlotlyChart) {background: #ffffff; border-radius: 16px;
