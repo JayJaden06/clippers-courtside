@@ -20,7 +20,7 @@ attrs==26.1.0
     # via
     #   jsonschema
     #   referencing
-certifi==2026.10.23
+certifi==2026.11.20
     # via requests
 charset-normalizer==3.5.3
     # via requests
