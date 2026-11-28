@@ -286,16 +286,18 @@ def page_players() -> None:
         g = D.player_games(data.player_stats, data.game_leads, season_p, player)
         c = S.change_calls(ph).loc[player]
         sure = c["call"] != "Too few plays to tell"
+        dim = "" if sure else "hc-few"  # a small sample dims every number on the card, not just the first two
         # only a change bigger than the normal swing is colored as a finding; a small sample is dimmed
         trend = {"Sloppier": "hc-up", "Safer": "hc-down"}.get(c["call"], "" if sure else "hc-few")
         how = (f'({S.change_words(c)}: {c["call"].lower()})' if sure
                else f'(too few plays to tell: {S.short_half(c)})')
         tov2, plays2 = int(t.loc["H2", "tov"]), int(t.loc["H2", "plays"])
         sample = f"{tov2} turnover{'s' if tov2 != 1 else ''} on {plays2} plays after halftime · {len(g)} game{"s" if len(g) != 1 else ""}"
-        steals = (f'<b>{t.loc["H2", "live_share"]:.0%}</b><span>of his second-half turnovers were steals (live balls '
+        steals = (f'<b class="{dim}">{t.loc["H2", "live_share"]:.0%}</b><span>of his second-half turnovers were steals (live balls '
                   f'that lead to fast breaks)</span>' if tov2 >= 10 else
-                  f'<b>{tov2}</b><span>second-half turnover{"s" if tov2 != 1 else ""}: too few to say how many were '
-                  'steals</span>' if tov2 else '<b>0</b><span>second-half turnovers, so no steals against him</span>')
+                  f'<b class="{dim}">{tov2}</b><span>second-half turnover{"s" if tov2 != 1 else ""}: too few to say how many were '
+                  'steals</span>' if tov2 else
+                  f'<b class="{dim}">0</b><span>second-half turnovers, so no steals against him</span>')
         st.markdown(
             f'<div class="hero-card"><div class="hc-photo"><span class="pc-num">{num}</span>'
             f'<img src="{D.headshot_url(pid_)}" alt=""></div><div class="hc-body">'
@@ -305,7 +307,7 @@ def page_players() -> None:
             f'turnover before halftime</span></div>'
             f'<div><b class="{trend}">{t.loc["H2", "tov_pct"]:.0%}</b><span>after halftime '
             + how + '</span></div>'
-            f'<div><b>{t.loc["H2", "tov_share"]:.0%}</b><span>of the team\'s turnovers after halftime, on '
+            f'<div><b class="{dim}">{t.loc["H2", "tov_share"]:.0%}</b><span>of the team\'s turnovers after halftime, on '
             f'{t.loc["H2", "play_share"]:.0%} of its plays</span></div>'
             f'<div>{steals}</div></div></div></div>', unsafe_allow_html=True)
         show(turnover_bars(g, data.game_leads[data.game_leads["season"] == season_p]), 300, yaxis_title="Turnovers")
