@@ -103,11 +103,13 @@ def next_step(page, blurb: str) -> None:
 
 
 def track(before: float, after: float, lo: float, hi: float, after_color: str) -> str:
-    """A thin before -> after track: gray dot at ``before``, colored dot at ``after``, a line between."""
+    """A thin before -> after track: a hollow ring at ``before``, a filled dot at ``after``, a line between.
+
+    The ring and the dot differ in shape, not just color, so the direction still reads when both are gray."""
     pos = lambda v: max(0.0, min(100.0, 100 * (v - lo) / (hi - lo) if hi > lo else 0.0))  # noqa: E731
     a, b = pos(before), pos(after)
     return (f'<div class="trk"><span class="ln" style="left:{min(a, b):.1f}%;width:{abs(b - a):.1f}%;'
-            f'background:{after_color}"></span><span class="dot" style="left:{a:.1f}%;background:{MUTED_BAR}">'
+            f'background:{after_color}"></span><span class="dot b" style="left:{a:.1f}%;border-color:{MUTED_BAR}">'
             f'</span><span class="dot" style="left:{b:.1f}%;background:{after_color}"></span></div>')
 
 

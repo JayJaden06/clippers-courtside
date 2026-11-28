@@ -161,21 +161,24 @@ def page_players() -> None:
             st.session_state["player_pick"] = names[0]
         xmax, ymax = float(h2["play_share"].max()) * 1.15, float(h2["tov_share"].max()) * 1.15
         lim = min(xmax, ymax)
-        named = set(h2.nlargest(4, "tov_share")["player_name"]) | set(h2.nlargest(2, "play_share")["player_name"])
+        # every face is named; neighbors along the x-axis alternate above and below so close faces don't collide
+        h2 = h2.sort_values("play_share")
+        above = [i % 2 == 1 or y_ < ymax * 0.15 for i, y_ in enumerate(h2["tov_share"])]  # low faces: name above
         fig = go.Figure()
         # above the diagonal = more of the turnovers than of the plays
         fig.add_shape(type="path", path=f"M 0 0 L {lim} {lim} L {lim} {ymax} L 0 {ymax} Z",
                       fillcolor="rgba(217,89,38,0.08)",
                       line_width=0, layer="below")
         fig.add_shape(type="line", x0=0, y0=0, x1=lim, y1=lim, line=dict(color=INK_MARK, width=1.5, dash="dot"))
-        fig.add_annotation(x=lim * 0.97, y=lim * 0.97, text="his fair share", showarrow=False, xanchor="right",
-                           yanchor="bottom", font=dict(size=12, color=INK_MARK), textangle=-38)
+        # level text at the line's end: a fixed tilt only matches the line at one chart width
+        fig.add_annotation(x=lim, y=lim, text="his fair share", showarrow=False, xanchor="right", yanchor="top",
+                           yshift=-6, font=dict(size=12, color=INK_MARK))
         fig.add_annotation(x=xmax * 0.03, y=ymax * 0.96, text="<b>More than his share of turnovers</b>",
                            showarrow=False, xanchor="left", font=dict(size=13, color=BAD))
         fig.add_trace(go.Scatter(
             x=h2["play_share"], y=h2["tov_share"], mode="markers+text", customdata=h2["player_name"],
-            text=[short(n_) if n_ in named else "" for n_ in h2["player_name"]],
-            textposition="bottom center",
+            text=[short(n_) for n_ in h2["player_name"]],
+            textposition=["top center" if up else "bottom center" for up in above],
             textfont=dict(size=12, color=INK_MARK), marker=dict(size=40, opacity=0), showlegend=False,
             hovertemplate="<b>%{customdata}</b><br>%{x:.0%} of the plays after halftime<br>%{y:.0%} of the "
                           "turnovers<extra></extra>"))
@@ -195,7 +198,7 @@ def page_players() -> None:
                    "games.")
 
         section("Who gets sloppier after halftime?", "sloppier",
-                "How often one of his plays ends in a turnover: before halftime (gray dot) and after it. "
+                "How often one of his plays ends in a turnover: before halftime (ring) and after it (dot). "
                 "Biggest rise after halftime first; players with too few plays to tell come last.")
         wl = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2", ascending=False)
         pct = lambda v: f"{v:.0%}"  # noqa: E731  (one unit: "1 in N" rounding made 10% → 12% look like a jump)
