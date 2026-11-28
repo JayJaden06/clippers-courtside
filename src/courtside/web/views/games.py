@@ -391,7 +391,7 @@ def page_replay() -> None:
         tag = S.LEAD_TAG.get(row["lead_class"], "")
         if tag:
             st.badge(tag, color="orange" if row["lead_class"] == "blown_lead" else "blue")
-        st.markdown(f'<div class="story">{S.game_story(row, halves, att)}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="story">{S.game_story(row, halves, att, first_half_clause=False)}</div>', unsafe_allow_html=True)
 
     # ---- the tiles: best, worst, the runs, turnovers
     tiles = []  # the best and toughest nights live in Who played well, ranked, so they aren't repeated here
