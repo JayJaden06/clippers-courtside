@@ -194,8 +194,6 @@ h1, .hero {color: #13213f}
 .slop-row .nm {font-weight: 700}
 .slop-row .vals {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 800; text-align: right}
 .slop-row .vals .b {color: #6b6964; font-weight: 600}
-/* the verdict chips take their color from the data; a dark wash under the white text keeps it 4.5:1+ */
-.slop-row .chip.sm {box-shadow: inset 0 0 0 99px rgba(0, 0, 0, .18)}
 .slop-row .trk {grid-column: 2 / 4; margin: 0}
 .chip.sm {font-size: .7rem; padding: .08rem .45rem; margin-left: .4rem; vertical-align: .1rem}
 /* ---- On this page: section pills that stay under the menu and light up as you scroll */
@@ -339,6 +337,6 @@ h1, .hero {font-weight: 800 !important}
 /* the strip's selected game: its disabled 'Showing' label stays readable */
 .st-key-gcard_sel button:disabled {color: #13213f !important; opacity: 1 !important; font-weight: 650}
 /* captions keep a reading measure too (a footnote ran to ~196 characters a line) */
-[data-testid="stCaptionContainer"] {max-width: 78ch}
+[data-testid="stCaptionContainer"] {max-width: 64ch}  /* "ch" is a digit's width: 64ch is about 75 characters */
 /* reading measure for takeaways and the text inside expanders (detector: ~100 characters a line) */
 .takeaway, [data-testid="stExpanderDetails"] [data-testid="stMarkdownContainer"] p {max-width: 80ch}
