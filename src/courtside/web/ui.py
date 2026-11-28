@@ -170,7 +170,8 @@ def glossary_button() -> None:
             st.markdown(f"**{term}**  \n{text}")
 
 
-def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None = None) -> None:
+def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None = None,
+                 cols: int | None = None) -> None:
     """Short-headline cards with one big number each; with ``link`` a click jumps to the card's section."""
     ctx = current()
     PLAYER_IDS = ctx.player_ids
@@ -197,12 +198,12 @@ def answer_cards(cards: list[W.Verdict], link: bool = True, big_size: str | None
         + f'<div class="v-small">{c.small}</div>' + ("</a>" if link else "</div>")
         for c in cards)
     n = len(cards)
-    cols = n if n <= 5 else min(4, -(-n // 2))  # five in one row, not 3 + 2
+    cols = cols or (n if n <= 5 else min(4, -(-n // 2)))  # five in one row, not 3 + 2
     st.markdown(f'<div class="vcards" style="--cols:{cols}">{html}</div>', unsafe_allow_html=True)
 
 
 TOC_LABELS = {
-    "reasons": "Ranked reasons", "shots": "Where shots stop falling", "theories": "Theories", "changes": "Since last season",
+    "reasons": "Ranked reasons", "shots": "Shot map", "theories": "Theories", "changes": "Since last season",
     "whatif": "What if?", "stats": "Every stat", "minutes": "Minutes", "defense": "Defense & size",
     "returning": "Returning players", "garland": "Ball handling", "more": "More evidence", "runs": "How it played out", "decided": "What decided it",
     "missing": "Who was out", "players": "Who played well", "matchups": "Who guarded whom", "units": "Lineups", "who": "Losing the ball",
