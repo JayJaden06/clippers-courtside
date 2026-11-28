@@ -59,13 +59,26 @@ def _shot_section(tbl: pd.DataFrame, side: str) -> None:
     z = D.shot_zones(tbl, season)
     ch = (z["mean_h2"] - z["mean_h1"]).sort_values()
     who = "Opponents'" if side == "opp" else "Their"
-    moved = ch.index[-1] if side == "opp" else ch.index[0]  # the zone that hurt the Clippers most
+    moved = ch.index[-1] if side == "opp" else ch.index[0]  # the biggest jump in make rate
     steady = ch.abs().idxmin()
+    # what each zone's change is worth: make-rate change x shots a game after halftime x points a make
+    n_g_ = max(tbl["game_id"].nunique(), 1)
+    worth = pd.Series({zn: (r.mean_h2 - r.mean_h1) * r.size_h2 / n_g_ * (3 if zn == "Three" else 2)
+                       for zn, r in z.iterrows()})
+    costly = worth.idxmax() if side == "opp" else worth.idxmin()  # the zone that cost the Clippers the most points
     if abs(ch[moved]) > SHOT_SAME:
-        lead = (f"{who} <b>{SHOTS_SAID[moved]}</b> go from {z.loc[moved, 'mean_h1']:.0%} before halftime to "
-                f"<b>{z.loc[moved, 'mean_h2']:.0%}</b> after")
-        lead += (f"; {SHOTS_SAID[steady]} hold about steady ({z.loc[steady, 'mean_h1']:.0%} → "
-                 f"{z.loc[steady, 'mean_h2']:.0%})." if steady != moved else ".")
+        def said(zn: str) -> str:
+            return (f"<b>{SHOTS_SAID[zn]}</b> go from {z.loc[zn, 'mean_h1']:.0%} before halftime to "
+                    f"<b>{z.loc[zn, 'mean_h2']:.0%}</b> after")
+        if costly != moved and abs(worth[costly]) >= 0.3:
+            lead = (f"{who} {said(costly)}, on {z.loc[costly, 'size_h2'] / n_g_:.1f} shots a game: the biggest "
+                    f"cost, about {abs(worth[costly]):.1f} points a game. The biggest jump is {SHOTS_SAID[moved]} "
+                    f"({z.loc[moved, 'mean_h1']:.0%} → {z.loc[moved, 'mean_h2']:.0%}) on fewer shots "
+                    f"({z.loc[moved, 'size_h2'] / n_g_:.1f} a game).")
+        else:
+            lead = f"{who} {said(moved)}"
+            lead += (f"; {SHOTS_SAID[steady]} hold about steady ({z.loc[steady, 'mean_h1']:.0%} → "
+                     f"{z.loc[steady, 'mean_h2']:.0%})." if steady != moved else ".")
     else:
         lead = f"{who} shooting holds about steady in every zone after halftime."
     st.markdown(f'<div class="takeaway">{lead}</div>', unsafe_allow_html=True)
