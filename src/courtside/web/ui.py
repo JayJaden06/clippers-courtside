@@ -273,8 +273,12 @@ def fill_toc(slot) -> None:
               if (!h || !box) return;
               e.preventDefault(); e.stopPropagation();
               const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              // where the bar will sit once pinned, not where it is now: clicked near the top, it hasn't pinned yet
               const n = document.querySelector('nav.toc');
-              const bar = n ? (n.closest('.st-key-gamebar') || n).getBoundingClientRect().bottom : 120;
+              let s = n && (n.closest('.st-key-gamebar') || n);
+              while (s && getComputedStyle(s).position !== 'sticky') s = s.parentElement;
+              const bar = s ? parseFloat(getComputedStyle(s).top) + s.offsetHeight
+                : n ? (n.closest('.st-key-gamebar') || n).getBoundingClientRect().bottom : 120;
               box.scrollBy({top: h.getBoundingClientRect().top - bar - 12, behavior: calm ? 'auto' : 'smooth'});
             }, true);
             window.__tocBound = true;
