@@ -71,7 +71,7 @@ def _shot_section(tbl: pd.DataFrame, side: str) -> None:
     n_g = max(tbl["game_id"].nunique(), 1)
     map_col, zone_col = st.columns([2.35, 1], gap="medium", vertical_alignment="center")
     with map_col:
-        picture(G.shot_map(pts("H1"), pts("H2"), zones))
+        picture(G.shot_map(pts("H1"), pts("H2"), zones, higher_is_better=side != "opp"))
     # for opponents, a higher make rate is worse for the Clippers
     zone_col.markdown(compare_panel("Zone by zone", [
         (zn, f"{r.mean_h1:.0%}", f"{r.mean_h2:.0%}", r.mean_h1, r.mean_h2, side != "opp", 0.2, 0.75,
