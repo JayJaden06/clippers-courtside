@@ -235,6 +235,8 @@ def page_replay() -> None:
     focus_last = ctx.focus_last
     season_now = ctx.season_now
     settings = ctx.settings
+    full_intro = not st.session_state.get("intro_hidden") and (
+        not st.session_state.get("intro_seen") or bool(st.session_state.get("intro_full")))
     if not st.session_state.get("intro_hidden"):
         if st.session_state.get("intro_seen") and not st.session_state.get("intro_full"):
             _intro_line()  # once you're exploring, the welcome shrinks to one line
@@ -283,7 +285,8 @@ def page_replay() -> None:
         st.session_state[pick_key] = labels[n_past - 1] if n_past else labels[0]
     # the Next up banner, unless that game's plan is already the one open below it
     next_label = labels[n_past] if len(labels) > n_past else None
-    if season == season_now and st.session_state[pick_key] != next_label:
+    # the big banner greets a first view; after that the next game is the marked card in the strip below
+    if season == season_now and full_intro and st.session_state[pick_key] != next_label:
         next_up(banner, up, previews, teams, shooting)
 
     # ---- the game picker: pinned to the top of the page while scrolling
@@ -313,7 +316,9 @@ def page_replay() -> None:
                         f'alt="Clippers"><img class="opp" src="{D.logo_url(e["opp_id"], dark=not D.is_light(oc))}" '
                         f'alt="{e["opp"]}"></div>', unsafe_allow_html=True)
             color = GOOD if e["won"] else BAD if e["won"] is False else INK_MARK
-            st.markdown(f'<div class="gc"><div class="gc-date">{e["date"]:%a %b} {e["date"].day}</div>'
+            is_next = e["kind"] == "future" and e["idx"] == 0 and season == season_now
+            st.markdown('<div class="gc">' + ('<div class="gc-next">Next up</div>' if is_next else "")
+                        + f'<div class="gc-date">{e["date"]:%a %b} {e["date"].day}</div>'
                         f'<div class="gc-opp">{"vs" if e["home"] else "@"} {e["opp"]}</div>'
                         f'<div class="gc-status" style="color:{text_tone(color)}">{e["status"]}</div></div>',
                         unsafe_allow_html=True)
@@ -888,13 +893,11 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
         picture(G.odds_bar("LAC", pv.opponent, pv.chance, pv.margin, team_logo=D.logo_url(tid, dark=False),
                            opp_logo=D.logo_url(opp_id, dark=False)), max_width="900px")
         st.markdown(f'<div class="odds-note">The forecast: <b>{pv.chance:.0%}</b>. Models this simple pick about two '
-                    "in three NBA games right."
-                    + (f' With the {len(chosen)} key{"s" if len(chosen) != 1 else ""} switched on below: '
-                       f'<b>{chance:.0%}</b> (a what-if).' if chosen else "") + "</div>"
+                    "in three NBA games right.</div>"
                     + (f'<div class="odds-note">Injuries: {abs(pv.injury_edge):.1f} points in '
                        f'{"the Clippers&#39;" if pv.injury_edge > 0 else pv.opponent + "&#39;s"} favor, already '
                        f'included (both at full strength: {P.win_chance(pv.margin - pv.injury_edge):.0%}). '
-                       '<a href="#out">Who&#39;s out</a></div>' if abs(pv.injury_edge) >= 0.05 else ""),
+                       '<a href="#out">Who&#39;s out</a></div>' if abs(pv.injury_edge) >= 0.5 else ""),  # under half a point is noise
                     unsafe_allow_html=True)
         answer_cards(tiles, link=False)
 

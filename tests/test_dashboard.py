@@ -303,7 +303,7 @@ def test_switching_on_a_key_updates_the_win_chance_beside_the_keys(data):
     assert not at.exception
     assert "(1 key," in live() and "what-if" in live() and "→" in live()
     # the bar's forecast doesn't move with the keys; the what-if is labeled as one
-    assert note().split("<b>")[1].split("</b>")[0] == forecast and "(a what-if)" in note()
+    assert note().split("<b>")[1].split("</b>")[0] == forecast and "what-if" not in note()  # the what-if lives beside the keys only
     next(b for b in at.button if b.label == "Reset keys").click().run()
     assert not at.exception
     assert "switch on a key" in live()

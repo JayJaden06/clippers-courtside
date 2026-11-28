@@ -232,6 +232,7 @@ nav.toc a:active, .jump a:active, [data-testid^="stBaseButton"]:active, [data-te
 }
 [data-testid="stElementContainer"]:has(.cs-mark) {display: none}
 .gc-date {font-size: .78rem; opacity: .7}
+.gc-next {display: inline-block; font-size: .7rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: #ffffff; background: #1d428a; border-radius: 999px; padding: .08rem .5rem; margin-bottom: .2rem}
 .gc-opp {font-weight: 750; font-size: 1.02rem}
 .gc-status {font-weight: 700; font-size: .9rem}
 .ledger-sum {font-size: 1.25rem; margin: .2rem 0 .8rem 0}
