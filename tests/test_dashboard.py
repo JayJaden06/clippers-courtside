@@ -79,9 +79,13 @@ def _app(page: str):
 
 def test_answer_page_runs_and_what_if_toggles_work():
     at = _app("answer")
-    for key in ("fix_shooting", "fix_garland"):
-        at.toggle(key=key).set_value(True).run()
-        assert not at.exception, (key, at.exception[0].value)
+    # which parts get a switch follows the data (only what costs more than last season), so use whatever is there
+    keys = [t.key for t in at.toggle if t.key and t.key.startswith("fix_")]
+    assert "fix_garland" in keys
+    for key in keys:
+        if not at.toggle(key=key).disabled:
+            at.toggle(key=key).set_value(True).run()
+            assert not at.exception, (key, at.exception[0].value)
     assert any(m.label == "Second halves, per game" for m in at.metric)
     assert "Is it The Wall?" in [s.value for s in at.subheader]
 
