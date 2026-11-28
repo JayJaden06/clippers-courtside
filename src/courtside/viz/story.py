@@ -286,16 +286,25 @@ def _status(cur: float, prev: float) -> str:
 def _detail(factor: str, h: pd.DataFrame, n_games: int) -> str:
     a, b = h.loc["H1"], h.loc["H2"]
     if factor == "shooting":
-        return (f"Shooting accuracy falls from {a['efg_pct']:.1%} before halftime to {b['efg_pct']:.1%} after; "
-                f"3-point shooting from {a['fg3_pct']:.1%} to {b['fg3_pct']:.1%}.")
+        return (f"Shooting accuracy {_moves(a['efg_pct'], b['efg_pct'])} from {a['efg_pct']:.1%} before halftime "
+                f"to {b['efg_pct']:.1%} after; 3-point shooting {_moves(a['fg3_pct'], b['fg3_pct'])} from "
+                f"{a['fg3_pct']:.1%} to {b['fg3_pct']:.1%}.")
     if factor == "opp_shooting":
-        return f"Opponents' shooting accuracy goes from {a['opp_efg_pct']:.1%} to {b['opp_efg_pct']:.1%}."
+        return (f"Opponents' shooting accuracy {_moves(a['opp_efg_pct'], b['opp_efg_pct'])} from "
+                f"{a['opp_efg_pct']:.1%} before halftime to {b['opp_efg_pct']:.1%} after.")
     if factor == "turnovers":
-        return (f"{a['tov_all']:.0f} turnovers before halftime and {b['tov_all']:.0f} after, but opponents scored "
+        more = b["tov_all"] > a["tov_all"] * 1.1  # "but" only when the count itself didn't rise
+        return (f"{a['tov_all']:.0f} turnovers before halftime and {b['tov_all']:.0f} after, "
+                f"{'and' if more else 'but'} opponents scored "
                 f"{a['opp_pts_off_tov']:.0f} points off them before and {b['opp_pts_off_tov']:.0f} after.")
     if factor == "rebounding":
-        return (f"Opponents grab {a['opp_oreb_pct']:.0%} of their own misses before halftime and "
-                f"{b['opp_oreb_pct']:.0%} after, so they get more second chances.")
+        # both sides of the boards, and what the change means, from the numbers rather than a fixed ending
+        mine, theirs = b["oreb_pct"] - a["oreb_pct"], b["opp_oreb_pct"] - a["opp_oreb_pct"]
+        net = mine - theirs
+        verdict = ("more second chances for the Clippers than for them" if net > 0.01 else
+                   "more second chances for opponents" if net < -0.01 else "about the same second chances as before")
+        return (f"The Clippers grab {a['oreb_pct']:.0%} of their own misses before halftime and {b['oreb_pct']:.0%} "
+                f"after; opponents {a['opp_oreb_pct']:.0%} and {b['opp_oreb_pct']:.0%}. That's {verdict}.")
     if factor == "free_throws":
         return (f"Free throws per shot before halftime → after: Clippers {a['ft_rate']:.2f} → {b['ft_rate']:.2f}, "
                 f"opponents {a['opp_ft_rate']:.2f} → {b['opp_ft_rate']:.2f}.")
