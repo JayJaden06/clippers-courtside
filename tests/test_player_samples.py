@@ -27,7 +27,7 @@ def test_enough_plays_needs_the_minimum_in_both_halves():
 
 
 def test_sloppiest_skips_a_tiny_sample_with_a_bigger_jump():
-    ph = _ph([("A Guard", 120, .10, .14, .3), ("B Bench", 20, .05, .40, .1), ("C Role", 150, .02, .03, .02)])
+    ph = _ph([("A Guard", 600, .10, .16, .3), ("B Bench", 20, .05, .40, .1), ("C Role", 150, .02, .03, .02)])
     titles = [c.title for c in S.player_cards(ph, "A Guard")]
     assert "Sloppiest after halftime: Guard" in titles
     assert not any("Bench" in t or "Role" in t for t in titles if t.startswith("Sloppiest"))
