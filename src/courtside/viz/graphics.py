@@ -262,19 +262,19 @@ def shot_map(before: list[tuple[int, int, bool]], after: list[tuple[int, int, bo
             # blue when the change helps the Clippers: for opponents' shots a rise is bad news
             sub_color = ((c.good if (change > 0) == higher_is_better else c.bad) if i and abs(change) >= 0.005
                          else c.ink)
-            g += [f'<rect x="{zx - 78}" y="{zy - 30}" width="156" height="56" rx="10" fill="{c.floor}" '
+            g += [f'<rect x="{zx - 98}" y="{zy - 31}" width="196" height="62" rx="10" fill="{c.floor}" '
                   'fill-opacity="0.88"/>',
                   _text(zx, zy + 2, f"{pct:.0%}", 30, c.ink, 800),
-                  _text(zx, zy + 21, sub, 18, sub_color, 700)]  # 18: readable when the map scales down
+                  _text(zx, zy + 23, sub, 22, sub_color, 700)]  # 22: about 11px when the map shrinks to half at 1024
         body.append(f'<g transform="translate({ox},{80 + 52.5})">{"".join(g)}</g>')
     legend_y = 80 + 470 + 34
     # made: gray before halftime, orange after (as on the courts); missed: a ring
     body += [f'<circle cx="300" cy="{legend_y - 6}" r="6.5" fill="{c.muted}"/>',
              f'<circle cx="317" cy="{legend_y - 6}" r="6.5" fill="{c.focus}"/>',
-             _text(331, legend_y, "made", 20, c.muted, anchor="start"),
+             _text(331, legend_y, "made", 22, c.muted, anchor="start"),
              f'<circle cx="420" cy="{legend_y - 6}" r="5" fill="none" stroke="{c.muted}" stroke-width="1.6"/>',
-             _text(434, legend_y, "missed", 20, c.muted, anchor="start"),
-             _text(540, legend_y, "▼ ▲ = change in percentage points after halftime", 20, c.muted,
+             _text(434, legend_y, "missed", 22, c.muted, anchor="start"),
+             _text(540, legend_y, "▼ ▲ = change in percentage points after halftime", 22, c.muted,
                    anchor="start")]
     return _svg(1060, legend_y + 14, "".join(body),
                 "Clippers shots on two half courts, before and after halftime, with the shooting percentage "
