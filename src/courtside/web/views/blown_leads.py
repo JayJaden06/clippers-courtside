@@ -147,9 +147,6 @@ def page_answer() -> None:
                  f'opponents score {h_.loc["H1", "opp_pts_off_tov"] / n_g:.1f} → '
                  f'{h_.loc["H2", "opp_pts_off_tov"] / n_g:.1f} a game off them'),
             ]), unsafe_allow_html=True)
-            # The court above already shows the half-by-half margin, and section 3 lists what's new.
-            answer_cards([c_ for c_ in S.answer_page_cards(hl, reasons, res, season_prev)
-                          if not c_.title.startswith(("Fine before", "New problems"))])
 
     hurts = [r for r in reasons if r.per_game < 0]
     helps = [r for r in reasons if r.per_game >= 0]
@@ -159,16 +156,6 @@ def page_answer() -> None:
         with st.expander("Read the 60-second version as text"):
             st.markdown("\n".join(f"- {line}" for line in S.sixty_seconds(reasons, res, hl, season_prev)),
                         unsafe_allow_html=True)
-        b1, b2, b3 = st.columns(3)
-        worst = S.worst_collapse(data.game_leads, season_now)
-        if worst is not None and b1.button(f"Watch the worst collapse ({worst['label']})", icon=":material/play_arrow:",
-                                            type="primary", width="stretch"):
-            st.session_state["jump_game"] = worst["game_id"]
-            st.switch_page(PAGE_REPLAY)
-        if b2.button("What needs to happen now →", icon=":material/checklist:", width="stretch"):
-            st.switch_page(PAGE_WHATNOW)
-        if b3.button("Compare with all 30 teams →", icon=":material/leaderboard:", width="stretch"):
-            st.switch_page(PAGE_LEAGUE)
     nav_ = toc_slot("answer")
 
     # ---------------------------------------------------------- 1. ranked reasons (costs and helps)
@@ -208,10 +195,10 @@ def page_answer() -> None:
             st.caption(f"The ones right of zero hide part of the drop: without them, second halves would be "
                        f"{signed(hl['h2_per_game'] - total_help)} a game instead of {signed(hl['h2_per_game'])}.")
         with st.expander("Details for each reason"):
-            for i, r in enumerate(ordered, 1):
+            for label, r in zip(names, ordered):  # the same numbering as the chart: noise isn't ranked
                 verb = f"costs **{-r.per_game:.1f} points a game**" if r.per_game < 0 else \
                     f"gains **{r.per_game:.1f} points a game**"
-                st.markdown(f"**{i}. {r.name}** {verb} after halftime. {r.detail} "
+                st.markdown(f"**{label}** {verb} after halftime. {r.detail} "
                             f"Last season: {signed(r.prev_per_game)} a game.")
                 st.badge(r.status, color=STATUS_BADGE[r.status])
             if att_now is not None:
@@ -400,6 +387,18 @@ def page_answer() -> None:
     st.caption("Data: stats.nba.com via the open-source nba_api package; not affiliated with the NBA or the Clippers. "
                "[The full method and findings](https://github.com/JayJaden06/clippers-courtside/blob/main/reports/"
                "findings.md), rewritten after every game.")
+    if hl and reasons:  # the ways on, once the argument has been made
+        st.markdown('<div class="takeaway"><b>Where to go from here</b></div>', unsafe_allow_html=True)
+        b1, b2, b3 = st.columns(3)
+        worst = S.worst_collapse(data.game_leads, season_now)
+        if worst is not None and b1.button(f"Watch the worst collapse ({worst['label']})", icon=":material/play_arrow:",
+                                            type="primary", width="stretch"):
+            st.session_state["jump_game"] = worst["game_id"]
+            st.switch_page(PAGE_REPLAY)
+        if b2.button("What needs to happen now →", icon=":material/checklist:", width="stretch"):
+            st.switch_page(PAGE_WHATNOW)
+        if b3.button("Compare with all 30 teams →", icon=":material/leaderboard:", width="stretch"):
+            st.switch_page(PAGE_LEAGUE)
     fill_toc(nav_)
     if top == "turnovers":
         next_step(PAGE_PLAYERS, "Who is losing the ball after halftime, player by player.")
