@@ -842,9 +842,11 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,201950,Jrue Holiday,POR,36.0,76,220.0,2009,False
 2026-27,1630577,Julian Champagnie,SAS,25.0,79,217.0,Undrafted,False
 2026-27,1642882,Julian Reese,NOP,23.0,83,230.0,Undrafted,False
+2026-27,1631124,Julian Strawther,DEN,24.0,78,205.0,2023,False
 2026-27,203944,Julius Randle,BKN,31.0,81,256.0,2014,False
 2026-27,1630551,Justin Champagnie,WAS,25.0,78,206.0,Undrafted,False
 2026-27,1642348,Justin Edwards,PHI,22.0,79,217.0,Undrafted,False
+2026-27,203994,Jusuf Nurkić,UTA,32.0,84,290.0,2014,False
 2026-27,1643510,Karim López,MEM,19.0,80,210.0,2026,True
 2026-27,1626157,Karl-Anthony Towns,NYK,31.0,84,248.0,2015,False
 2026-27,1631255,Karlo Matković,NOP,25.0,83,255.0,2022,False
@@ -885,7 +887,7 @@ season,player_id,player_name,team_abbreviation,age,height_in,weight_lb,draft_yea
 2026-27,1629013,Landry Shamet,NYK,29.0,77,190.0,2018,False
 2026-27,1626204,Larry Nance Jr.,IND,33.0,80,245.0,2015,False
 2026-27,1628374,Lauri Markkanen,UTA,29.0,85,240.0,2017,False
-2026-27,1643133,Lawson Lovering,LAL,23.0,84,235.0,Undrafted,False
+2026-27,1643133,Lawson Lovering,MEM,23.0,84,235.0,Undrafted,False
 2026-27,2544,LeBron James,PHI,41.0,81,250.0,2003,False
 2026-27,1641778,Leaky Black,SAC,27.0,79,209.0,Undrafted,False
 2026-27,1631159,Leonard Miller,CHI,23.0,82,220.0,2023,False
