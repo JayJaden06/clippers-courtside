@@ -29,4 +29,4 @@ def test_players_page_has_no_one_in_n_numbers():
     html = " ".join(m.value for m in at.markdown)
     # "1 in N" survives only as the small "about 1 in N" gloss
     assert not re.search(r"(?<!about )\b1 in \d+", re.sub(r"<[^>]+>", " ", html))
-    assert "<span>plays ends" not in html and "of his plays end in a turnover</span>" in html
+    assert "<span>plays ends" not in html and "of his plays end in a turnover, before → after halftime</span>" in html

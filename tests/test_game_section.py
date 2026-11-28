@@ -19,7 +19,9 @@ def test_bars_mark_missed_and_clean_games():
     g = pd.DataFrame({"game_id": ["a", "c"], "tov_h1": [2, 0], "tov_h2": [1, 0]})
     fig = P.turnover_bars(g, team)
     words = {t.text: list(t.x) for t in fig.data if t.type == "scatter"}
-    assert words == {"out": ["Nov 3 NOP"], "0": ["Nov 5 UTA"]}
+    assert words == {"out": ["Nov 3 NOP"]}
+    bars = [t for t in fig.data if t.type == "bar"]
+    assert [list(b.text) for b in bars] == [["", "", "0"], ["", "", "0"]]  # a half with no turnovers says 0
     assert fig.layout.yaxis.dtick == 1
 
 
