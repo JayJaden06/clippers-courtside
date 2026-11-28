@@ -644,12 +644,17 @@ def page_replay() -> None:
     fill_toc(nav_)
 
 
-TAPE = [  # (label, column, higher is better)
-    ("Overall (net rating)", "net", True), ("Scoring (per 100)", "ortg", True), ("Defense (allowed per 100)", "drtg", False),
-    ("Shooting accuracy", "efg", True), ("Opponents' shooting", "opp_efg", False),
-    ("Ball security", "tov_pct", False), ("Forcing turnovers", "opp_tov_pct", True),
-    ("Offensive rebounding", "oreb_pct", True), ("Defensive rebounding", "opp_oreb_pct", False),
-    ("Getting to the line", "ft_rate", True),
+TAPE = [  # the matchup, row by row: (label, the Clippers' stat, the opponent's stat it runs into); ranks, 1st = best
+    ("Overall (net rating)", "net", "net"),
+    ("Clippers scoring vs their defense", "ortg", "drtg"),
+    ("Clippers defense vs their scoring", "drtg", "ortg"),
+    ("Clippers shooting vs their shooting defense", "efg", "opp_efg"),
+    ("Clippers shooting defense vs their shooting", "opp_efg", "efg"),
+    ("Clippers ball security vs their pressure", "tov_pct", "opp_tov_pct"),
+    ("Clippers pressure vs their ball security", "opp_tov_pct", "tov_pct"),
+    ("Clippers offensive boards vs their defensive boards", "oreb_pct", "opp_oreb_pct"),
+    ("Clippers defensive boards vs their offensive boards", "opp_oreb_pct", "oreb_pct"),
+    ("Clippers free throws vs their fouling", "ft_rate", "opp_ft_rate"),
 ]
 
 
@@ -952,22 +957,25 @@ def _game_plan(game: pd.Series, pv, teams: pd.DataFrame, shooting: float | None)
             st.caption(f"{pv.opponent}'s 6'6\"-6'10\" rotation players: {', '.join(longs)}.")
 
     # ---- tale of the tape
-    section("Tale of the tape", "tape", "League rank on each part of the game (1st = best). Further right is better.")
+    section("Tale of the tape", "tape", "Each Clippers strength against the part of their game it runs into, as "
+            "league ranks (1st = best). Further right is better; the gap shows who has the edge.")
     fig = go.Figure()
     labels = [x[0] for x in TAPE]
-    for name, row_, color, where in (("LAC", lac, CLIPPERS, "top center"), (pv.opponent, opp, LIGHT, "bottom center")):
+    for name, row_, color, where, pick in (("LAC", lac, CLIPPERS, "top center", 1),
+                                           (pv.opponent, opp, LIGHT, "bottom center", 2)):
+        cols_ = [t[pick] for t in TAPE]
         fig.add_trace(go.Scatter(
-            x=[row_[f"{c}_rank"] for _, c, _ in TAPE], y=labels, mode="markers+text", name=name,
-            text=[P._ord(row_[f"{c}_rank"]) for _, c, _ in TAPE], textposition=where,
+            x=[row_[f"{c}_rank"] for c in cols_], y=labels, mode="markers+text", name=name,
+            text=[P._ord(row_[f"{c}_rank"]) for c in cols_], textposition=where,
             marker=dict(color=color, size=14, line=dict(color=BG, width=1.5)),
             hovertemplate="%{y}: %{text}<extra>" + name + "</extra>"))
-    for lab, c, _ in TAPE:
-        fig.add_shape(type="line", x0=lac[f"{c}_rank"], x1=opp[f"{c}_rank"], y0=lab, y1=lab,
+    for lab, c, oc in TAPE:
+        fig.add_shape(type="line", x0=lac[f"{c}_rank"], x1=opp[f"{oc}_rank"], y0=lab, y1=lab,
                       line=dict(color=LIGHT, width=3), layer="below")
     fig.update_xaxes(range=[31, 0], tickvals=[30, 20, 10, 1], ticktext=["30th", "20th", "10th", "1st"],
                      title="League rank this season")
     fig.update_yaxes(autorange="reversed")
-    show(fig, 90 + 40 * len(TAPE))
+    show(fig, 90 + 58 * len(TAPE))  # room above and below each row, so the two rank labels never touch
 
     with st.expander("How the odds and the game plan are worked out"):
         st.markdown(
