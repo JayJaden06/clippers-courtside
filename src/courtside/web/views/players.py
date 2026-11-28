@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+from html import escape
+from urllib.parse import urlencode
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -13,6 +16,25 @@ from courtside.viz import story as S
 from courtside.web.context import current
 from courtside.web.theme import BAD, GOOD, H1C, H2C, INK_MARK, MUTED_BAR
 from courtside.web.ui import answer_cards, clicked, face, fill_toc, next_step, page_top, section, show, toc_slot, track
+
+
+def card_link(name: str, season: str) -> str:
+    """A link laid over the whole card: it reopens the page on this player's games (the card stays a card)."""
+    href = escape("?" + urlencode({"pick": name, "season": season}))
+    return f'<a class="pc-link" href="{href}" target="_self" aria-label="See {escape(name)}&#39;s games"></a>'
+
+
+def opened_from_card(seasons: list[str]) -> None:
+    """A card click lands here once: pick the season and player it named, then clear the address bar."""
+    qp = st.query_params
+    if "pick" not in qp:
+        return
+    if qp.get("season") in seasons:
+        st.session_state["player_season"] = qp["season"]
+    st.session_state["player_pick"] = qp["pick"]
+    st.session_state["player_jump"] = True
+    del qp["pick"]
+    qp.pop("season", None)
 
 
 def player_cards(ph: pd.DataFrame, season: str) -> None:
@@ -30,7 +52,8 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
         pos = info["position"] if info is not None else ""
         every = f"1 in {round(1 / r.tov_pct)}" if r.tov_pct else "none"
         cards.append(
-            f'<div class="pcard" title="{r.player_name}"><div class="pc-top"><span class="pc-num">{num}</span>'
+            f'<div class="pcard" title="{r.player_name}">{card_link(r.player_name, season)}'
+            f'<div class="pc-top"><span class="pc-num">{num}</span>'
             f'<span class="pc-pos">{pos}</span><img src="{D.headshot_url(int(r.player_id))}" alt="" loading="lazy">'
             f'</div><div class="pc-body"><div class="pc-name">{r.player_name}</div><div class="pc-stats">'
             f'<div><b>{r.play_share:.0%}</b><span>of the plays after halftime</span></div>'
@@ -43,11 +66,12 @@ def page_players() -> None:
     data = ctx.data
     focus = ctx.focus
     season_now = ctx.season_now
+    opened_from_card(data.seasons)
     PAGE_LEAGUE = ctx.pages["league"]
     page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.")
     nav_ = toc_slot("players")
     band = st.container(key="band_navy_players")  # the season picker and the key cards share the navy band
-    season_p = band.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="player_season")
+    season_p = band.columns([1, 5])[0].selectbox("Season", data.seasons, key="player_season")
     ph = D.player_halves(data.player_stats, season_p)
     if ph.empty:
         band.info("No players with enough minutes in both halves yet.")
@@ -125,6 +149,9 @@ def page_players() -> None:
                    f"Too few plays to tell = under {S.MIN_PLAYS} plays in a half.")
 
         section("One player, game by game", "one")
+        if st.session_state.pop("player_jump", False):  # opened from a card: bring his games into view
+            st.html("<script>setTimeout(() => document.getElementById('one')?.scrollIntoView({block: 'start'}), 400)"
+                    "</script>", unsafe_allow_javascript=True)
         player = st.selectbox("Player", names, key="player_pick")
         t = ph[ph["player_name"] == player].set_index("split")
         pid_ = int(t["player_id"].iloc[0])
