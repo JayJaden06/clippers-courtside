@@ -20,3 +20,13 @@ def test_kicker_follows_the_picked_season_and_table_is_readable():
     assert f"· {old} season ·" in " ".join(m.value for m in at.markdown)
     cols = list(at.dataframe[0].value.columns)
     assert "Date" in cols and not any("_" in c for c in cols)
+
+
+def test_game_table_for_every_player():
+    testing = pytest.importorskip("streamlit.testing.v1")
+    at = testing.AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=120)
+    at.session_state["_dashboard_page"] = "players"
+    at.run()
+    for name in at.selectbox(key="player_pick").options:  # some sat out a half of a game: blanks, not a crash
+        at.selectbox(key="player_pick").set_value(name).run()
+        assert not at.exception, name

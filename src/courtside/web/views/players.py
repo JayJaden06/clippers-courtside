@@ -41,18 +41,21 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
 def game_table(g: pd.DataFrame) -> pd.DataFrame:
     """The game-by-game table in words: dates, results, and halves side by side, rates as percents."""
     when = pd.to_datetime(g["game_date"])
+    # a half he sat out is blank, not "nan": count columns stay whole numbers that allow a gap
+    whole = lambda c: g[c].round().astype("Int64")  # noqa: E731
+    pct = lambda c: g[c].map(lambda v: "" if pd.isna(v) else f"{v:.0%}")  # noqa: E731
     return pd.DataFrame({
         "Date": when.dt.strftime("%b ") + when.dt.day.astype(str),
         "Opponent": g["opponent_abbreviation"],
         "Result": g["result"] + " " + g["final_margin"].map(lambda m: f"{m:+d}".replace("-", "−")),
         "Early lead": g["lead_class"],
-        "Minutes, 1st half": g["minutes_h1"].round().astype(int),
-        "Minutes, 2nd half": g["minutes_h2"].round().astype(int),
-        "Turnovers, 1st half": g["tov_h1"],
-        "Turnovers, 2nd half": g["tov_h2"],
-        "Steals against, 2nd half": g["tov_live_h2"],
-        "Plays ending in a turnover, 1st half": (100 * g["tov_pct_h1"]).round().astype(int).astype(str) + "%",
-        "Plays ending in a turnover, 2nd half": (100 * g["tov_pct_h2"]).round().astype(int).astype(str) + "%",
+        "Minutes, 1st half": whole("minutes_h1"),
+        "Minutes, 2nd half": whole("minutes_h2"),
+        "Turnovers, 1st half": whole("tov_h1"),
+        "Turnovers, 2nd half": whole("tov_h2"),
+        "Steals against, 2nd half": whole("tov_live_h2"),
+        "Plays ending in a turnover, 1st half": pct("tov_pct_h1"),
+        "Plays ending in a turnover, 2nd half": pct("tov_pct_h2"),
     })
 
 
