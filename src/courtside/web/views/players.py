@@ -175,6 +175,62 @@ def turnover_bars(g: pd.DataFrame, team_games: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def label_spots(xs: list[float], ys: list[float], xmax: float, ymax: float,
+                names: list[str] | None = None) -> list[str]:
+    """Where each face's name goes: below, above, right or left of the face, whichever box overlaps the fewest
+    faces, names already placed and the dotted line (greedy, across the chart; ties keep that order).
+
+    Sizes are in shares of the plot: a face is about 0.04 wide by 0.11 tall, a name about 0.04 tall and 0.004
+    wide per letter (a 520px-tall chart on a desktop-width page)."""
+    names = names or ["xxxxxxxx"] * len(xs)
+    face_w, face_h, txt_h = 0.02, 0.055, 0.02  # half sizes
+    offsets = {"bottom center": (0, -(face_h + txt_h + 0.005)), "top center": (0, face_h + txt_h + 0.005),
+               "middle right": (None, 0), "middle left": (None, 0)}
+    faces = [(x / xmax, y / ymax) for x, y in zip(xs, ys)]
+    boxes: list[tuple[float, float, float, float]] = [(fx - face_w, fy - face_h, fx + face_w, fy + face_h)
+                                                      for fx, fy in faces]
+    slope = xmax / ymax  # the dotted line y = x, in shares of each axis
+
+    def hits(b, others) -> int:
+        return sum(not (b[2] < o[0] or b[0] > o[2] or b[3] < o[1] or b[1] > o[3]) for o in others)
+
+    def on_line(b) -> bool:
+        lo, hi = b[0] * slope, b[2] * slope
+        return not (hi < b[1] or lo > b[3])
+
+    out = []
+    for i, ((fx, fy), name) in enumerate(zip(faces, names)):
+        half_w = 0.0042 * len(name) / 2 + 0.004
+        best, best_cost = "top center", float("inf")
+        for k, (dx, dy) in offsets.items():
+            if dx is None:
+                dx = (face_w + half_w + 0.004) * (1 if k == "middle right" else -1)
+            cx, cy = fx + dx, fy + dy
+            b = (cx - half_w, cy - txt_h, cx + half_w, cy + txt_h)
+            others = boxes[:i] + boxes[i + 1:len(faces)] + boxes[len(faces):]
+            cost = hits(b, others) * 2 + on_line(b) + (5 if b[1] < 0 or b[3] > 1 or b[0] < 0 or b[2] > 1 else 0)
+            if cost < best_cost:
+                best, best_cost = k, cost
+        dx, dy = offsets[best]
+        if dx is None:
+            dx = (face_w + half_w + 0.004) * (1 if best == "middle right" else -1)
+        boxes.append((fx + dx - half_w, fy + dy - txt_h, fx + dx + half_w, fy + dy + txt_h))
+        out.append(best)
+    return out
+
+
+def played_note(g: pd.DataFrame, team_games: pd.DataFrame) -> str:
+    """Context when he missed games: "played since Nov 23" if he joined late, else "missed 4 of 18 games"."""
+    team = pd.to_datetime(team_games["game_date"])
+    mine = pd.to_datetime(g["game_date"])
+    if mine.empty or len(mine) >= len(team) - 2:
+        return ""
+    first = mine.min()
+    if (team >= first).sum() == len(mine):  # every game since his first: he came back (or arrived) on that date
+        return f" · played since {first:%b} {first.day}"
+    return f" · missed {len(team) - len(mine)} of {len(team)} games"
+
+
 def page_players() -> None:
     ctx = current()
     data = ctx.data
@@ -207,9 +263,10 @@ def page_players() -> None:
             st.session_state["player_pick"] = fallback
         xmax, ymax = float(h2["play_share"].max()) * 1.15, float(h2["tov_share"].max()) * 1.15
         lim = min(xmax, ymax)
-        # every face is named; neighbors along the x-axis alternate above and below so close faces don't collide
+        # every face is named, each name placed where it clears the faces and names already down
         h2 = h2.sort_values("play_share")
-        above = [i % 2 == 1 or y_ < ymax * 0.15 for i, y_ in enumerate(h2["tov_share"])]  # low faces: name above
+        spots = label_spots(list(h2["play_share"]), list(h2["tov_share"]), xmax, ymax,
+                            [short(n_) for n_ in h2["player_name"]])
         fig = go.Figure()
         # above the diagonal = more of the turnovers than of the plays
         fig.add_shape(type="path", path=f"M 0 0 L {lim} {lim} L {lim} {ymax} L 0 {ymax} Z",
@@ -217,14 +274,14 @@ def page_players() -> None:
                       line_width=0, layer="below")
         fig.add_shape(type="line", x0=0, y0=0, x1=lim, y1=lim, line=dict(color=INK_MARK, width=1.5, dash="dot"))
         # level text at the line's end: a fixed tilt only matches the line at one chart width
-        fig.add_annotation(x=lim, y=lim, text="his fair share", showarrow=False, xanchor="right", yanchor="top",
-                           yshift=-6, font=dict(size=12, color=INK_MARK))
+        fig.add_annotation(x=lim, y=lim, text="his fair share", showarrow=False, xanchor="right", yanchor="bottom",
+                           yshift=8, font=dict(size=12, color=INK_MARK))  # above the line's end, clear of it
         fig.add_annotation(x=xmax * 0.03, y=ymax * 0.96, text="<b>More than his share of turnovers</b>",
                            showarrow=False, xanchor="left", font=dict(size=13, color=BAD))
         fig.add_trace(go.Scatter(
             x=h2["play_share"], y=h2["tov_share"], mode="markers+text", customdata=h2["player_name"],
             text=[short(n_) for n_ in h2["player_name"]],
-            textposition=["top center" if up else "bottom center" for up in above],
+            textposition=spots,
             textfont=dict(size=12, color=INK_MARK), marker=dict(size=40, opacity=0), showlegend=False,
             hovertemplate="<b>%{customdata}</b><br>%{x:.0%} of the plays after halftime<br>%{y:.0%} of the "
                           "turnovers<extra></extra>"))
@@ -282,7 +339,7 @@ def page_players() -> None:
             st.html("<script>setTimeout(() => { const p = document.querySelector('nav.toc a[data-a=\"one\"]'); "
                     "if (p) p.click(); else document.getElementById('one')?.scrollIntoView({block: 'start'}); }, 400)"
                     "</script>", unsafe_allow_javascript=True)
-        player = st.selectbox("Player", names, key="player_pick")
+        player = st.selectbox("Player", names, key="player_pick", width=320)
         if note := st.session_state.pop("player_note", None):
             st.caption(note)
         t = ph[ph["player_name"] == player].set_index("split")
@@ -308,7 +365,8 @@ def page_players() -> None:
         st.markdown(
             f'<div class="hero-card"><div class="hc-photo"><span class="pc-num">{num}</span>'
             f'<img src="{D.headshot_url(pid_)}" alt=""></div><div class="hc-body">'
-            f'<div class="kicker">{info["position"] + " · " if info is not None else ""}after halftime, {season_p}</div>'
+            f'<div class="kicker">{info["position"] + " · " if info is not None else ""}{season_p} season'
+            f'{played_note(g, data.game_leads[data.game_leads["season"] == season_p])}</div>'
             f'<div class="hc-name">{player}</div><div class="hc-n">{sample}</div><div class="hc-stats">'
             f'<div><b class="{"" if sure else "hc-few"}">{t.loc["H1", "tov_pct"]:.0%}</b><span>of his plays end in a '
             f'turnover before halftime</span></div>'
