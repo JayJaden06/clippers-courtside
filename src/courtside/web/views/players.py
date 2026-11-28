@@ -61,6 +61,27 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
     st.markdown(f'<div class="pcards">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
+def game_table(g: pd.DataFrame) -> pd.DataFrame:
+    """The game-by-game table in words: dates, results, and halves side by side, rates as percents."""
+    when = pd.to_datetime(g["game_date"])
+    # a half he sat out is blank, not "nan": count columns stay whole numbers that allow a gap
+    whole = lambda c: g[c].round().astype("Int64")  # noqa: E731
+    pct = lambda c: g[c].map(lambda v: "" if pd.isna(v) else f"{v:.0%}")  # noqa: E731
+    return pd.DataFrame({
+        "Date": when.dt.strftime("%b ") + when.dt.day.astype(str),
+        "Opponent": g["opponent_abbreviation"],
+        "Result": g["result"] + " " + g["final_margin"].map(lambda m: f"{m:+d}".replace("-", "−")),
+        "Early lead": g["lead_class"],
+        "Minutes, 1st half": whole("minutes_h1"),
+        "Minutes, 2nd half": whole("minutes_h2"),
+        "Turnovers, 1st half": whole("tov_h1"),
+        "Turnovers, 2nd half": whole("tov_h2"),
+        "Steals against, 2nd half": whole("tov_live_h2"),
+        "Plays ending in a turnover, 1st half": pct("tov_pct_h1"),
+        "Plays ending in a turnover, 2nd half": pct("tov_pct_h2"),
+    })
+
+
 def page_players() -> None:
     ctx = current()
     data = ctx.data
@@ -68,7 +89,8 @@ def page_players() -> None:
     season_now = ctx.season_now
     opened_from_card(data.seasons)
     PAGE_LEAGUE = ctx.pages["league"]
-    page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.")
+    page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.",
+             season=st.session_state.get("player_season"))  # the line above the title follows the season picked
     nav_ = toc_slot("players")
     band = st.container(key="band_navy_players")  # the season picker and the key cards share the navy band
     season_p = band.columns([1, 5])[0].selectbox("Season", data.seasons, key="player_season")
@@ -190,6 +212,6 @@ def page_players() -> None:
         fig.update_layout(barmode="group", bargap=0.3)
         show(fig, 300, yaxis_title="Turnovers")
         with st.expander("Game-by-game table"):
-            st.dataframe(g.drop(columns=["game_id"]), hide_index=True, width="stretch")
+            st.dataframe(game_table(g), hide_index=True, width="stretch")
     fill_toc(nav_)
     next_step(PAGE_LEAGUE, "Is this normal? How every team changes after halftime.")
