@@ -325,3 +325,5 @@ h1, .hero {font-weight: 800 !important}
 .st-key-gcard_sel button:disabled {color: #13213f !important; opacity: 1 !important; font-weight: 650}
 /* captions keep a reading measure too (a footnote ran to ~196 characters a line) */
 [data-testid="stCaptionContainer"] {max-width: 78ch}
+/* reading measure for takeaways and the text inside expanders (detector: ~100 characters a line) */
+.takeaway, [data-testid="stExpanderDetails"] [data-testid="stMarkdownContainer"] p {max-width: 80ch}
