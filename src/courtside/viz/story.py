@@ -583,8 +583,10 @@ def player_cards(ph: pd.DataFrame, focus: str) -> list[Verdict]:
     if len(regular):
         safe = regular.sort_values("tov_pct").iloc[0]
         last = short(safe["player_name"])
-        out.append(Verdict(f"Safest with the ball: {last}", f"1 in {round(1 / safe['tov_pct'])}" if safe["tov_pct"]
-                           else "0", f"of {last}'s second-half plays ends in a turnover (among regular ball-handlers).",
+        about = f", about 1 in {round(1 / safe['tov_pct'])}" if safe["tov_pct"] else ""
+        out.append(Verdict(f"Safest with the ball: {last}", f"{safe['tov_pct']:.0%}",
+                           f"of {last}'s second-half plays end in a turnover{about} (lowest among regular "
+                           "ball-handlers).",
                            "good", "who",
                            ("dots", 1, min(20, round(1 / safe["tov_pct"]))) if safe["tov_pct"] else None))
     return out

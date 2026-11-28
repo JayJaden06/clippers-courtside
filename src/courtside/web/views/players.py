@@ -50,14 +50,14 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
         info = roster.loc[r.player_id] if r.player_id in roster.index else None
         num = f"#{info['number']}" if info is not None and str(info["number"]).strip() else ""
         pos = info["position"] if info is not None else ""
-        every = f"1 in {round(1 / r.tov_pct)}" if r.tov_pct else "none"
+        rate = f"{r.tov_pct:.0%}"  # the page's one unit for "how often his plays end in a turnover"
         cards.append(
             f'<div class="pcard" title="{r.player_name}">{card_link(r.player_name, season)}'
             f'<div class="pc-top"><span class="pc-num">{num}</span>'
             f'<span class="pc-pos">{pos}</span><img src="{D.headshot_url(int(r.player_id))}" alt="" loading="lazy">'
             f'</div><div class="pc-body"><div class="pc-name">{r.player_name}</div><div class="pc-stats">'
             f'<div><b>{r.play_share:.0%}</b><span>of the plays after halftime</span></div>'
-            f'<div><b>{every}</b><span>plays ends in a turnover</span></div></div></div></div>')
+            f'<div><b>{rate}</b><span>of his plays end in a turnover</span></div></div></div></div>')
     st.markdown(f'<div class="pcards">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
@@ -125,7 +125,7 @@ def page_players() -> None:
                 "How often one of his plays ends in a turnover: before halftime (gray dot) and after it. "
                 "Biggest rise after halftime first; players with too few plays to tell come last.")
         wl = ph.pivot(index="player_name", columns="split", values="tov_pct").sort_values("H2", ascending=False)
-        every = lambda v: f"1 in {round(1 / v)}" if v and v > 0 else "none"  # noqa: E731
+        pct = lambda v: f"{v:.0%}"  # noqa: E731  (one unit: "1 in N" rounding made 10% → 12% look like a jump)
         hi_ = float(wl.to_numpy().max()) * 1.08
         ok_ = S.enough_plays(ph)  # rank by the change itself, the same measure as the "sloppiest" card
         wl = wl.assign(_ok=wl.index.isin(ok_), _d=wl["H2"] - wl["H1"]).sort_values(
@@ -140,8 +140,8 @@ def page_players() -> None:
             rows_.append(
                 f'<div class="slop-row"><img src="{face(n_) or ""}" alt=""><div class="nm">{short(n_)}'
                 f'<span class="chip sm" style="background:{color}">{verdict}</span></div>'
-                f'<div class="vals"><span class="b">{every(r_["H1"])}</span> → '
-                f'<span style="color:{color}">{every(r_["H2"])}</span></div>'
+                f'<div class="vals"><span class="b">{pct(r_["H1"])}</span> → '
+                f'<span style="color:{color}">{pct(r_["H2"])}</span></div>'
                 + track(r_["H1"], r_["H2"], 0, hi_, color) + "</div>")
         st.markdown(f'<div class="slop">{"".join(rows_)}</div>', unsafe_allow_html=True)
         st.caption("Plays = shots, free-throw trips and turnovers. Sloppier or safer = a change of 2+ percentage "
