@@ -15,7 +15,7 @@ from courtside.names import short
 from courtside.viz import dashboard_data as D
 from courtside.viz import story as S
 from courtside.web.context import current
-from courtside.web.theme import BAD, GOOD, H1C, H2C, INK_MARK, MUTED_BAR
+from courtside.web.theme import BAD, GOOD, H1C, INK_MARK, MUTED_BAR
 from courtside.web.ui import answer_cards, clicked, face, fill_toc, next_step, page_top, section, show, toc_slot, track
 
 
@@ -112,7 +112,7 @@ def game_table(g: pd.DataFrame) -> pd.DataFrame:
     when = pd.to_datetime(g["game_date"])
     # a half he sat out is blank, not "nan": count columns stay whole numbers that allow a gap
     whole = lambda c: g[c].round().astype("Int64")  # noqa: E731
-    pct = lambda c: g[c].map(lambda v: "" if pd.isna(v) else f"{v:.0%}")  # noqa: E731
+    pct = lambda c: (100 * g[c]).round()  # noqa: E731  (numbers, so they sort; shown as "12%" by TABLE_FORMAT)
     return pd.DataFrame({
         "Date": when.dt.strftime("%b ") + when.dt.day.astype(str),
         "Opponent": g["opponent_abbreviation"],
@@ -122,10 +122,41 @@ def game_table(g: pd.DataFrame) -> pd.DataFrame:
         "Minutes, 2nd half": whole("minutes_h2"),
         "Turnovers, 1st half": whole("tov_h1"),
         "Turnovers, 2nd half": whole("tov_h2"),
-        "Steals against, 2nd half": whole("tov_live_h2"),
+        "Steals by the other team, 2nd half": whole("tov_live_h2"),
         "Plays ending in a turnover, 1st half": pct("tov_pct_h1"),
         "Plays ending in a turnover, 2nd half": pct("tov_pct_h2"),
     })
+
+
+TABLE_FORMAT = {c: st.column_config.NumberColumn(c, format="%.0f%%") for c in (
+    "Plays ending in a turnover, 1st half", "Plays ending in a turnover, 2nd half")}
+
+
+def turnover_bars(g: pd.DataFrame, team_games: pd.DataFrame) -> go.Figure:
+    """Turnovers in each half of every team game: a game he missed says "out", a clean game says "0"."""
+    allg = team_games.sort_values("game_date")
+    x = (pd.to_datetime(allg["game_date"]).dt.strftime("%b ") + pd.to_datetime(allg["game_date"]).dt.day.astype(str)
+         + " " + allg["opponent_abbreviation"]).tolist()
+    m = allg[["game_id"]].merge(g[["game_id", "tov_h1", "tov_h2"]], on="game_id", how="left")
+    played = m["tov_h1"].notna() | m["tov_h2"].notna()
+    clean = played & (m["tov_h1"].fillna(0) + m["tov_h2"].fillna(0) == 0)
+    fig = go.Figure([
+        go.Bar(x=x, y=m["tov_h1"], name="1st half", marker_color=H1C,
+               hovertemplate="%{x}: %{y} turnovers<extra>1st half</extra>"),
+        # the second half in neutral ink: orange would call every game worse before the numbers say so
+        go.Bar(x=x, y=m["tov_h2"], name="2nd half", marker_color=INK_MARK,
+               hovertemplate="%{x}: %{y} turnovers<extra>2nd half</extra>"),
+    ])
+    for mask, word, tip in ((~played, "out", "didn't play"), (clean, "0", "no turnovers")):
+        if mask.any():
+            fig.add_trace(go.Scatter(
+                x=[x_ for x_, k in zip(x, mask) if k], y=[0] * int(mask.sum()), mode="text", text=word,
+                textposition="top center", textfont=dict(size=11, color="#6b6964"), showlegend=False,
+                hovertemplate=f"%{{x}}: {tip}<extra></extra>"))
+    fig.update_layout(barmode="group", bargap=0.3)
+    fig.update_xaxes(categoryorder="array", categoryarray=x)
+    fig.update_yaxes(dtick=1, rangemode="tozero")  # whole turnovers only
+    return fig
 
 
 def page_players() -> None:
@@ -151,9 +182,13 @@ def page_players() -> None:
         section("Who's losing the ball after halftime?", "who",
                 "The further above the line, the more he gives it away for how much he has it.")
         names = sorted(ph["player_name"].unique())
-        st.session_state.setdefault("player_pick", focus if focus in names else names[0])
-        if st.session_state["player_pick"] not in names:
-            st.session_state["player_pick"] = names[0]
+        busiest = ph[ph["split"] == "H2"].sort_values("play_share").iloc[-1]["player_name"]
+        fallback = focus if focus in names else busiest
+        st.session_state.setdefault("player_pick", fallback)
+        if st.session_state["player_pick"] not in names:  # he didn't play this season: say so, don't just swap
+            st.session_state["player_note"] = (f"{st.session_state['player_pick']} didn't play enough in {season_p}, "
+                                               f"so this shows {fallback}.")
+            st.session_state["player_pick"] = fallback
         xmax, ymax = float(h2["play_share"].max()) * 1.15, float(h2["tov_share"].max()) * 1.15
         lim = min(xmax, ymax)
         named = set(h2.nlargest(4, "tov_share")["player_name"]) | set(h2.nlargest(2, "play_share")["player_name"])
@@ -222,6 +257,8 @@ def page_players() -> None:
                     "if (p) p.click(); else document.getElementById('one')?.scrollIntoView({block: 'start'}); }, 400)"
                     "</script>", unsafe_allow_javascript=True)
         player = st.selectbox("Player", names, key="player_pick")
+        if note := st.session_state.pop("player_note", None):
+            st.caption(note)
         t = ph[ph["player_name"] == player].set_index("split")
         pid_ = int(t["player_id"].iloc[0])
         info = data.roster.set_index("player_id").loc[pid_] if len(data.roster) and pid_ in set(
@@ -248,17 +285,8 @@ def page_players() -> None:
             f'<div><b>{t.loc["H2", "tov_share"]:.0%}</b><span>of the team\'s turnovers after halftime, on '
             f'{t.loc["H2", "play_share"]:.0%} of its plays</span></div>'
             f'<div>{steals}</div></div></div></div>', unsafe_allow_html=True)
-        gx = pd.to_datetime(g["game_date"]).dt.strftime("%b %d").str.replace(" 0", " ") + " " + g[
-            "opponent_abbreviation"]
-        fig = go.Figure([
-            go.Bar(x=gx, y=g["tov_h1"], name="1st half", marker_color=H1C,
-                   hovertemplate="%{x}: %{y} turnovers<extra>1st half</extra>"),
-            go.Bar(x=gx, y=g["tov_h2"], name="2nd half", marker_color=H2C,
-                   hovertemplate="%{x}: %{y} turnovers<extra>2nd half</extra>"),
-        ])
-        fig.update_layout(barmode="group", bargap=0.3)
-        show(fig, 300, yaxis_title="Turnovers")
+        show(turnover_bars(g, data.game_leads[data.game_leads["season"] == season_p]), 300, yaxis_title="Turnovers")
         with st.expander("Game-by-game table"):
-            st.dataframe(game_table(g), hide_index=True, width="stretch")
+            st.dataframe(game_table(g), hide_index=True, width="stretch", column_config=TABLE_FORMAT)
     fill_toc(nav_)
     next_step(PAGE_LEAGUE, "Is this normal? How every team changes after halftime.")
