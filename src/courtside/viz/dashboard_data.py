@@ -81,6 +81,7 @@ class DashboardData:
     team_misc: pd.DataFrame = field(default_factory=pd.DataFrame)
     roster: pd.DataFrame = field(default_factory=pd.DataFrame)
     shots: pd.DataFrame = field(default_factory=pd.DataFrame)
+    opp_shots: pd.DataFrame = field(default_factory=pd.DataFrame)  # every shot against the team
     injuries: pd.DataFrame = field(default_factory=pd.DataFrame)
     game_injuries: pd.DataFrame = field(default_factory=pd.DataFrame)
 
@@ -171,6 +172,7 @@ def _load(processed_dir: Path, analysis_json: Path) -> DashboardData:
         team_misc=optional("team_misc"),
         roster=optional("roster"),
         shots=optional("shots"),
+        opp_shots=optional("opp_shots"),
         injuries=optional("injuries"),
         game_injuries=optional("game_injuries"),
     )

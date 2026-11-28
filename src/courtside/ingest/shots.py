@@ -24,10 +24,15 @@ ZONES = {
 }
 
 
-def load_shots(client: NBAClient, team_id: int, season: str, season_type: str) -> pd.DataFrame:
-    """One row per field-goal attempt: game, period, half, spot, zone, made."""
-    raw = client.get(ShotChartDetail, team_id=team_id, player_id=0, season_nullable=season,
-                     season_type_all_star=season_type, context_measure_simple="FGA")
+def load_shots(client: NBAClient, team_id: int, season: str, season_type: str,
+               against: bool = False) -> pd.DataFrame:
+    """One row per field-goal attempt: game, period, half, spot, zone, made.
+
+    ``against=True``: every shot taken *against* the team (``team_id=0`` filtered by opponent), still one call a season.
+    """
+    who = dict(team_id=0, opponent_team_id=team_id) if against else dict(team_id=team_id)
+    raw = client.get(ShotChartDetail, player_id=0, season_nullable=season, season_type_all_star=season_type,
+                     context_measure_simple="FGA", **who)
     rs = next(r for r in raw["resultSets"] if r["name"] == "Shot_Chart_Detail")
     df = pd.DataFrame(rs["rowSet"], columns=rs["headers"])
     cols = ["season", "game_id", "period", "half", "player_id", "player_name", "loc_x", "loc_y", "distance",

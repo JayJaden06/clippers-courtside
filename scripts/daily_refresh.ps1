@@ -91,7 +91,7 @@ try {
     # report for a Clippers game (the file is only rewritten when a player or status changes).
     $news = git status --porcelain -- data/processed/games.parquet data/processed/matchups.parquet `
         data/processed/league_periods.parquet data/processed/schedule.parquet `
-        data/processed/roster.parquet data/processed/shots.parquet data/processed/player_history_halves.parquet `
+        data/processed/roster.parquet data/processed/shots.parquet data/processed/opp_shots.parquet data/processed/player_history_halves.parquet `
         data/processed/injuries.parquet data/processed/game_injuries.parquet
     if (-not $news) {
         Write-Log "No new games, tracking or league results; discarding the rerun's date-only changes."

@@ -234,7 +234,7 @@ def _half_court(c: Ink) -> str:
 
 
 def shot_map(before: list[tuple[int, int, bool]], after: list[tuple[int, int, bool]],
-             zones: list[tuple[str, float, float, int, int]], c: Ink = PAGE) -> str:
+             zones: list[tuple[str, float, float, int, int]], c: Ink = PAGE, higher_is_better: bool = True) -> str:
     """Every shot before and after halftime on two half courts: made = filled dot, missed = small ring.
 
     ``before``/``after`` are (loc_x, loc_y, made); ``zones`` are (zone, pct_before, pct_after, n_before,
@@ -259,18 +259,22 @@ def shot_map(before: list[tuple[int, int, bool]], after: list[tuple[int, int, bo
             change = p1 - p0
             sub = (f"{zone.lower()} · {'▼' if change < 0 else '▲'} {abs(change) * 100:.0f}"
                    if i and abs(change) >= 0.005 else zone.lower())
-            sub_color = (c.bad if change < 0 else c.good) if i and abs(change) >= 0.005 else c.ink
+            # blue when the change helps the Clippers: for opponents' shots a rise is bad news
+            sub_color = ((c.good if (change > 0) == higher_is_better else c.bad) if i and abs(change) >= 0.005
+                         else c.ink)
             g += [f'<rect x="{zx - 78}" y="{zy - 30}" width="156" height="56" rx="10" fill="{c.floor}" '
                   'fill-opacity="0.88"/>',
                   _text(zx, zy + 2, f"{pct:.0%}", 30, c.ink, 800),
-                  _text(zx, zy + 20, sub, 14, sub_color, 600)]
+                  _text(zx, zy + 21, sub, 18, sub_color, 700)]  # 18: readable when the map scales down
         body.append(f'<g transform="translate({ox},{80 + 52.5})">{"".join(g)}</g>')
     legend_y = 80 + 470 + 34
-    body += [f'<circle cx="380" cy="{legend_y - 5}" r="6" fill="{c.focus}"/>',
-             _text(394, legend_y, "made", 17, c.muted, anchor="start"),
-             f'<circle cx="480" cy="{legend_y - 5}" r="4.5" fill="none" stroke="{c.muted}" stroke-width="1.5"/>',
-             _text(494, legend_y, "missed", 17, c.muted, anchor="start"),
-             _text(600, legend_y, "▼ ▲ = change in percentage points after halftime", 17, c.muted,
+    # made: gray before halftime, orange after (as on the courts); missed: a ring
+    body += [f'<circle cx="300" cy="{legend_y - 6}" r="6.5" fill="{c.muted}"/>',
+             f'<circle cx="317" cy="{legend_y - 6}" r="6.5" fill="{c.focus}"/>',
+             _text(331, legend_y, "made", 20, c.muted, anchor="start"),
+             f'<circle cx="420" cy="{legend_y - 6}" r="5" fill="none" stroke="{c.muted}" stroke-width="1.6"/>',
+             _text(434, legend_y, "missed", 20, c.muted, anchor="start"),
+             _text(540, legend_y, "▼ ▲ = change in percentage points after halftime", 20, c.muted,
                    anchor="start")]
     return _svg(1060, legend_y + 14, "".join(body),
                 "Clippers shots on two half courts, before and after halftime, with the shooting percentage "

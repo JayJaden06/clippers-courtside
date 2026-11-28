@@ -73,6 +73,17 @@ class Card:
     text: str  # plain-English explanation
 
 
+def _moves(before: float, after: float, same: float = 0.01) -> str:
+    """'drops' / 'rises' / 'holds about steady' for a rate, so a sentence can't claim a direction the numbers lack."""
+    return "drops" if after < before - same else "rises" if after > before + same else "holds about steady"
+
+
+def share_text(share: float) -> str:
+    """A share of the second-half drop in words; over 100% means other parts of the game made some of it back."""
+    return ("more than the whole drop, since other parts of their game make some of it back" if share > 1.0
+            else f"about {share:.0%} of the drop")
+
+
 def _tone_from_share(share: float) -> tuple[str, str]:
     if share >= DRIVES:
         return "Yes, a big part", "yes"
@@ -141,8 +152,10 @@ def answer_cards(analysis: dict) -> list[Card]:
     worst = k5["efg_change_rank"] == 30
     cards.append(Card(
         "H5", QUESTIONS["H5"], "Yes, this is the big one" if tone == "yes" else ans, tone,
-        f"Their shooting accuracy drops from {k1['efg_h1']:.1%} before halftime to {k1['efg_h2']:.1%} after"
-        + (", the biggest drop of any team in the league" if worst else "") + ". "
+        # the verb follows the numbers: within a point it's steady, not a drop
+        f"Their shooting accuracy {_moves(k1['efg_h1'], k1['efg_h2'])} from {k1['efg_h1']:.1%} before halftime to "
+        f"{k1['efg_h2']:.1%} after"
+        + (", the biggest drop of any team in the league" if worst and k1["efg_h2"] < k1["efg_h1"] else "") + ". "
         + ("Opponents actually shoot worse after halftime, so it's not the other team getting hot."
            if k5["opp_efg_change"] < 0 else "Opponents shoot better after halftime too."),
     ))
@@ -462,6 +475,21 @@ def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_seaso
                        else f"Everything that hurts now also hurt in {prev_season}.",
                        "warn" if new else "info", "changes"))
     return out
+
+
+def defense_card(reasons: list[Reason]) -> Verdict | None:
+    """'Is it their defense?': how much of the second-half drop is opponents shooting better."""
+    r = next((x for x in reasons if x.factor == "opp_shooting"), None)
+    if r is None:
+        return None
+    ans, tone = _tone_from_share(max(r.share, 0.0)) if r.per_game < 0 else ("No", "no")
+    text = (f"Opponents' shooting costs {-r.per_game:.1f} points a game after halftime, {share_text(r.share)}."
+            if r.per_game < 0 else f"Opponents shoot no better after halftime ({signed_pts(r.per_game)} a game).")
+    return Verdict("Is it their defense?", ans, text, THEORY_TONE.get(tone, "info"), "theories")
+
+
+def signed_pts(v: float) -> str:
+    return f"{v:+.1f}".replace("-", "−")
 
 
 def theory_cards(cards: list[Card]) -> list[Verdict]:

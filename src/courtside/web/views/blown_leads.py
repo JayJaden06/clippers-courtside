@@ -29,6 +29,69 @@ VERDICT_MARK = {"Worse than last season": "▼ Worse than last season", "Better 
                 "About the same": "= About the same"}
 
 
+SHOTS_SAID = {"At the rim": "shots at the rim", "Short range": "short-range shots", "Mid-range": "mid-range shots",
+              "Three": "threes"}
+SHOT_SAME = 0.01  # within a percentage point a zone counts as steady
+
+
+def _headline(h1: float, top: str | None) -> str:
+    """The page's headline, from the first-half margin and the top reason: it says what the numbers say."""
+    first = ("They're ahead for a half." if h1 >= 2.5 else "They're about even for a half." if h1 > -2.5
+             else "They're behind early.")
+    then = {"shooting": "Then the shots stop falling.", "opp_shooting": "Then opponents start scoring.",
+            "turnovers": "Then the ball gets loose.", "rebounding": "Then the boards slip away.",
+            "free_throws": "Then the fouls pile up."}.get(top or "", "Then it falls apart.")
+    return f"{first} {then}"
+
+
+def _shots_title(tbl: pd.DataFrame, side: str) -> str:
+    """The shot section's title, from the zones: a claim only when a zone actually moved."""
+    z = D.shot_zones(tbl, str(tbl["season"].iloc[0]))
+    ch = z["mean_h2"] - z["mean_h1"]
+    if side == "opp":
+        return "Where opponents start scoring" if ch.max() > SHOT_SAME else "Opponents' shots, half by half"
+    return "Where the shots stop falling" if ch.min() < -SHOT_SAME else "Their own shots, half by half"
+
+
+def _shot_section(tbl: pd.DataFrame, side: str) -> None:
+    """A half-by-half shot map with its zone panel and a takeaway written from the zones."""
+    season = str(tbl["season"].iloc[0])
+    z = D.shot_zones(tbl, season)
+    ch = (z["mean_h2"] - z["mean_h1"]).sort_values()
+    who = "Opponents'" if side == "opp" else "Their"
+    moved = ch.index[-1] if side == "opp" else ch.index[0]  # the zone that hurt the Clippers most
+    steady = ch.abs().idxmin()
+    if abs(ch[moved]) > SHOT_SAME:
+        lead = (f"{who} <b>{SHOTS_SAID[moved]}</b> go from {z.loc[moved, 'mean_h1']:.0%} before halftime to "
+                f"<b>{z.loc[moved, 'mean_h2']:.0%}</b> after")
+        lead += (f"; {SHOTS_SAID[steady]} hold about steady ({z.loc[steady, 'mean_h1']:.0%} → "
+                 f"{z.loc[steady, 'mean_h2']:.0%})." if steady != moved else ".")
+    else:
+        lead = f"{who} shooting holds about steady in every zone after halftime."
+    st.markdown(f'<div class="takeaway">{lead}</div>', unsafe_allow_html=True)
+    pts = lambda h: list(zip(tbl.loc[tbl["half"] == h, "loc_x"], tbl.loc[tbl["half"] == h, "loc_y"],  # noqa: E731
+                             tbl.loc[tbl["half"] == h, "made"]))
+    zones = [(zn, r.mean_h1, r.mean_h2, int(r.size_h1), int(r.size_h2)) for zn, r in z.iterrows()]
+    n_g = max(tbl["game_id"].nunique(), 1)
+    map_col, zone_col = st.columns([2.35, 1], gap="medium", vertical_alignment="center")
+    with map_col:
+        picture(G.shot_map(pts("H1"), pts("H2"), zones, higher_is_better=side != "opp"))
+    # for opponents, a higher make rate is worse for the Clippers
+    zone_col.markdown(compare_panel("Zone by zone", [
+        (zn, f"{r.mean_h1:.0%}", f"{r.mean_h2:.0%}", r.mean_h1, r.mean_h2, side != "opp", 0.2, 0.75,
+         f"{r.size_h1 / n_g:.1f} → {r.size_h2 / n_g:.1f} shots a game") for zn, r in z.iterrows()]),
+        unsafe_allow_html=True)
+    with st.expander("Details" if side == "opp" else "Details on their own shots"):
+        st.markdown(
+            ("- Every opponent field-goal attempt against the Clippers this season" if side == "opp" else
+             "- Every Clippers field-goal attempt this season")
+            + " from the NBA's shot charts; overtime left out.\n"
+            "- Zones: *at the rim* is the restricted area, *short range* the rest of the paint, *three* includes "
+            "the corners.\n- "
+            + "; ".join(f"{zn}: {int(r.size_h1)} shots before halftime, {int(r.size_h2)} after"
+                        for zn, r in z.iterrows()) + ".")
+
+
 def page_answer() -> None:
     ctx = current()
     TOC = ctx.toc
@@ -50,17 +113,19 @@ def page_answer() -> None:
                if att_now is not None and att_prev is not None else [])
     top = reasons[0].factor if reasons else None
     last_game = pd.to_datetime(data.game_leads.loc[data.game_leads["season"] == season_now, "game_date"]).max()
-    title = ("They're fine for a half. Then the shots stop falling." if top == "shooting"
-             else "They're fine for a half. Then it falls apart.")
+    title = _headline(hl["h1_per_game"] if hl else 0.0, top)
     with st.container(key="band_light_answer"):
         st.markdown(f'<div class="kicker">LA Clippers · {season_now} season · through {last_game:%b} '
                     f'{last_game.day}</div><div class="hero">{title}</div>', unsafe_allow_html=True)
         if hl:
             garland_main = "H3" in res and res["H3"]["key"]["share_of_swing"] >= DRIVES
+            first = reasons[0] if reasons else None
             st.markdown(
                 f'<div class="lede">{hl["wins"]}-{hl["losses"]}, and {hl["blown"]} of {hl["leads"]} early leads '
-                f"blown. Is it {focus}'s turnovers? "
-                + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
+                "blown. "
+                + (f"The biggest reason: <b>{first.name.split(',')[0].lower()}</b>, {-first.per_game:.1f} points a game "
+                   f"after halftime, {S.share_text(first.share)}. " if first and first.per_game < 0 else "")
+                + f"Is it {focus}'s turnovers? " + ("Mostly, yes." if garland_main else "Partly, but not mainly.")
                 + " Click any card to see the chart behind it.</div>", unsafe_allow_html=True)
             glossary_button()
     if hl:
@@ -154,41 +219,18 @@ def page_answer() -> None:
                 st.markdown("Less than 0.1 a game can't be placed in any one part." if abs(residual) < 0.05
                             else f"A further {signed(residual)} a game can't be placed in any one part.")
 
-    # ---------------------------------------------------------- where the shots stop falling
-    SHOTS_SAID = {"At the rim": "Shots at the rim", "Short range": "Short-range shots",
-                  "Mid-range": "Mid-range shots", "Three": "Threes"}
-    if len(data.shots) and (data.shots["season"] == season_now).any():
-        z = D.shot_zones(data.shots, season_now)
-        ch = (z["mean_h2"] - z["mean_h1"]).sort_values()
-        worst, steady = ch.index[0], ch.abs().idxmin()
-        st.subheader("Where the shots stop falling", anchor="shots")
+    # ---------------------------------------------------------- the shot map: whoever's shooting moved the most
+    cur_opp = data.opp_shots[data.opp_shots["season"] == season_now] if len(data.opp_shots) else data.opp_shots
+    cur_own = data.shots[data.shots["season"] == season_now] if len(data.shots) else data.shots
+    opp_first = top == "opp_shooting" and len(cur_opp) > 0
+    if opp_first or len(cur_own):
+        main_, side_ = (cur_opp, "opp") if opp_first else (cur_own, "own")
+        st.subheader(_shots_title(main_, side_), anchor="shots")
         TOC.append((TOC_LABELS["shots"], "shots"))
-        st.markdown(
-            f'<div class="takeaway"><b>{SHOTS_SAID[worst]}</b> go from '
-            f'{z.loc[worst, "mean_h1"]:.0%} before halftime to <b>{z.loc[worst, "mean_h2"]:.0%}</b> after'
-            + (f"; {SHOTS_SAID[steady].lower()} hold about steady ({z.loc[steady, 'mean_h1']:.0%} → "
-               f"{z.loc[steady, 'mean_h2']:.0%})." if steady != worst else ".") + "</div>",
-            unsafe_allow_html=True)
-        cur = data.shots[data.shots["season"] == season_now]
-        pts = lambda h: list(zip(cur.loc[cur["half"] == h, "loc_x"], cur.loc[cur["half"] == h, "loc_y"],  # noqa: E731
-                                 cur.loc[cur["half"] == h, "made"]))
-        zones = [(zn, r.mean_h1, r.mean_h2, int(r.size_h1), int(r.size_h2)) for zn, r in z.iterrows()]
-        n_g = max(cur["game_id"].nunique(), 1)
-        map_col, zone_col = st.columns([2.35, 1], gap="medium", vertical_alignment="center")
-        with map_col:
-            picture(G.shot_map(pts("H1"), pts("H2"), zones))
-        zone_col.markdown(compare_panel("Zone by zone", [
-            (zn, f"{r.mean_h1:.0%}", f"{r.mean_h2:.0%}", r.mean_h1, r.mean_h2, True, 0.2, 0.75,
-             f"{r.size_h1 / n_g:.1f} → {r.size_h2 / n_g:.1f} shots a game") for zn, r in z.iterrows()]),
-            unsafe_allow_html=True)
-        with st.expander("Details"):
-            st.markdown(
-                "- Every Clippers field-goal attempt this season from the NBA's shot charts; overtime left out. "
-                "The counts match the box scores half by half.\n"
-                "- Zones: *at the rim* is the restricted area, *short range* the rest of the paint, *three* "
-                "includes the corners.\n- "
-                + "; ".join(f"{zn}: {int(r.size_h1)} shots before halftime, {int(r.size_h2)} after"
-                            for zn, r in z.iterrows()) + ".")
+        _shot_section(main_, side_)
+        if opp_first and len(cur_own):
+            with st.expander("The Clippers' own shots, before and after halftime"):
+                _shot_section(cur_own, "own")
 
     # ---------------------------------------------------------- 3. theories
     section("2. The popular theories, checked", "theories")
@@ -219,7 +261,9 @@ def page_answer() -> None:
                            "*the* cause." if share < DRIVES else "That's enough to call him the main cause."))
     with right:
         cards = S.answer_cards(data.analysis)
-        answer_cards(S.theory_cards(cards), link=False, big_size="1.3rem")
+        d_card = S.defense_card(reasons)
+        answer_cards(([d_card] if d_card else []) + S.theory_cards([c for c in cards if c.id != "H3"]),
+                     link=False, big_size="1.3rem", cols=2)
         with st.expander("The full answer to each theory"):
             for card in cards:
                 st.markdown(f"**{card.question}** {card.answer}. {card.text}")
@@ -355,4 +399,7 @@ def page_answer() -> None:
                "same way; they can differ slightly from the box-score totals above. Data: stats.nba.com via the open-source nba_api package; not affiliated with the "
                "NBA or the Clippers. Full method: reports/findings.md.")
     fill_toc(nav_)
-    next_step(PAGE_PLAYERS, "Who is losing the ball after halftime, player by player.")
+    if top == "turnovers":
+        next_step(PAGE_PLAYERS, "Who is losing the ball after halftime, player by player.")
+    else:
+        next_step(PAGE_WHATNOW, "What the numbers say has to change, and what would change each piece of advice.")

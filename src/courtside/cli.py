@@ -91,6 +91,7 @@ def pull(season: SeasonOpt = None) -> None:
             schedule.load_player_season(client, s, settings.season_type)
             league.load_team_misc(client, s, settings.season_type)
             shots.load_shots(client, settings.team_id, s, settings.season_type)
+            shots.load_shots(client, settings.team_id, s, settings.season_type, against=True)
     with client.refreshing():  # the schedule changes daily (results, times)
         sched = schedule.load_schedule(client, settings.current_season)
     report_pdf = injuries.pull_latest(settings.raw_dir)  # official.nba.com, not stats.nba.com; never fatal
@@ -258,6 +259,9 @@ def build(season: SeasonOpt = None) -> None:
                            ignore_index=True)
     shot_table = shot_table[shot_table["game_id"].isin(set(df["game_id"]))]  # games we have box scores for
     shot_table.to_parquet(out / "shots.parquet", index=False)
+    against = pd.concat([shots.load_shots(client, settings.team_id, s, settings.season_type, against=True)
+                         for s in seasons], ignore_index=True)
+    against[against["game_id"].isin(set(df["game_id"]))].to_parquet(out / "opp_shots.parquet", index=False)
     _write_injuries(settings, out, sched)
     console.print(
         f"tracking: {matchups['game_id'].nunique()} games of matchups and hustle "
