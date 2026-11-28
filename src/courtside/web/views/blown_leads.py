@@ -18,15 +18,15 @@ from courtside.web.theme import BAD, FOCUS, GOOD, GRAY, H1C, H2C, INK_MARK, MUTE
 from courtside.web.ui import TOC_LABELS, answer_cards, compare_panel, fill_toc, glossary_button, heading, next_step, picture, section, show, toc_slot
 
 
+NOISE = 0.3  # points a game: below this a part of the game can't be told from noise in a small sample
+SETTLED_GAMES = 25  # before this many games, the ranking carries a small-sample caveat
+
+
 STATUS_BADGE = {S.NEW: "orange", S.SAME: "violet", S.SIMILAR: "gray", S.BETTER: "blue"}
 
 
 VERDICT_MARK = {"Worse than last season": "▼ Worse than last season", "Better than last season": "▲ Better than last season",
                 "About the same": "= About the same"}
-
-
-NOISE = 0.3  # points a game: below this a part of the game can't be told from noise in a small sample
-SETTLED_GAMES = 25  # before this many games, the ranking carries a small-sample caveat
 
 
 def page_answer() -> None:
