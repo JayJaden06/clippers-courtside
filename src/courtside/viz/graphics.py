@@ -210,7 +210,9 @@ def size_matchup(name: str, height_in: float, weight_lb: float, opp_height_in: f
 
 # ------------------------------------------------------------------ the shot map
 
-ZONE_SPOTS = {"At the rim": (0, 26), "Short range": (0, 112), "Mid-range": (-150, 150), "Three": (0, 300)}
+# label spots in shot-chart units (basket at 0,0); each label box is 196 x 62, so no two may sit closer than that.
+# Mid-range sits low on the left elbow (23 ft out, inside the 23.75 ft arc) so its box clears the short-range one.
+ZONE_SPOTS = {"At the rim": (0, 26), "Short range": (0, 112), "Mid-range": (-150, 175), "Three": (0, 300)}
 
 
 def _half_court(c: Ink) -> str:
