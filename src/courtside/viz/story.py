@@ -379,7 +379,7 @@ def sixty_seconds(reasons: list[Reason], results: dict, hl: dict, prev_season: s
         share = results["H3"]["key"]["share_of_swing"]
         out.append(f"<b>{_last(hl.get('focus', ''))}'s turnovers are "
                    f"{'a main cause' if share >= DRIVES else 'part of it, not the main cause'}"
-                   f"</b>: about {share:.0%} of the second-half drop.")
+                   f"</b>: at most about {share:.0%} of the second-half drop, counting generously.")
     new = [_lower(r.name) for r in reasons if r.status == NEW]
     same = [_lower(r.name) for r in reasons if r.status == SAME]
     if new or same:
@@ -451,8 +451,9 @@ def answer_page_cards(hl: dict, reasons: list[Reason], results: dict, prev_seaso
         share = results["H3"]["key"]["share_of_swing"]
         label = "the main cause" if share >= DRIVES else "part of it" if share >= CONTRIBUTES else "a small part"
         last = _last(hl.get("focus", ""))
-        out.append(Verdict(f"{last}'s turnovers: {label}", f"{share:.0%}",
-                           f"of the second-half drop comes from {last}'s extra turnovers. The line marks "
+        out.append(Verdict(f"{last}'s turnovers: {label}", f"≤{share:.0%}",
+                           f"of the second-half drop, at most: {last}'s extra turnovers, counted the most generous "
+                           f"way (each one on its own, at full cost). The line marks "
                            f"{DRIVES:.0%}, where it would count as the main cause.", "warn", "theories",
                            ("share", share, DRIVES)))
     new = [r.name for r in reasons if r.status == NEW]

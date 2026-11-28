@@ -18,6 +18,10 @@ from courtside.web.theme import BAD, FOCUS, GOOD, GRAY, H1C, H2C, INK_MARK, MUTE
 from courtside.web.ui import TOC_LABELS, answer_cards, compare_panel, fill_toc, glossary_button, heading, next_step, picture, section, show, toc_slot
 
 
+NOISE = 0.3  # points a game: below this a part of the game can't be told from noise in a small sample
+SETTLED_GAMES = 25  # before this many games, the ranking carries a small-sample caveat
+
+
 STATUS_BADGE = {S.NEW: "orange", S.SAME: "violet", S.SIMILAR: "gray", S.BETTER: "blue"}
 
 
@@ -104,12 +108,18 @@ def page_answer() -> None:
 
     # ---------------------------------------------------------- 1. ranked reasons (costs and helps)
     total_help = sum(r.per_game for r in helps)
+    n_games = int(hl["games"]) if hl else 0
+    caveat = (f" {n_games} games in, so read this as a lead, not a verdict: anything within ±{NOISE:.1f} a game is "
+              "too small to call." if hl and n_games < SETTLED_GAMES else "")
     section("1. Why they blow leads, ranked", "reasons",
             "Each part of the game, after halftime: <b>orange = this season</b>, gray = last season. Left of zero "
-            "costs them points; right of zero helps." if reasons else "")
+            "costs them points; right of zero helps." + caveat if reasons else "")
     if reasons:
         ordered = hurts + sorted(helps, key=lambda r: -r.per_game)
-        names = [f"{i}. {r.name}" for i, r in enumerate(ordered, 1)]
+        # parts too small to tell from noise keep their bar but lose their rank
+        ranked_, small_ = [r for r in ordered if abs(r.per_game) >= NOISE], [r for r in ordered if abs(r.per_game) < NOISE]
+        ordered = ranked_ + small_
+        names = [f"{i}. {r.name}" for i, r in enumerate(ranked_, 1)] + [f"{r.name} (too small to call)" for r in small_]
         fig = go.Figure()
         for label, vals, color in ((f"This season ({season_now})", [r.per_game for r in ordered], BAD),
                                    (f"Last season ({season_prev})", [r.prev_per_game for r in ordered], MUTED_BAR)):
@@ -141,7 +151,8 @@ def page_answer() -> None:
                 st.badge(r.status, color=STATUS_BADGE[r.status])
             if att_now is not None:
                 residual = att_now.set_index("factor").loc["residual", "per_game"]
-                st.markdown(f"A further {signed(residual)} a game can't be placed in any one part.")
+                st.markdown("Less than 0.1 a game can't be placed in any one part." if abs(residual) < 0.05
+                            else f"A further {signed(residual)} a game can't be placed in any one part.")
 
     # ---------------------------------------------------------- where the shots stop falling
     SHOTS_SAID = {"At the rim": "Shots at the rim", "Short range": "Short-range shots",
@@ -194,14 +205,16 @@ def page_answer() -> None:
                               fillcolor=f"rgba(217,89,38,{shade})", layer="below")
                 fig.add_annotation(x=(x0 + x1) / 2, y=0.72, text=label, showarrow=False, font=dict(size=12))
             fig.add_trace(go.Bar(x=[min(share, 1)], y=[0], orientation="h", width=0.34, marker_color=FOCUS,
-                                 hovertemplate=f"{focus_last}'s extra turnovers explain {share:.0%} of the "
-                                               f"second-half drop<extra></extra>"))
+                                 hovertemplate=f"{focus_last}'s extra turnovers explain at most {share:.0%} "
+                                               f"of the second-half drop<extra></extra>"))
             fig.add_annotation(x=min(share, 1), y=-0.62, text=f"<b>{share:.0%}</b>", showarrow=False,
                                font=dict(size=20))
             fig.update_xaxes(range=[0, 1], tickformat=".0%", tickvals=[0, CONTRIBUTES, DRIVES, 1])
             fig.update_yaxes(visible=False, range=[-0.95, 0.95])
             show(fig, 190, showlegend=False)
-            st.markdown(f"His extra turnovers explain about **{share:.0%}** of the drop. "
+            st.markdown(f"His extra turnovers explain **at most about {share:.0%}** of the drop, counted the most "
+                        "generous way: each one on its own, at full cost, against whichever baseline gives the theory "
+                        "the most credit. "
                         + (f"That's real, but short of the **{DRIVES:.0%}** we set in advance for calling something "
                            "*the* cause." if share < DRIVES else "That's enough to call him the main cause."))
     with right:
@@ -297,12 +310,14 @@ def page_answer() -> None:
         left, right = st.columns([1, 1.2], gap="large")
         with left:
             fixed = {r.factor for r in fixable
-                     if st.toggle(f"{r.name} back to last season ({signed(r.prev_per_game)} instead of "
-                                  f"{signed(r.per_game)} per game)", key=f"fix_{r.factor}")}
+                     if st.toggle(f"{r.name.split(',')[0]} back to last season: {signed(r.prev_per_game)} instead of "
+                                  f"{signed(r.per_game)} a game", key=f"fix_{r.factor}", help=r.name)}
             g_pts = res["H3"]["key"]["excess_pts"] / max(hl["games"], 1) if "H3" in res else 0.0
-            fix_g = st.toggle(f"{focus_last}'s turnovers back to his last-season rate (about {signed(g_pts)} per game)",
+            fix_g = st.toggle(f"{focus_last}'s turnovers back to his last-season rate (at most {signed(g_pts)})",
                               key="fix_garland", disabled="turnovers" in fixed,
-                              help="Already included if you fix all turnovers.")
+                              help="Counted generously: his extra turnovers on their own, each at full cost. The team's "
+                                   "turnover line nets out the turnovers opponents commit too, so it can be smaller than "
+                                   "his alone. Switched off while all turnovers are fixed, so nothing counts twice.")
             # why a part that costs points has no switch: putting it back to last season changes nothing.
             # Names like "Turnovers, Clippers vs opponents" are cut to "turnovers" so the list reads cleanly.
             same = [n if n.startswith("Clippers") else n[0].lower() + n[1:]
