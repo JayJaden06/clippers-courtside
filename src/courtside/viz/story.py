@@ -56,7 +56,7 @@ FACTOR_PLAIN = {
 LEAD_TAG = {"blown_lead": "Blown lead", "held_lead": "Held the lead"}
 
 QUESTIONS = {
-    "H1": "Do they really fall apart after halftime?",
+    "H1": "Worse than most teams after halftime?",
     "H2": "Is it turnovers?",
     "H3": "Is it {focus}?",  # filled from the analysis meta
     "H4": "Is it fouling?",
@@ -85,11 +85,17 @@ def share_text(share: float) -> str:
 
 
 def _tone_from_share(share: float) -> tuple[str, str]:
+    """A theory's answer from its share of the drop, on the thresholds set in advance."""
     if share >= DRIVES:
-        return "Yes, a big part", "yes"
+        return "Yes, the main cause", "yes"
     if share >= CONTRIBUTES:
         return "Partly", "partly"
-    return "Only a little", "no"
+    if share >= NONE_SHARE:
+        return "Only a little", "no"
+    return "No", "no"  # nothing (or it helps): don't call a non-cause "a little"
+
+
+NONE_SHARE = 0.03  # under 3% of the drop counts as no part of it
 
 
 def answer_cards(analysis: dict) -> list[Card]:
@@ -109,9 +115,10 @@ def answer_cards(analysis: dict) -> list[Card]:
         "H1", QUESTIONS["H1"],
         "Yes" if real and sure else "Probably" if real else "Not clearly",
         "yes" if real and sure else "partly" if real else "no",
-        f"Before halftime they're about {_even(k1['net_h1'])} ({k1['net_h1']:+.1f} per 100 possessions). After "
-        f"halftime they're {k1['net_h2']:+.1f}. Only {worse_teams} other team{'s' if worse_teams != 1 else ''} "
-        f"fall off more after the break."
+        f"They rank {ordinal(int(k1['net_change_rank']))} of 30 in how much they drop after halftime "
+        f"({signed_pts(k1['net_h1'])} → {signed_pts(k1['net_h2'])} per 100 possessions); "
+        + ("only " if worse_teams <= 5 else "") + f"{worse_teams} team{'s' if worse_teams != 1 else ''} "
+        f"fall off more. 'Yes' needs a bottom-five drop and a range that excludes zero."
         + (" With only a handful of games, some of that could still be bad luck." if not sure else ""),
     ))
 
@@ -119,7 +126,7 @@ def answer_cards(analysis: dict) -> list[Card]:
     flat = abs(k2["tov_h2"] - k2["tov_h1"]) <= 0.1 * k2["tov_h1"]
     cards.append(Card(
         "H2", QUESTIONS["H2"], ans, tone,
-        (f"They don't turn it over more after halftime ({k2['tov_h1']:.0f} vs {k2['tov_h2']:.0f}), "
+        (f"They don't turn it over more after halftime ({k2['tov_h1']:.0f} before, {k2['tov_h2']:.0f} after), "
          if flat else f"Turnovers go from {k2['tov_h1']:.0f} to {k2['tov_h2']:.0f} after halftime, ")
         + f"but each one hurts more: opponents scored {k2['opp_pts_off_tov_h2']} points off them after halftime "
         f"vs {k2['opp_pts_off_tov_h1']} before. Turnovers explain about {k2['tov_share_of_swing']:.0%} of the "

@@ -38,8 +38,9 @@ def test_one_card_per_question_with_numbers(analysis):
         assert "nan" not in c.text.lower()
 
 
-@pytest.mark.parametrize("share, answer, tone", [(0.55, "Yes, a big part", "yes"), (0.25, "Partly", "partly"),
-                                                 (0.05, "Only a little", "no")])
+@pytest.mark.parametrize("share, answer, tone", [(0.55, "Yes, the main cause", "yes"), (0.25, "Partly", "partly"),
+                                                 (0.05, "Only a little", "no"), (0.01, "No", "no"),
+                                                 (-0.2, "No", "no")])
 def test_garland_card_follows_his_share(analysis, share, answer, tone):
     card = next(c for c in S.answer_cards(_with(analysis, "H3", share_of_swing=share)) if c.id == "H3")
     assert (card.answer, card.tone) == (answer, tone)
@@ -52,7 +53,7 @@ def test_collapse_card_is_hedged_when_the_interval_includes_zero(analysis):
     sure = next(c for c in S.answer_cards(_with(analysis, "H1", net_change_rank=28, boot_hi=-1.0)) if c.id == "H1")
     assert unsure.answer == "Probably" and "bad luck" in unsure.text
     assert sure.answer == "Yes" and "bad luck" not in sure.text
-    assert "Only 2 other teams" in sure.text
+    assert "only 2 teams fall off more" in sure.text
 
 
 def test_game_story_reads_the_game():
