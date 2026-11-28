@@ -315,13 +315,19 @@ def page_answer() -> None:
         cur, prev = comp.loc[season_now], comp.loc[season_prev]
         cur_leads = int(cur["blown_leads"] + cur["held_leads"])
         prev_leads = int(prev["blown_leads"] + prev["held_leads"])
-        new = [r.name for r in reasons if r.status == S.NEW]
-        same = [r.name for r in reasons if r.status == S.SAME]
-        better = [r.name for r in reasons if r.status == S.BETTER]
+        # the same noise line as the ranked chart: a part too small to call isn't "new" or "the same"
+        real = [r for r in reasons if abs(r.per_game) >= NOISE or abs(r.prev_per_game) >= NOISE]
+        new = [r.name for r in real if r.status == S.NEW and r.per_game < 0]
+        less_help = [r.name for r in real if r.status == S.NEW and r.per_game >= 0]
+        same = [r.name for r in real if r.status == S.SAME]
+        better = [r.name for r in real if r.status == S.BETTER]
+        n_now = int(hl["games"]) if hl else 0
         answer_cards([
             W.Verdict("Early leads blown", f"{int(cur['blown_leads'])} of {cur_leads}",
-                      f"Last season: {int(prev['blown_leads'])} of {prev_leads} "
-                      f"({prev['blown_leads'] / max(prev_leads, 1):.0%}).", "bad", "changes",
+                      f"{cur['blown_leads'] / max(cur_leads, 1):.0%} this season; last season "
+                      f"{int(prev['blown_leads'])} of {prev_leads} ({prev['blown_leads'] / max(prev_leads, 1):.0%})."
+                      + (f" {n_now} games in, one or two results can swing this." if n_now < SETTLED_GAMES else ""),
+                      "bad", "changes",
                       ("pair", prev["blown_leads"] / max(prev_leads, 1), cur["blown_leads"] / max(cur_leads, 1),
                        "last year", "now")),
             W.Verdict("Second halves, a game", signed(cur["margin_h2_per_game"]),
@@ -331,6 +337,8 @@ def page_answer() -> None:
         ] + [W.Verdict(title, " · ".join(names), sub, tone, "changes")
              for title, names, sub, tone in (
                  ("New this season", new, "Worse than last season by a point a game or more.", "bad"),
+                 ("Helping less than last season", less_help, "Still a plus after halftime, but a smaller one.",
+                  "warn"),
                  ("Same as last season", same, "Hurt then, hurts now.", "warn"),
                  ("Better than last season", better, "Hurts less than it did.", "good")) if names],
             link=False, big_size="1.15rem")
@@ -364,13 +372,18 @@ def page_answer() -> None:
                                    "his alone. Switched off while all turnovers are fixed, so nothing counts twice.")
             # why a part that costs points has no switch: putting it back to last season changes nothing.
             # Names like "Turnovers, Clippers vs opponents" are cut to "turnovers" so the list reads cleanly.
-            same = [n if n.startswith("Clippers") else n[0].lower() + n[1:]
-                    for n in (r.name.split(",")[0] for r in hurts if r not in fixable)]
+            short = lambda r: r.name.split(",")[0] if r.name.startswith("Clippers") else (  # noqa: E731
+                r.name.split(",")[0][0].lower() + r.name.split(",")[0][1:])
+            listed = lambda xs: xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]  # noqa: E731
+            no_switch = [r for r in hurts if r not in fixable]
+            cheaper = [short(r) for r in no_switch if r.per_game - r.prev_per_game >= 0.1]
+            same = [short(r) for r in no_switch if r.per_game - r.prev_per_game < 0.1]
             if same:
-                listed = same[0] if len(same) == 1 else ", ".join(same[:-1]) + " and " + same[-1]
-                st.caption(f"No switch for {listed}: "
-                           f"{'it costs' if len(same) == 1 else 'they cost'} about the same as last season, "
-                           "so going back changes nothing.")
+                st.caption(f"No switch for {listed(same)}: {'it costs' if len(same) == 1 else 'they cost'} about the "
+                           "same as last season, so going back changes nothing.")
+            if cheaper:
+                st.caption(f"No switch for {listed(cheaper)}: {'it costs' if len(cheaper) == 1 else 'they cost'} less "
+                           "than last season, so going back would make things worse.")
         new_h2 = S.what_if(hl["h2_per_game"], reasons, fixed, g_pts, fix_g)
         with right:
             st.metric("Second halves, per game", signed(new_h2), border=True,

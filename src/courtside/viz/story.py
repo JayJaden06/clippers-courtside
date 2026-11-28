@@ -409,8 +409,10 @@ def sixty_seconds(reasons: list[Reason], results: dict, hl: dict, prev_season: s
         out.append(f"<b>{_last(hl.get('focus', ''))}'s turnovers are "
                    f"{'a main cause' if share >= DRIVES else 'part of it, not the main cause'}"
                    f"</b>: at most about {share:.0%} of the second-half drop, counting generously.")
-    new = [_lower(r.name) for r in reasons if r.status == NEW]
-    same = [_lower(r.name) for r in reasons if r.status == SAME]
+    # the same noise line as the page's ranked chart: a part under 0.3 a game isn't "new" or "the same"
+    sized = [r for r in reasons if abs(r.per_game) >= 0.3 or abs(r.prev_per_game) >= 0.3]
+    new = [_lower(r.name) for r in sized if r.status == NEW and r.per_game < 0]
+    same = [_lower(r.name) for r in sized if r.status == SAME]
     if new or same:
         out.append(f"<b>New since {prev_season}:</b> {', '.join(new) or 'nothing'}. "
                    f"<b>Same as before:</b> {', '.join(same) or 'nothing'}.")
