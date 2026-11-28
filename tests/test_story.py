@@ -176,7 +176,7 @@ def test_player_and_league_cards():
     cards = S.player_cards(ph, "A Guard")
     assert [c.title for c in cards] == ["Most turnovers after halftime: Guard", "Sloppiest after halftime: Guard",
                                         "Safest with the ball: Wing"]
-    assert cards[2].big == "1 in 20" and cards[2].viz == ("dots", 1, 20)
+    assert cards[2].big == "5%" and "about 1 in 20" in cards[2].small and cards[2].viz == ("dots", 1, 20)
 
     ranks = pd.DataFrame({"1st half": [15, 3, 23], "2nd half": [25, 19, 20], "change": [24, 28, 12]},
                          index=["Net rating", "Shooting accuracy (eFG%)", "Offensive rebounding"])
