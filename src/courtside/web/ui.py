@@ -71,20 +71,22 @@ def clicked(event, field: str, memo: str):
     return value
 
 
-def kicker() -> str:
-    """The small line above every page title: team, season, and how fresh the data is."""
+def kicker(season: str | None = None) -> str:
+    """The small line above every page title: team, season (the one picked, if the page has a picker), and how
+    fresh the data is."""
     ctx = current()
     data = ctx.data
-    season_now = ctx.season_now
-    last = pd.to_datetime(data.games.loc[data.games["season"] == season_now, "game_date"]).max()
-    return f'<div class="kicker">LA Clippers · {season_now} season · through {last:%b} {last.day}</div>'
+    season = season if season in set(data.games["season"]) else ctx.season_now
+    last = pd.to_datetime(data.games.loc[data.games["season"] == season, "game_date"]).max()
+    return f'<div class="kicker">LA Clippers · {season} season · through {last:%b} {last.day}</div>'
 
 
-def page_top(title: str, subtitle: str, show_kicker: bool = True, band: bool = True) -> None:
+def page_top(title: str, subtitle: str, show_kicker: bool = True, band: bool = True,
+             season: str | None = None) -> None:
     box = st.container(key="band_light_" + re.sub(r"\W+", "_", title.lower())) if band else st.container()
     with box:
         if show_kicker:
-            st.markdown(kicker(), unsafe_allow_html=True)
+            st.markdown(kicker(season), unsafe_allow_html=True)
         left, right = st.columns([3.2, 1.3], vertical_alignment="bottom")  # room for the glossary label
         left.title(title)
         with right:

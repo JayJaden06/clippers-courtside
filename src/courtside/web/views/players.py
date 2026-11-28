@@ -38,13 +38,32 @@ def player_cards(ph: pd.DataFrame, season: str) -> None:
     st.markdown(f'<div class="pcards">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
+def game_table(g: pd.DataFrame) -> pd.DataFrame:
+    """The game-by-game table in words: dates, results, and halves side by side, rates as percents."""
+    when = pd.to_datetime(g["game_date"])
+    return pd.DataFrame({
+        "Date": when.dt.strftime("%b ") + when.dt.day.astype(str),
+        "Opponent": g["opponent_abbreviation"],
+        "Result": g["result"] + " " + g["final_margin"].map(lambda m: f"{m:+d}".replace("-", "−")),
+        "Early lead": g["lead_class"],
+        "Minutes, 1st half": g["minutes_h1"].round().astype(int),
+        "Minutes, 2nd half": g["minutes_h2"].round().astype(int),
+        "Turnovers, 1st half": g["tov_h1"],
+        "Turnovers, 2nd half": g["tov_h2"],
+        "Steals against, 2nd half": g["tov_live_h2"],
+        "Plays ending in a turnover, 1st half": (100 * g["tov_pct_h1"]).round().astype(int).astype(str) + "%",
+        "Plays ending in a turnover, 2nd half": (100 * g["tov_pct_h2"]).round().astype(int).astype(str) + "%",
+    })
+
+
 def page_players() -> None:
     ctx = current()
     data = ctx.data
     focus = ctx.focus
     season_now = ctx.season_now
     PAGE_LEAGUE = ctx.pages["league"]
-    page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.")
+    page_top("Players", "Who loses the ball after halftime. Click a card or a player to dig in.",
+             season=st.session_state.get("player_season"))  # the line above the title follows the season picked
     nav_ = toc_slot("players")
     band = st.container(key="band_navy_players")  # the season picker and the key cards share the navy band
     season_p = band.columns([1, 5])[0].selectbox("Season", data.seasons, index=0, key="player_season")
@@ -150,6 +169,6 @@ def page_players() -> None:
         fig.update_layout(barmode="group", bargap=0.3)
         show(fig, 300, yaxis_title="Turnovers")
         with st.expander("Game-by-game table"):
-            st.dataframe(g.drop(columns=["game_id"]), hide_index=True, width="stretch")
+            st.dataframe(game_table(g), hide_index=True, width="stretch")
     fill_toc(nav_)
     next_step(PAGE_LEAGUE, "Is this normal? How every team changes after halftime.")

@@ -106,7 +106,7 @@ h1, .hero {color: #13213f}
 .pc-name {font-weight: 700; font-size: .95rem; line-height: 1.15}
 .pc-stats {display: flex; gap: .9rem; margin-top: .35rem}
 .pc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; display: block; line-height: 1}
-.pc-stats span {font-size: .72rem; opacity: .7; line-height: 1.15; display: block}
+.pc-stats span {font-size: .78rem; opacity: .82; line-height: 1.2; display: block}
 /* ---- opposing scorers: photo on their team's color, defenders listed underneath */
 .scards {display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: .9rem; margin: .4rem 0 1rem 0}
 .scard {border-radius: 14px; overflow: hidden; background: #ffffff; border: 1px solid #e3e0d8;
@@ -141,7 +141,7 @@ h1, .hero {color: #13213f}
 .hc-name {font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2rem; line-height: 1; color: #13213f}
 .hc-stats {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-top: .8rem}
 .hc-stats b {font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; display: block; line-height: 1}
-.hc-stats span {font-size: .8rem; opacity: .7; line-height: 1.2; display: block; margin-top: .2rem}
+.hc-stats span {font-size: .8rem; opacity: .78; line-height: 1.3; display: block; margin-top: .2rem}
 .hc-up {color: #b64b20} .hc-down {color: #2e6cb7}
 /* ---- white panels on the off-white page: every chart and drawing sits on its own card */
 /* the panel goes on the chart's wrapper, so the chart sizes itself to the inside of the panel */
@@ -180,7 +180,9 @@ h1, .hero {color: #13213f}
                object-position: top; background: #e3e0d8}
 .slop-row .nm {font-weight: 700}
 .slop-row .vals {font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 800; text-align: right}
-.slop-row .vals .b {color: #7f7d77; font-weight: 600}
+.slop-row .vals .b {color: #6b6964; font-weight: 600}
+/* the verdict chips take their color from the data; a dark wash under the white text keeps it 4.5:1+ */
+.slop-row .chip.sm {box-shadow: inset 0 0 0 99px rgba(0, 0, 0, .18)}
 .slop-row .trk {grid-column: 2 / 4; margin: 0}
 .chip.sm {font-size: .7rem; padding: .08rem .45rem; margin-left: .4rem; vertical-align: .1rem}
 /* ---- On this page: section pills that stay under the menu and light up as you scroll */
